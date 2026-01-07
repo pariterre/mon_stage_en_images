@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
+import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
@@ -296,9 +297,11 @@ class StudentsScreenState extends State<StudentsScreen> {
             ? 1
             : 0);
 
-    return Scaffold(
+    return ResponsiveService.scaffoldOf(
+      context,
       key: scaffoldKey,
-      appBar: AppBar(
+      appBar: ResponsiveService.appBarOf(
+        context,
         title: const Text('Mes élèves'),
         leading: OnboardingTarget(
           onboardingId: drawer,
@@ -359,7 +362,9 @@ class StudentsScreenState extends State<StudentsScreen> {
           ),
         ],
       ),
-      drawer: const MainDrawer(),
+      smallDrawer: MainDrawer.small,
+      mediumDrawer: MainDrawer.medium,
+      largeDrawer: MainDrawer.large,
     );
   }
 }

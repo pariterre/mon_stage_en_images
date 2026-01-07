@@ -12,7 +12,24 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MainDrawer extends StatelessWidget {
-  const MainDrawer({super.key});
+  const MainDrawer({
+    super.key,
+    this.showTitle = true,
+    this.iconOnly = false,
+    this.canPop = true,
+    this.roundedCorners = true,
+  });
+
+  static MainDrawer get small => const MainDrawer();
+  static MainDrawer get medium =>
+      const MainDrawer(iconOnly: true, canPop: false, roundedCorners: false);
+  static MainDrawer get large =>
+      const MainDrawer(canPop: false, roundedCorners: false);
+
+  final bool showTitle;
+  final bool iconOnly;
+  final bool canPop;
+  final bool roundedCorners;
 
   @override
   Widget build(BuildContext context) {
@@ -23,27 +40,48 @@ class MainDrawer extends StatelessWidget {
         Provider.of<SharedPreferencesNotifier>(context, listen: true);
 
     return Drawer(
+      width: iconOnly ? 120.0 : null,
+      shape: roundedCorners
+          ? null
+          : RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(0.0),
+            ),
       child: Scaffold(
-        appBar:
-            AppBar(title: const Text('Menu principal'), leading: Container()),
+        appBar: showTitle
+            ? AppBar(
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(Icons.menu),
+                    SizedBox(width: 8.0),
+                    if (!iconOnly) const Text('Menu principal'),
+                  ],
+                ),
+                automaticallyImplyLeading: false,
+              )
+            : null,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (userType == UserType.teacher)
               MenuItem(
-                  title: 'Mes élèves',
-                  icon: Icons.person,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(StudentsScreen.routeName)),
+                title: 'Mes élèves',
+                icon: Icons.person,
+                onTap: () =>
+                    Navigator.of(context).pushNamed(StudentsScreen.routeName),
+                iconOnly: iconOnly,
+              ),
             if (userType == UserType.teacher)
               OnboardingTarget(
                 onboardingId: drawerOpened,
                 child: MenuItem(
-                    title: 'Gestion des questions',
-                    icon: Icons.speaker_notes,
-                    onTap: () => Navigator.of(context).pushReplacementNamed(
-                        QAndAScreen.routeName,
-                        arguments: [Target.all, PageMode.edit, null])),
+                  title: 'Gestion des questions',
+                  icon: Icons.speaker_notes,
+                  onTap: () => Navigator.of(context).pushReplacementNamed(
+                      QAndAScreen.routeName,
+                      arguments: [Target.all, PageMode.edit, null]),
+                  iconOnly: iconOnly,
+                ),
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
@@ -55,6 +93,7 @@ class MainDrawer extends StatelessWidget {
                   onTap: () => Navigator.of(context).pushReplacementNamed(
                       QAndAScreen.routeName,
                       arguments: [Target.all, PageMode.fixView, null]),
+                  iconOnly: iconOnly,
                 ),
               ),
             if (userType == UserType.teacher) const Divider(),
@@ -62,13 +101,15 @@ class MainDrawer extends StatelessWidget {
               OnboardingTarget(
                 onboardingId: learnMore,
                 child: MenuItem(
-                    title: 'Apprendre sur la SST',
-                    icon: Icons.web,
-                    onTap: () async {
-                      await launchUrl(GoToIrsstScreen.url);
-                      if (!context.mounted) return;
-                      Navigator.of(context).pop();
-                    }),
+                  title: 'Apprendre sur la SST',
+                  icon: Icons.web,
+                  onTap: () async {
+                    await launchUrl(GoToIrsstScreen.url);
+                    if (!context.mounted) return;
+                    if (canPop) Navigator.of(context).pop();
+                  },
+                  iconOnly: iconOnly,
+                ),
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
@@ -83,6 +124,7 @@ class MainDrawer extends StatelessWidget {
                           onTap: () {
                             sharedPrefs.setHasSeenOnboardingTo(!snapshot.data!);
                           },
+                          iconOnly: iconOnly,
                         ),
                         const Divider(),
                       ]);
@@ -91,9 +133,11 @@ class MainDrawer extends StatelessWidget {
                     return SizedBox.shrink();
                   }),
             MenuItem(
-                title: 'Déconnexion',
-                icon: Icons.exit_to_app,
-                onTap: () => Helpers.onClickQuit(context)),
+              title: 'Déconnexion',
+              icon: Icons.exit_to_app,
+              onTap: () => Helpers.onClickQuit(context),
+              iconOnly: iconOnly,
+            )
           ],
         ),
       ),
@@ -102,17 +146,20 @@ class MainDrawer extends StatelessWidget {
 }
 
 class MenuItem extends StatelessWidget {
-  const MenuItem(
-      {super.key,
-      required this.title,
-      required this.icon,
-      this.onTap,
-      this.iconColor});
+  const MenuItem({
+    super.key,
+    required this.title,
+    required this.icon,
+    this.onTap,
+    this.iconColor,
+    required this.iconOnly,
+  });
 
   final String title;
   final VoidCallback? onTap;
   final Color? iconColor;
   final IconData icon;
+  final bool iconOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +170,9 @@ class MenuItem extends StatelessWidget {
           icon,
           color: iconColor ?? Theme.of(context).colorScheme.secondary,
         ),
-        title: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        title: iconOnly
+            ? null
+            : Text(title, style: Theme.of(context).textTheme.titleLarge),
         onTap: onTap,
       ),
     );

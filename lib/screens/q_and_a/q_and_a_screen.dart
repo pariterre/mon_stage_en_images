@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -147,11 +148,12 @@ class _QAndAScreenState extends State<QAndAScreen> {
     setState(() {});
   }
 
-  AppBar _setAppBar() {
+  PreferredSizeWidget _setAppBar() {
     final currentTheme = Theme.of(context).textTheme.titleLarge!;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
 
-    return AppBar(
+    return ResponsiveService.appBarOf(
+      context,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -201,7 +203,8 @@ class _QAndAScreenState extends State<QAndAScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ResponsiveService.scaffoldOf(
+      context,
       appBar: _setAppBar(),
       body: Column(
         children: [
@@ -264,7 +267,9 @@ class _QAndAScreenState extends State<QAndAScreen> {
           ),
         ],
       ),
-      drawer: const MainDrawer(),
+      smallDrawer: MainDrawer.small,
+      mediumDrawer: MainDrawer.medium,
+      largeDrawer: MainDrawer.large,
     );
   }
 }
