@@ -43,31 +43,12 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
   Timer? _rectDrawTimer;
 
-  /// Tracks tentatives to draw a rect
-  int _drawAttempts = 0;
-
-  /// Last different rect drawn
-  Rect? _lastRect;
-
-  /// Maximum attempts allowed to draw a rect for the current onboarding step
-  final int _maxAttempts = 30;
-
-  /// Number of consecutive identical rect drawn to be confident that any navigation animation is completed
-  /// and that our target widget won't move on the view anymore
-  final int _consecutiveIdenticalRectRequired = 3;
-
   /// Delay after which the rect drawing process will start again
   final Duration _retryDelay = Duration(milliseconds: 40);
-
-  late int _consecutiveEqualRects;
-
-  late bool _navEnabled;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    _navEnabled = true;
-    _consecutiveEqualRects = 0;
     _resetAndDrawNewRect();
     super.initState();
   }
@@ -98,85 +79,28 @@ class _OnboardingDialogState extends State<OnboardingDialog>
     super.didChangeMetrics();
   }
 
-  /// Sets the navigation buttons' state
-  void _setNavTo(bool value) {
-    if (value != _navEnabled) {
-      setState(() {
-        _navEnabled = value;
-      });
-    }
-  }
-
   /// Resets every timer and attempts counter used to limit our calls to _rectFromWidgetKeyLabel
   /// and then starts another sequence of rect drawing
   void _resetAndDrawNewRect() {
     _rectDrawTimer?.cancel();
     _rectDrawTimer = null;
-    _drawAttempts = 0;
     _rectNotifier.value = null;
-    _setNavTo(false);
     _tryDrawRect();
   }
 
   /// Tries to draw a rect from the widget.targetId provided and then tests its stability across several frames.
   /// This check prevents an early display of the rect during any navigation animation.
   void _tryDrawRect() {
-    if (!mounted) {
-      _setNavTo(true);
-      return;
-    }
-
-    // Do we exceed the permitted max attempts ?
-    if (_drawAttempts >= _maxAttempts) {
-      _logger.finest('_tryDrawRect : max Attempts reached, returning');
-      _setNavTo(true);
-      return;
-    }
-
-    _drawAttempts++;
+    if (!mounted) return;
 
     // We will try to draw our rect
     final Rect? rect = _rectFromWidgetKeyLabel(widget.targetContext);
-
     if (rect == null) {
       _logger.finest(
           '_tryDrawRect : rect is null after _rectFromWidgetKeyLabel,retyring and returning');
       _waitAndRetry();
       return;
     }
-
-    // // The rect has changed since the last attempt, we don't want to display it as it is not yet stable.
-    // if (rect != _lastRect) {
-    //   _logger.finest(
-    //       '_tryDrawRect : rect $rect !=  _lastRect $_lastRect after _rectFromWidgetKeyLabel, retrying and returning');
-    //   _lastRect = rect;
-    //   _consecutiveEqualRects = 0;
-    //   _waitAndRetry();
-    //   return;
-    // }
-
-    // // Rect hasn't changed since the last attempt, it is now a good candidate to be shown, but we need to check
-    // // if its value will remain stable across several frames.
-    // if (rect == _lastRect) {
-    //   _consecutiveEqualRects++;
-    //   _logger.finest(
-    //       '_tryDrawRect : rect and _lastRect identical ! Increasing _consecutiveEqualRects to $_consecutiveEqualRects ');
-
-    //   // Now we are confident that the rect won't change anymore,
-    //   // we can display it and trigger a rebuild through ValueNotifierListenable in build.
-    //   if (_consecutiveEqualRects >= _consecutiveIdenticalRectRequired) {
-    //     _logger.finest(
-    //         '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, exceeding _consecutiveIdenticalRectRequired. Rect is stable, changing _rectNotifier.value to $rect');
-    //     _rectNotifier.value = rect;
-    //     _setNavTo(true);
-    //     return;
-    //   }
-    //   // We need more attempts to be sure that the rect is stable
-    //   _logger.finest(
-    //       '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, rerunning _tryDrawRect until it reaches _consecutiveIdenticalRectRequired');
-    //   _waitAndRetry();
-    //   return;
-    // }
   }
 
   /// An helper to rerun _tryDrawRect after some delay
@@ -297,12 +221,7 @@ class _OnboardingDialogState extends State<OnboardingDialog>
                       children: [
                         if (widget.onBackward != null)
                           OutlinedButton.icon(
-                              onPressed: _navEnabled
-                                  ? () {
-                                      widget.onBackward!();
-                                      _setNavTo(false);
-                                    }
-                                  : null,
+                              onPressed: () => widget.onBackward!(),
                               iconAlignment: IconAlignment.start,
                               icon: Icon(Icons.keyboard_arrow_left_sharp),
                               label: Text(
@@ -314,12 +233,7 @@ class _OnboardingDialogState extends State<OnboardingDialog>
                                         .fontSize),
                               )),
                         FilledButton.icon(
-                          onPressed: _navEnabled
-                              ? () async {
-                                  widget.onForward();
-                                  _setNavTo(false);
-                                }
-                              : null,
+                          onPressed: () => widget.onForward(),
                           label: Text('Suivant',
                               style: TextStyle(
                                   fontSize: Theme.of(context)
