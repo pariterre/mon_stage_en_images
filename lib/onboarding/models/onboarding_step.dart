@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/onboarding/application/onboarding_keys_service.dart';
 
 /// Represents a step in the onboarding sequence.
 class OnboardingStep {
   const OnboardingStep(
-      {required this.targetId,
+      {required this.title,
       required this.routeName,
       required this.message,
       this.arguments,
@@ -19,7 +18,7 @@ class OnboardingStep {
 
   /// A string shared by instance of this class and the OnboardingTarget widget to find the targeted widget across the tree.
   /// Link between these objects is permitted by the OnboardingKeysService. targetId Strings are available in the OnboardingStepList.
-  final String targetId;
+  final String title;
 
   final bool isLast;
 
@@ -32,22 +31,11 @@ class OnboardingStep {
   final Future<void> Function(
       BuildContext? context, State<StatefulWidget>? state)? prepareNav;
 
-  /// Calls the OnboardingKeysService to retrieve the GlobalKey associated with the targetId
-  GlobalKey? get widgetKey =>
-      OnboardingKeysService.instance.findTargetKeyWithId(targetId);
-
   void resetScaffoldElements(
-      BuildContext? context, State<StatefulWidget> state) {
-    if (!state.mounted && context == null) return;
+      BuildContext context, State<StatefulWidget> state) {
+    if (!state.mounted) return;
 
-    ScaffoldState? scaffoldState;
-
-    if (widgetKey?.currentContext != null) {
-      scaffoldState = Scaffold.of(widgetKey!.currentContext!);
-    }
-
-    if (scaffoldState?.isDrawerOpen == true) {
-      scaffoldState?.closeDrawer();
-    }
+    final scaffoldState = Scaffold.of(context);
+    if (scaffoldState.isDrawerOpen == true) scaffoldState.closeDrawer();
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SharedPreferencesManager extends ChangeNotifier {
+class SharedPreferencesController extends ChangeNotifier {
   // Singleton pattern
-  SharedPreferencesManager._();
-  static final SharedPreferencesManager _instance =
-      SharedPreferencesManager._();
-  static SharedPreferencesManager get instance => _instance;
+  SharedPreferencesController._();
+  static final SharedPreferencesController _instance =
+      SharedPreferencesController._();
+  static SharedPreferencesController get instance => _instance;
 
   Future<void> initialize({
     SharedPreferencesOptions sharedPreferencesOptions =
@@ -48,7 +48,7 @@ class SharedPreferencesManager extends ChangeNotifier {
   set hasSeenOnboarding(bool value) {
     _forceFailIfNotInitialized();
     _prefs!
-        .setBool(_hasSeenOnboardingKey, value)
+        .setBool(_hasSeenOnboardingKey, false) // TODO value)
         .then((_) => notifyListeners());
   }
 

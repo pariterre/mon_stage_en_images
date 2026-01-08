@@ -17,16 +17,8 @@ class GoToIrsstScreen extends StatelessWidget {
         'publications-et-outils/publication/i/101076/n/sst-supervision-de-stages-',
   );
 
-  Future<void> _goVisitWebSite(BuildContext context) async {
-    await launchUrl(url);
-    if (!context.mounted) return;
-    await RouteManager.instance.gotoStudentsPage(context);
-  }
-
   @override
   Widget build(context) {
-    SharedPreferencesManager.instance.hasAlreadySeenTheIrrstPage = true;
-
     return Scaffold(
       body: Center(
         child: MainTitleBackground(
@@ -45,13 +37,16 @@ class GoToIrsstScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () => _goVisitWebSite(context),
+                  onPressed: () async => await launchUrl(url),
                   style: studentTheme().elevatedButtonTheme.style,
                   child: const Text('Visiter le site web'),
                 ),
                 ElevatedButton(
-                    onPressed: () =>
-                        RouteManager.instance.gotoStudentsPage(context),
+                    onPressed: () {
+                      SharedPreferencesController
+                          .instance.hasAlreadySeenTheIrrstPage = true;
+                      RouteManager.instance.gotoStudentsPage(context);
+                    },
                     style: studentTheme().elevatedButtonTheme.style,
                     child: const Text('Continuer')),
               ],

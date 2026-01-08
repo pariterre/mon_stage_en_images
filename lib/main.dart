@@ -7,6 +7,8 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/providers/speecher.dart';
+import 'package:mon_stage_en_images/default_onboarding_steps.dart';
+import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:provider/provider.dart';
 
 import '/firebase_options.dart';
@@ -36,17 +38,50 @@ void main() async {
       currentPlatform: DefaultFirebaseOptions.currentPlatform);
 
   await initializeDateFormatting('fr_FR', null);
-  await SharedPreferencesManager.instance.initialize();
+  await SharedPreferencesController.instance.initialize();
   await RouteManager.instance.initialize();
 
+  final onboardingController = OnboardingController(
+    steps: onboardingSteps,
+    getCurrentScreenKey: () => RouteManager.instance.currentScreenKey,
+    getNavigatorState: () => RouteManager.instance.navigatorKey.currentState,
+    shouldShowTutorial: (context) {
+      final prefs = SharedPreferencesController.instance;
+      if (prefs.hasSeenOnboarding || !prefs.hasAlreadySeenTheIrrstPage) {
+        return false;
+      }
+
+      final currentUser =
+          Provider.of<Database>(context, listen: false).currentUser;
+      if (currentUser?.userType != UserType.teacher ||
+          !currentUser!.termsAndServicesAccepted) {
+        return false;
+      }
+      return true;
+    },
+    onOnboardingComplete: () {
+      SharedPreferencesController.instance.hasSeenOnboarding = true;
+    },
+  );
+  SharedPreferencesController.instance.addListener(() {
+    if (!SharedPreferencesController.instance.hasSeenOnboarding) {
+      onboardingController.requestOnboarding();
+    }
+  });
+
   // Run the app
-  runApp(MyApp(userDatabase: userDatabase));
+  runApp(MyApp(
+      userDatabase: userDatabase, onboardingController: onboardingController));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.userDatabase});
+  const MyApp(
+      {super.key,
+      required this.userDatabase,
+      required this.onboardingController});
 
   final Database userDatabase;
+  final OnboardingController onboardingController;
 
   @override
   Widget build(BuildContext context) {
@@ -87,56 +122,45 @@ class MyApp extends StatelessWidget {
                 settings: RouteSettings(
                     name: settings.name, arguments: settings.arguments));
           },
-          // navigatorObservers: [OnboardingNavigatorObserver.instance],
-          // routes: {
-          //   CheckVersionScreen.routeName: (context) =>
-          //       const CheckVersionScreen(),
-          //   LoginScreen.routeName: (context) => const LoginScreen(),
-          //   TermsAndServicesScreen.routeName: (context) =>
-          //       const TermsAndServicesScreen(),
-          //   GoToIrsstScreen.routeName: (context) => const GoToIrsstScreen(),
-          //   StudentsScreen.routeName: (context) => const StudentsScreen(),
-          //   QAndAScreen.routeName: (context) => const QAndAScreen(),
-          // },
+          navigatorObservers: [onboardingController.observer],
           builder: (context, child) {
-            // final prefs = SharedPreferencesController.instance;
-            return child!;
-            // OnboardingLayout(
-            //   onBoardingSteps: onboardingSteps,
-            //   child: Stack(alignment: Alignment.bottomCenter, children: [
-            //     child!,
-            //     if (showDebugOverlay)
-            //       Positioned(
-            //         bottom: 150,
-            //         child: Material(
-            //           child: SizedBox(
-            //             width: 250,
-            //             child: Card(
-            //               color: Theme.of(context)
-            //                   .secondaryHeaderColor
-            //                   .withAlpha(150),
-            //               child: Row(
-            //                 mainAxisSize: MainAxisSize.max,
-            //                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //                 children: [
-            //                   Text(prefs.hasSeenOnboarding
-            //                       ? 'Onboarding vu'
-            //                       : 'Onboarding non vu'),
-            //                   Switch(
-            //                     value: prefs.hasSeenOnboarding,
-            //                     onChanged: (_) {
-            //                       prefs.hasSeenOnboarding =
-            //                           !prefs.hasSeenOnboarding;
-            //                     },
-            //                   )
-            //                 ],
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //       )
-            //   ]),
-            // );
+            final prefs = SharedPreferencesController.instance;
+            return OnboardingOverlay(
+              controller: onboardingController,
+              child: Stack(alignment: Alignment.bottomCenter, children: [
+                child!,
+                if (showDebugOverlay)
+                  Positioned(
+                    bottom: 150,
+                    child: Material(
+                      child: SizedBox(
+                        width: 250,
+                        child: Card(
+                          color: Theme.of(context)
+                              .secondaryHeaderColor
+                              .withAlpha(150),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(prefs.hasSeenOnboarding
+                                  ? 'Onboarding vu'
+                                  : 'Onboarding non vu'),
+                              Switch(
+                                value: prefs.hasSeenOnboarding,
+                                onChanged: (_) {
+                                  prefs.hasSeenOnboarding =
+                                      !prefs.hasSeenOnboarding;
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+              ]),
+            );
           },
         );
       }),

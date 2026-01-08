@@ -103,7 +103,7 @@ class MainDrawer extends StatelessWidget {
                   title: 'Revoir le tutoriel',
                   icon: Icons.help,
                   onTap: () {
-                    final sharedPrefs = SharedPreferencesManager.instance;
+                    final sharedPrefs = SharedPreferencesController.instance;
                     sharedPrefs.hasSeenOnboarding =
                         !sharedPrefs.hasSeenOnboarding;
                   },

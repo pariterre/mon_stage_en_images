@@ -97,7 +97,7 @@ class RouteManager {
         break;
       case UserType.teacher:
       case UserType.none:
-        if (SharedPreferencesManager.instance.hasAlreadySeenTheIrrstPage) {
+        if (SharedPreferencesController.instance.hasAlreadySeenTheIrrstPage) {
           await gotoStudentsPage(context);
         } else {
           await currentState?.pushReplacementNamed(GoToIrsstScreen.routeName);
@@ -155,4 +155,7 @@ class RouteManager {
         return SizedBox.shrink(key: _currentScreenKey);
     }
   }
+
+  final ValueNotifier<AnimationStatus?> animationStatus =
+      ValueNotifier(AnimationStatus.completed);
 }

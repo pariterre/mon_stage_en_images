@@ -8,7 +8,6 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
-import 'package:mon_stage_en_images/onboarding/application/onboarding_observer.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/question_and_answer_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/filter_answers_dialog.dart';
@@ -56,11 +55,10 @@ class _QAndAScreenState extends State<QAndAScreen> {
     _pageViewAnimationListener = () {
       _logger.finest("page in pageControlller is ${_pageController.page}");
       if (_pageController.page == _pageController.page?.roundToDouble()) {
-        OnboardingNavigatorObserver.instance.animationStatus.value =
-            AnimationStatus.completed;
+        // TODO Remove this?
+        RouteManager.instance.animationStatus.value = AnimationStatus.completed;
       } else {
-        OnboardingNavigatorObserver.instance.animationStatus.value =
-            AnimationStatus.dismissed;
+        RouteManager.instance.animationStatus.value = AnimationStatus.dismissed;
       }
     };
     _pageController.addListener(_pageViewAnimationListener!);

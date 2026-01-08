@@ -115,7 +115,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     // If it is the very first time the teacher validates an answer, we want to
     // Show a pop explaining that the student can continue to see the question
     // But cannot modify his answer anymore.
-    final prefs = SharedPreferencesManager.instance;
+    final prefs = SharedPreferencesController.instance;
     final showPopup = prefs.showValidationWarning;
     if (!mounted) return;
 

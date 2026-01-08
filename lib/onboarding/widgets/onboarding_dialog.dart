@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/main.dart';
-import 'package:mon_stage_en_images/onboarding/application/onboarding_keys_service.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
-import 'package:mon_stage_en_images/onboarding/widgets/hole_clipper.dart';
 
 final _logger = Logger('OnboardingDialogWithHighlight');
 
@@ -13,32 +11,33 @@ final _logger = Logger('OnboardingDialogWithHighlight');
 /// to highlight the targeted Widget. Performs some stabilty checks,
 /// allowing any standard duration animation to complete
 /// before drawing the highlighted area
-class OnboardingDialogWithHighlight extends StatefulWidget {
-  const OnboardingDialogWithHighlight(
-      {super.key,
-      this.manualHoleRect = Rect.zero,
-      this.onboardingStep,
-      this.complete,
-      required this.onForward,
-      this.onBackward});
+class OnboardingDialog extends StatefulWidget {
+  const OnboardingDialog({
+    super.key,
+    required this.targetContext,
+    this.manualHoleRect = Rect.zero,
+    this.onboardingStep,
+    this.complete,
+    required this.onForward,
+    this.onBackward,
+  });
 
   /// Optional holeRect for overriding the clip provided by the globalKey (onboardingStep property)
   final Rect? manualHoleRect;
 
   final OnboardingStep? onboardingStep;
-  String? get targetId => onboardingStep?.targetId;
+  final BuildContext targetContext;
 
   final void Function() onForward;
   final void Function()? onBackward;
   final void Function()? complete;
 
   @override
-  State<OnboardingDialogWithHighlight> createState() =>
-      _OnboardingDialogWithHighlightState();
+  State<OnboardingDialog> createState() => _OnboardingDialogState();
 }
 
-class _OnboardingDialogWithHighlightState
-    extends State<OnboardingDialogWithHighlight> with WidgetsBindingObserver {
+class _OnboardingDialogState extends State<OnboardingDialog>
+    with WidgetsBindingObserver {
   /// Rect to be displayed on the overlay
   final ValueNotifier<Rect?> _rectNotifier = ValueNotifier(null);
 
@@ -83,8 +82,8 @@ class _OnboardingDialogWithHighlightState
 
   // Refreshes the rect when the onboardingStep provided to this widget changes.
   @override
-  void didUpdateWidget(covariant OnboardingDialogWithHighlight oldWidget) {
-    if (oldWidget.targetId != widget.targetId) {
+  void didUpdateWidget(covariant OnboardingDialog oldWidget) {
+    if (oldWidget.key != widget.key) {
       _resetAndDrawNewRect();
     }
     super.didUpdateWidget(oldWidget);
@@ -122,7 +121,7 @@ class _OnboardingDialogWithHighlightState
   /// Tries to draw a rect from the widget.targetId provided and then tests its stability across several frames.
   /// This check prevents an early display of the rect during any navigation animation.
   void _tryDrawRect() {
-    if (!mounted || widget.targetId == null) {
+    if (!mounted) {
       _setNavTo(true);
       return;
     }
@@ -137,7 +136,7 @@ class _OnboardingDialogWithHighlightState
     _drawAttempts++;
 
     // We will try to draw our rect
-    final Rect? rect = _rectFromWidgetKeyLabel(widget.targetId!);
+    final Rect? rect = _rectFromWidgetKeyLabel(widget.targetContext);
 
     if (rect == null) {
       _logger.finest(
@@ -146,40 +145,38 @@ class _OnboardingDialogWithHighlightState
       return;
     }
 
-    // The rect has changed since the last attempt, we don't want to display it as it is not yet stable.
-    if (rect != _lastRect) {
-      _logger.finest(
-          '_tryDrawRect : rect $rect !=  _lastRect $_lastRect after _rectFromWidgetKeyLabel, retrying and returning');
-      _lastRect = rect;
-      _consecutiveEqualRects = 0;
-      _waitAndRetry();
-      return;
-    }
+    // // The rect has changed since the last attempt, we don't want to display it as it is not yet stable.
+    // if (rect != _lastRect) {
+    //   _logger.finest(
+    //       '_tryDrawRect : rect $rect !=  _lastRect $_lastRect after _rectFromWidgetKeyLabel, retrying and returning');
+    //   _lastRect = rect;
+    //   _consecutiveEqualRects = 0;
+    //   _waitAndRetry();
+    //   return;
+    // }
 
-    // Rect hasn't changed since the last attempt, it is now a good candidate to be shown, but we need to check
-    // if its value will remain stable across several frames.
-    if (rect == _lastRect) {
-      _consecutiveEqualRects++;
-      _logger.finest(
-          '_tryDrawRect : rect and _lastRect identical ! Increasing _consecutiveEqualRects to $_consecutiveEqualRects ');
+    // // Rect hasn't changed since the last attempt, it is now a good candidate to be shown, but we need to check
+    // // if its value will remain stable across several frames.
+    // if (rect == _lastRect) {
+    //   _consecutiveEqualRects++;
+    //   _logger.finest(
+    //       '_tryDrawRect : rect and _lastRect identical ! Increasing _consecutiveEqualRects to $_consecutiveEqualRects ');
 
-      // Now we are confident that the rect won't change anymore,
-      // we can display it and trigger a rebuild through ValueNotifierListenable in build.
-      if (_consecutiveEqualRects >= _consecutiveIdenticalRectRequired) {
-        _logger.finest(
-            '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, exceeding _consecutiveIdenticalRectRequired. Rect is stable, changing _rectNotifier.value to $rect');
-        _rectNotifier.value = rect;
-        _logger.finest(
-            ' _tryDrawRect : found a rect for ${widget.targetId} , with a value of $rect');
-        _setNavTo(true);
-        return;
-      }
-      // We need more attempts to be sure that the rect is stable
-      _logger.finest(
-          '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, rerunning _tryDrawRect until it reaches _consecutiveIdenticalRectRequired');
-      _waitAndRetry();
-      return;
-    }
+    //   // Now we are confident that the rect won't change anymore,
+    //   // we can display it and trigger a rebuild through ValueNotifierListenable in build.
+    //   if (_consecutiveEqualRects >= _consecutiveIdenticalRectRequired) {
+    //     _logger.finest(
+    //         '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, exceeding _consecutiveIdenticalRectRequired. Rect is stable, changing _rectNotifier.value to $rect');
+    //     _rectNotifier.value = rect;
+    //     _setNavTo(true);
+    //     return;
+    //   }
+    //   // We need more attempts to be sure that the rect is stable
+    //   _logger.finest(
+    //       '_tryDrawRect : _consecutiveEqualRects is $_consecutiveEqualRects, rerunning _tryDrawRect until it reaches _consecutiveIdenticalRectRequired');
+    //   _waitAndRetry();
+    //   return;
+    // }
   }
 
   /// An helper to rerun _tryDrawRect after some delay
@@ -189,23 +186,9 @@ class _OnboardingDialogWithHighlightState
 
   /// Get the RenderBox from the widgetKey getter, which is linked to the targeted Widget in the tree
   /// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
-  Rect? _rectFromWidgetKeyLabel(String keyLabel) {
-    GlobalKey? targetKey;
+  Rect? _rectFromWidgetKeyLabel(BuildContext targetContext) {
     Rect? rect;
 
-    targetKey = OnboardingKeysService.instance.findTargetKeyWithId(keyLabel);
-    if (targetKey == null) {
-      _logger.warning(
-          '_rectFromWidgetKeyLabel : cannot obtain targetKey, returning');
-      return null;
-    }
-
-    if (targetKey.currentContext == null ||
-        !targetKey.currentContext!.mounted) {
-      _logger.severe('_rectFromWidgetKeyLabel : cannot obtain context');
-      return null;
-    }
-    final targetContext = targetKey.currentContext!;
     _logger.finest('_rectFromWidgetKeyLabel : context is $targetContext');
 
     if (!targetContext.mounted) {
@@ -229,6 +212,11 @@ class _OnboardingDialogWithHighlightState
     final vertOffset = MediaQuery.of(targetContext).padding.top;
 
     final offset = widgetObject.localToGlobal(Offset(0, 0 - vertOffset));
+    if (!widgetObject.hasSize) {
+      _logger.severe(
+          '_rectFromWidgetKeyLabel : widgetObject has no size after getting its localToGlobal, returning null');
+      return null;
+    }
     final size = widgetObject.size;
     final insets = EdgeInsets.all(12);
 
@@ -257,7 +245,7 @@ class _OnboardingDialogWithHighlightState
           valueListenable: _rectNotifier,
           builder: (context, Rect? rect, child) {
             return ClipPath(
-                clipper: rect != null ? HoleClipper(holeRect: rect) : null,
+                clipper: rect != null ? _HoleClipper(holeRect: rect) : null,
                 child: Container(
                   decoration:
                       BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
@@ -351,5 +339,40 @@ class _OnboardingDialogWithHighlightState
         )
       ],
     );
+  }
+}
+
+/// Takes the Rect drawn from the Render Box of the targeted onboarding Widget
+/// and substracts it to another path filling the whole view. Meant to be provided
+/// to the OnBoardingDialogClippedBackground widget as a background for the onboarding dialog.
+class _HoleClipper extends CustomClipper<Path> {
+  const _HoleClipper({required this.holeRect});
+
+  /// Whether the clipped zone should have rounded corners or not
+  final bool makeRRect = true;
+
+  /// Radius for the rounded corners clipped zone
+  final double radius = 12;
+
+  /// Rect drawn from the RenderBox of the targeted onboarding Widget.
+  final Rect holeRect;
+
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+
+    path.addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final rrectFromHoleRect =
+        RRect.fromRectAndRadius(holeRect, Radius.circular(radius));
+
+    makeRRect ? path.addRRect(rrectFromHoleRect) : path.addRect(holeRect);
+    path.fillType = PathFillType.evenOdd;
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _HoleClipper oldClipper) {
+    return true;
   }
 }
