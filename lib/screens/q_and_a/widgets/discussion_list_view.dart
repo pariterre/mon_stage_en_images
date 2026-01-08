@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/misc/storage_service.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -15,7 +16,6 @@ import 'package:mon_stage_en_images/common/providers/speecher.dart';
 import 'package:mon_stage_en_images/common/widgets/animated_icon.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/discussion_tile.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscussionListView extends StatefulWidget {
   const DiscussionListView({
@@ -115,9 +115,8 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     // If it is the very first time the teacher validates an answer, we want to
     // Show a pop explaining that the student can continue to see the question
     // But cannot modify his answer anymore.
-    final showPopup = (await SharedPreferences.getInstance())
-            .getBool('showValidatingWarning') ??
-        true;
+    final prefs = SharedPreferencesManager.instance;
+    final showPopup = prefs.showValidationWarning;
     if (!mounted) return;
 
     if (markAsValidated && showPopup) {
@@ -139,8 +138,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                   ),
                 ],
               ));
-      (await SharedPreferences.getInstance())
-          .setBool('showValidatingWarning', false);
+      prefs.showValidationWarning = false;
       // If the user cancels, we don't want to continue.
       if (accept == null || !accept) return;
     }

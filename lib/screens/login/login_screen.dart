@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
@@ -9,8 +10,6 @@ import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/default_questions.dart';
-import 'package:mon_stage_en_images/main.dart';
-import 'package:mon_stage_en_images/screens/login/terms_and_services_screen.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/change_password_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/forgot_password_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/main_title_background.dart';
@@ -135,10 +134,9 @@ class _LoginScreenState extends State<LoginScreen> {
         questions.add(question);
       }
     }
-    Future.delayed(Duration(seconds: automaticConnexion ? 2 : 0), () {
+    Future.delayed(Duration(seconds: automaticConnexion ? 2 : 0), () async {
       if (!mounted) return;
-      rootNavigatorKey.currentState
-          ?.pushReplacementNamed(TermsAndServicesScreen.routeName);
+      await RouteManager.instance.gotoTermsAndServicesPage(context);
     });
   }
 

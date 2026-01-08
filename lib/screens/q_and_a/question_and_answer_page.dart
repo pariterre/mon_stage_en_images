@@ -6,8 +6,6 @@ import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
-import 'package:mon_stage_en_images/onboarding/data/onboarding_steps_list.dart';
-import 'package:mon_stage_en_images/onboarding/widgets/onboarding_target.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/question_and_answer_tile.dart';
 import 'package:provider/provider.dart';
 
@@ -30,15 +28,15 @@ class QuestionAndAnswerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser!.userType;
+    final user = Provider.of<Database>(context, listen: false).currentUser;
+    if (!(user?.isActive ?? false)) {
+      return Center(child: CircularProgressIndicator());
+    }
 
     final allAnswers = Provider.of<AllAnswers>(context, listen: false);
     var questions = Provider.of<AllQuestions>(context, listen: true)
         .fromSection(sectionIndex)
         .toList();
-
-    late Widget questionSection;
     AnswerSortAndFilter? filter;
     switch (viewSpan) {
       case Target.individual:
@@ -77,7 +75,7 @@ class QuestionAndAnswerPage extends StatelessWidget {
     questions.sort(
         (first, second) => first.creationTimeStamp - second.creationTimeStamp);
 
-    questionSection = _buildQuestionSection(
+    final questionSection = _buildQuestionSection(
       context,
       questions: questions,
       titleIfNothing:
@@ -89,7 +87,7 @@ class QuestionAndAnswerPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (userType == UserType.teacher)
+          if (user!.userType == UserType.teacher)
             Container(
               padding: const EdgeInsets.only(left: 5, top: 15),
               child: Text(
@@ -101,16 +99,13 @@ class QuestionAndAnswerPage extends StatelessWidget {
             ),
           if (viewSpan != Target.individual) const SizedBox(height: 10),
           if (viewSpan != Target.individual && pageMode == PageMode.edit)
-            OnboardingTarget(
-              onboardingId: newQuestion,
-              child: QuestionAndAnswerTile(
-                null,
-                sectionIndex: sectionIndex,
-                studentId: studentId,
-                viewSpan: viewSpan,
-                pageMode: pageMode,
-                answerFilterMode: null,
-              ),
+            QuestionAndAnswerTile(
+              null,
+              sectionIndex: sectionIndex,
+              studentId: studentId,
+              viewSpan: viewSpan,
+              pageMode: pageMode,
+              answerFilterMode: null,
             ),
           if (viewSpan != Target.individual &&
               questions.isNotEmpty &&
@@ -205,27 +200,24 @@ class _QAndAListViewState extends State<QAndAListView> {
       }
     }
 
-    return OnboardingTarget(
-      onboardingId: exampleQuestions,
-      child: ListView.builder(
-        reverse: true,
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          final child = QuestionAndAnswerTile(
-            widget.questions[index],
-            sectionIndex: widget.sectionIndex,
-            studentId: widget.studentId,
-            viewSpan: widget.viewSpan,
-            pageMode: widget.pageMode,
-            answerFilterMode: widget.answerFilterMode,
-            overrideExpandState: _isExpanded[index],
-            onExpand: () => _onExpand(index),
-          );
-          return child;
-        },
-        itemCount: widget.questions.length,
-      ),
+    return ListView.builder(
+      reverse: true,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemBuilder: (context, index) {
+        final child = QuestionAndAnswerTile(
+          widget.questions[index],
+          sectionIndex: widget.sectionIndex,
+          studentId: widget.studentId,
+          viewSpan: widget.viewSpan,
+          pageMode: widget.pageMode,
+          answerFilterMode: widget.answerFilterMode,
+          overrideExpandState: _isExpanded[index],
+          onExpand: () => _onExpand(index),
+        );
+        return child;
+      },
+      itemCount: widget.questions.length,
     );
   }
 }

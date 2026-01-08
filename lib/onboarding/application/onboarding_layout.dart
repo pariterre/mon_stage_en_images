@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
-import 'package:mon_stage_en_images/common/models/user.dart';
-import 'package:mon_stage_en_images/main.dart';
 import 'package:mon_stage_en_images/onboarding/application/onboarding_keys_service.dart';
 import 'package:mon_stage_en_images/onboarding/application/onboarding_observer.dart';
-import 'package:mon_stage_en_images/onboarding/application/shared_preferences_notifier.dart';
 import 'package:mon_stage_en_images/onboarding/data/onboarding_steps_list.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_dialog_with_highlight.dart';
@@ -33,42 +32,40 @@ class OnboardingLayout extends StatefulWidget {
 }
 
 class _OnboardingLayoutState extends State<OnboardingLayout> {
-  bool _hasSeenOnboarding = false;
-  bool _hasAlreadySeenTheIrrstPage = false;
-
-  User? _currentUser;
   int? _currentIndex;
 
   OnboardingStep? get current {
-    _logger.finest(
-        'When accessing current, _checkShowTutorial is ${_checkShowTutorial()} and _currentIndex is $_currentIndex');
-    if (_checkShowTutorial() && _currentIndex != null) {
-      return onboardingSteps[_currentIndex!];
-    } else {
-      return null;
-    }
+    if (_currentIndex == null) return null;
+    return _checkShowTutorial() ? onboardingSteps[_currentIndex!] : null;
   }
 
   bool _checkShowTutorial() {
-    final showTutorial = _currentUser != null &&
-        _currentUser?.userType == UserType.teacher &&
-        !_hasSeenOnboarding &&
-        _hasAlreadySeenTheIrrstPage &&
-        _currentUser!.termsAndServicesAccepted &&
-        isValidScreenToShowTutorial.value;
-    return showTutorial;
+    if (!OnboardingNavigatorObserver.instance.isRouteIncluded) return false;
+
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+    if (currentUser?.userType != UserType.teacher ||
+        !currentUser!.termsAndServicesAccepted) {
+      return false;
+    }
+
+    final sharedPrefs = SharedPreferencesManager.instance;
+    if (sharedPrefs.hasSeenOnboarding ||
+        !sharedPrefs.hasAlreadySeenTheIrrstPage) {
+      return false;
+    }
+
+    return true;
   }
 
   void _increment() {
     if (_currentIndex == null) return;
     _currentIndex = _currentIndex! + 1;
-    _logger.finest('increment : _currentIndex is now $_currentIndex ');
   }
 
   void _decrement() {
     if (_currentIndex == null || _currentIndex! < 1) return;
     _currentIndex = _currentIndex! - 1;
-    _logger.finest('increment : _currentIndex is now $_currentIndex ');
   }
 
   void _resetIndex() {
@@ -79,7 +76,7 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
     if (_currentIndex == null) return;
     if (_currentIndex! < widget.onBoardingSteps.length - 1) {
       _increment();
-      _maybeNavAndSetState();
+      _navToStepAndRefresh();
     } else {
       _complete();
     }
@@ -89,7 +86,7 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
     if (_currentIndex == null) return;
     if (_currentIndex! > 0) {
       _decrement();
-      _maybeNavAndSetState();
+      _navToStepAndRefresh();
     }
   }
 
@@ -97,58 +94,43 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
   /// Resets the onboarding sequence to allow another run
   Future<void> _complete() async {
     _logger.finest('_complete is running');
-    await Provider.of<SharedPreferencesNotifier>(context, listen: false)
-        .setHasSeenOnboardingTo(true);
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
-        _resetIndex();
-      },
-    );
-  }
-
-  void _maybeNavAndSetState() async {
-    await _navToStep(_currentIndex!).whenComplete(() => setState(() {}));
+    SharedPreferencesManager.instance.hasSeenOnboarding = true;
+    _resetIndex();
   }
 
   @override
   void initState() {
-    isValidScreenToShowTutorial.addListener(_maybeNavAndSetState);
+    OnboardingNavigatorObserver.instance.addListener(_navToStepAndRefresh);
+    SharedPreferencesManager.instance.addListener(_navToStepAndRefresh);
+
     _resetIndex();
     super.initState();
   }
 
-  Future<void> _getDependencies() async {
-    _logger.finest('_getDependencies running');
-    _currentUser = Provider.of<Database>(context, listen: true).currentUser;
-    final sharedPrefs =
-        Provider.of<SharedPreferencesNotifier>(context, listen: true);
-
-    _hasSeenOnboarding = await sharedPrefs.hasSeenOnboarding;
-    _hasAlreadySeenTheIrrstPage = await sharedPrefs.hasAlreadySeenTheIrrstPage;
-  }
-
-// Using didChangeDependencies since initState doesn't allow for dependencies (context can't be accessed)
   @override
   void didChangeDependencies() async {
     _logger.finest('didChangeDependencies running in _OnBoardingLayout');
 
-    await _getDependencies();
-    Future.delayed(Duration(milliseconds: 300));
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) => _maybeNavAndSetState(),
-    );
+    _resetIndex();
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((timeStamp) => _navToStepAndRefresh());
     super.didChangeDependencies();
   }
 
   @override
   void dispose() {
-    isValidScreenToShowTutorial.removeListener(_maybeNavAndSetState);
+    OnboardingNavigatorObserver.instance.removeListener(_navToStepAndRefresh);
+    SharedPreferencesManager.instance.removeListener(_navToStepAndRefresh);
     super.dispose();
   }
 
   /// Navigates to screen based on the index provided if needed. Then, it prepares the screen to actually
   /// display the targeted widget
-  Future<void> _navToStep(int index) async {
+  void _navToStepAndRefresh() =>
+      _navToStep().whenComplete(() => setState(() {}));
+
+  Future<void> _navToStep() async {
     _logger.finest('_navToStep : running');
 
     // Checking if our step is null and if we should flag its index as inactive
@@ -167,12 +149,15 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
       // We want to navigate only if we are not already on the desired route.
       // If we are on the first step, we always want to navigate to this screen's step.
       if (currentRoute != step.routeName || _currentIndex == 0) {
-        rootNavigatorKey.currentState
-            ?.pushReplacementNamed(step.routeName, arguments: step.arguments)
-            .then(
-              (value) => _logger.finest(
-                  '_navToStep : after navigation with rootNavigatorKey, $value'),
-            );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // TODO Change this
+          RouteManager.instance.navigatorKey.currentState
+              ?.pushReplacementNamed(step.routeName, arguments: step.arguments)
+              .then(
+                (value) => _logger.finest(
+                    '_navToStep : after navigation with rootNavigatorKey, $value'),
+              );
+        });
       }
     } catch (e, st) {
       _logger.severe(
@@ -219,16 +204,7 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
 
     // Retrieves the GlobalKey<State<StatefulWidget> registered for this screen upon navigation.
     // This key can be used to obtain the State and performs actions like opening drawers, jumping in a page view, ...
-    final key =
-        OnboardingKeysService.instance.findScreenKeyWithId(step.routeName);
-    if (key == null) {
-      _logger.severe(
-          ' findScreenKeyWithId could not obtain key for ${step.routeName}'
-          ' cannot run prepareNav and will return');
-      return;
-    }
-    _logger.finest(
-        '_shouldPrepareOnboardingTargetDisplay : key for prepare nav is $key');
+    final key = RouteManager.instance.currentScreenKey!;
 
     // Waiting for the State of the screen
     final State<StatefulWidget>? state =
@@ -340,12 +316,16 @@ class _OnboardingLayoutState extends State<OnboardingLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+    final sharedPrefs = SharedPreferencesManager.instance;
+
     _logger.finer(
-        'OnboardingLayout build : _currentUser is $_currentUser | _hasSeenOnboarding is $_hasSeenOnboarding ');
+        'OnboardingLayout build : _currentUser is $currentUser | _hasSeenOnboarding is ${sharedPrefs.hasSeenOnboarding} ');
     _logger.finer(
-        '| _hasAlreadySeenTheIrrstPage is $_hasAlreadySeenTheIrrstPage | _currentUser!.termsAndServicesAccepted is ${_currentUser?.termsAndServicesAccepted}');
-    _logger
-        .finer('| isValidScreenToShowTutorial is $isValidScreenToShowTutorial');
+        '| _hasAlreadySeenTheIrrstPage is ${sharedPrefs.hasAlreadySeenTheIrrstPage} | _currentUser!.termsAndServicesAccepted is ${currentUser?.termsAndServicesAccepted}');
+    _logger.finer(
+        '| isValidScreenToShowTutorial is ${OnboardingNavigatorObserver.instance.isRouteIncluded}');
     _logger.finer('build : showTutorial is ${_checkShowTutorial()}');
 
     return Stack(children: [

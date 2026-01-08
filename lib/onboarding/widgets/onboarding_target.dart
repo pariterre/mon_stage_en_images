@@ -25,7 +25,7 @@ class _OnboardingTargetState extends State<OnboardingTarget> {
         'initState running for OnBoardingTarget, will try to register key $_key for targetId ${widget.onboardingId}');
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
-        onboardingKeyService.addTargetKey(widget.onboardingId, _key);
+        onboardingKeyService.addTarget(widget.onboardingId, _key);
       },
     );
     super.initState();
@@ -33,7 +33,7 @@ class _OnboardingTargetState extends State<OnboardingTarget> {
 
   @override
   void dispose() {
-    onboardingKeyService.removeTargetKey(widget.onboardingId, _key);
+    onboardingKeyService.removeTarget(widget.onboardingId);
     super.dispose();
   }
 

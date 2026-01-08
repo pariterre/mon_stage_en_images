@@ -10,8 +10,6 @@ import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
-import 'package:mon_stage_en_images/onboarding/data/onboarding_steps_list.dart';
-import 'package:mon_stage_en_images/onboarding/widgets/onboarding_target.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/new_student_alert_dialog.dart';
@@ -286,6 +284,11 @@ class StudentsScreenState extends State<StudentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final database = Provider.of<Database>(context, listen: false);
+    if (!(database.currentUser?.isActive ?? false)) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final students = Provider.of<Database>(context)
         .students(onlyActive: _onlyActiveStudents)
         .toList();
@@ -303,26 +306,20 @@ class StudentsScreenState extends State<StudentsScreen> {
       appBar: ResponsiveService.appBarOf(
         context,
         title: const Text('Mes élèves'),
-        leading: OnboardingTarget(
-          onboardingId: drawer,
-          child: IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              scaffoldKey.currentState?.openDrawer();
-            },
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            scaffoldKey.currentState?.openDrawer();
+          },
         ),
         actions: [
-          OnboardingTarget(
-            onboardingId: addStudent,
-            child: IconButton(
-              onPressed: _addStudent,
-              icon: const Icon(
-                Icons.add,
-              ),
-              iconSize: 35,
-              color: Colors.black,
+          IconButton(
+            onPressed: _addStudent,
+            icon: const Icon(
+              Icons.add,
             ),
+            iconSize: 35,
+            color: Colors.black,
           ),
           const SizedBox(width: 15),
         ],

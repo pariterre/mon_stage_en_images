@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -8,7 +9,6 @@ import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/onboarding/application/onboarding_observer.dart';
-import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/question_and_answer_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/filter_answers_dialog.dart';
@@ -74,19 +74,15 @@ class _QAndAScreenState extends State<QAndAScreen> {
     if (_isInitialized) return;
     final database = Provider.of<Database>(context, listen: false);
 
-    final currentUser = database.currentUser!;
-    _userType = currentUser.userType;
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
-        final arguments = ModalRoute.of(context)!.settings.arguments as List;
-        _viewSpan = arguments[0] as Target;
-        setState(() {
-          _pageMode = arguments[1] as PageMode;
-        });
-        _student =
-            _userType == UserType.student ? currentUser : arguments[2] as User?;
-      },
-    );
+    final currentUser = database.currentUser;
+    _userType = currentUser?.userType ?? UserType.none;
+
+    final arguments = ModalRoute.of(context)!.settings.arguments as List?;
+    _viewSpan = arguments?[0] as Target? ?? _viewSpan;
+    _pageMode = arguments?[1] as PageMode? ?? _pageMode;
+    _student =
+        _userType == UserType.student ? currentUser : arguments?[2] as User?;
+    setState(() {});
 
     _isInitialized = true;
   }
@@ -134,7 +130,7 @@ class _QAndAScreenState extends State<QAndAScreen> {
     if (_currentPage == 0) {
       // Replacement is used to force the redraw of the Notifier.
       // If the redrawing is ever fixed, this can be replaced by a pop.
-      Navigator.of(context).pushReplacementNamed(StudentsScreen.routeName);
+      RouteManager.instance.gotoStudentsPage(context);
     }
     onPageChangedRequest(-1);
   }

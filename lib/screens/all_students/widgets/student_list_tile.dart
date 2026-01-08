@@ -1,11 +1,11 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/widgets/taking_action_notifier.dart';
-import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 
 class StudentListTile extends StatelessWidget {
@@ -65,8 +65,10 @@ class StudentListTile extends StatelessWidget {
         tileColor: student != null && student.isNotActive
             ? Colors.blueGrey[100]
             : null,
-        onTap: () => Navigator.of(context).pushNamed(QAndAScreen.routeName,
-            arguments: [Target.individual, PageMode.editableView, student]),
+        onTap: () => RouteManager.instance.gotoQAndAPage(context,
+            target: Target.individual,
+            pageMode: PageMode.editableView,
+            student: student),
         onLongPress: () {
           if (student == null) return;
           modifyStudentCallback(student);
