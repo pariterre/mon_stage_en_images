@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:mon_stage_en_images/main.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 
 final _logger = Logger('OnboardingDialogWithHighlight');
@@ -14,10 +11,9 @@ final _logger = Logger('OnboardingDialogWithHighlight');
 class OnboardingDialog extends StatefulWidget {
   const OnboardingDialog({
     super.key,
-    required this.targetContext,
+    required this.targetKeys,
     this.manualHoleRect = Rect.zero,
-    this.onboardingStep,
-    this.complete,
+    required this.onboardingStep,
     required this.onForward,
     this.onBackward,
   });
@@ -25,12 +21,11 @@ class OnboardingDialog extends StatefulWidget {
   /// Optional holeRect for overriding the clip provided by the globalKey (onboardingStep property)
   final Rect? manualHoleRect;
 
-  final OnboardingStep? onboardingStep;
-  final BuildContext targetContext;
+  final OnboardingStep onboardingStep;
+  final List<GlobalKey> targetKeys;
 
   final void Function() onForward;
   final void Function()? onBackward;
-  final void Function()? complete;
 
   @override
   State<OnboardingDialog> createState() => _OnboardingDialogState();
@@ -38,84 +33,20 @@ class OnboardingDialog extends StatefulWidget {
 
 class _OnboardingDialogState extends State<OnboardingDialog>
     with WidgetsBindingObserver {
-  /// Rect to be displayed on the overlay
-  final ValueNotifier<Rect?> _rectNotifier = ValueNotifier(null);
-
-  Timer? _rectDrawTimer;
-
-  /// Delay after which the rect drawing process will start again
-  final Duration _retryDelay = Duration(milliseconds: 40);
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    _resetAndDrawNewRect();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _rectDrawTimer?.cancel();
-    _rectNotifier.dispose();
-    super.dispose();
-  }
-
-  // Refreshes the rect when the onboardingStep provided to this widget changes.
-  @override
-  void didUpdateWidget(covariant OnboardingDialog oldWidget) {
-    if (oldWidget.key != widget.key) {
-      _resetAndDrawNewRect();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
   @override
   void didChangeMetrics() {
     _logger.finest('didChangeMetrics called in OnBoardingDialogWithHighlight');
-    setState(() {
-      _resetAndDrawNewRect();
-    });
+    setState(() {});
     super.didChangeMetrics();
-  }
-
-  /// Resets every timer and attempts counter used to limit our calls to _rectFromWidgetKeyLabel
-  /// and then starts another sequence of rect drawing
-  void _resetAndDrawNewRect() {
-    _rectDrawTimer?.cancel();
-    _rectDrawTimer = null;
-    _rectNotifier.value = null;
-    _tryDrawRect();
-  }
-
-  /// Tries to draw a rect from the widget.targetId provided and then tests its stability across several frames.
-  /// This check prevents an early display of the rect during any navigation animation.
-  void _tryDrawRect() {
-    if (!mounted) return;
-
-    // We will try to draw our rect
-    final Rect? rect = _rectFromWidgetKeyLabel(widget.targetContext);
-    if (rect == null) {
-      _logger.finest(
-          '_tryDrawRect : rect is null after _rectFromWidgetKeyLabel,retyring and returning');
-      _waitAndRetry();
-      return;
-    }
-  }
-
-  /// An helper to rerun _tryDrawRect after some delay
-  void _waitAndRetry() {
-    _rectDrawTimer = Timer(_retryDelay, _tryDrawRect);
   }
 
   /// Get the RenderBox from the widgetKey getter, which is linked to the targeted Widget in the tree
   /// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
-  Rect? _rectFromWidgetKeyLabel(BuildContext targetContext) {
+  Rect? _rectFromWidgetKey(GlobalKey targetKey) {
     Rect? rect;
+    final targetContext = targetKey.currentContext;
 
-    _logger.finest('_rectFromWidgetKeyLabel : context is $targetContext');
-
-    if (!targetContext.mounted) {
+    if (targetContext == null || !targetContext.mounted) {
       _logger.severe(
           '_rectFromWidgetKeyLabel : context is not mounted when trying to get widgetObject, returning');
       return null;
@@ -157,6 +88,18 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
   @override
   Widget build(BuildContext context) {
+    final rectsToClip = widget.targetKeys.map((key) => _rectFromWidgetKey(key));
+    if (rectsToClip.length > 1) {
+      throw UnimplementedError(
+          'OnboardingDialog currently only supports one targetKeys for now.');
+    }
+    final rectToClip = rectsToClip.isNotEmpty ? rectsToClip.first : null;
+
+    if (rectsToClip.isNotEmpty && rectToClip == null) {
+      // The targeted widget is not mounted yet
+      return SizedBox.shrink();
+    }
+
     return Stack(
       children: [
         // Ignoring click events inside the scrim
@@ -165,28 +108,16 @@ class _OnboardingDialogState extends State<OnboardingDialog>
           child: Container(),
         ),
         // Clipping the area of the screen where the targeted widget is visible
-        ValueListenableBuilder(
-          valueListenable: _rectNotifier,
-          builder: (context, Rect? rect, child) {
-            return ClipPath(
-                clipper: rect != null ? _HoleClipper(holeRect: rect) : null,
-                child: Container(
-                  decoration:
-                      BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
-                  height: double.infinity,
-                  width: double.infinity,
-                ));
-          },
-        ),
+        ClipPath(
+            clipper:
+                rectToClip == null ? null : _HoleClipper(holeRect: rectToClip),
+            child: Container(
+              decoration:
+                  BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
+              height: double.infinity,
+              width: double.infinity,
+            )),
 
-        // Shortcut to complete the onboarding
-        if (showDebugOverlay)
-          Center(
-            child: FloatingActionButton(
-              onPressed: widget.complete,
-              child: Icon(Icons.check),
-            ),
-          ),
         // Displays the onboardingStep
         Dialog(
           backgroundColor: Theme.of(context).colorScheme.scrim.withAlpha(225),
@@ -203,14 +134,12 @@ class _OnboardingDialogState extends State<OnboardingDialog>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.onboardingStep!.message,
+                  Text(widget.onboardingStep.message,
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall!
                           .copyWith(color: Theme.of(context).cardColor)),
-                  SizedBox(
-                    height: 4,
-                  ),
+                  SizedBox(height: 4),
                   SizedBox(
                     width: double.infinity,
                     child: Wrap(

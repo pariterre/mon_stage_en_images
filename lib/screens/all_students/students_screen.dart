@@ -10,6 +10,7 @@ import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
+import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/new_student_alert_dialog.dart';
@@ -314,6 +315,7 @@ class StudentsScreenState extends State<StudentsScreen> {
         ),
         actions: [
           IconButton(
+            key: onboardingKeys['add_student'],
             onPressed: _addStudent,
             icon: const Icon(
               Icons.add,

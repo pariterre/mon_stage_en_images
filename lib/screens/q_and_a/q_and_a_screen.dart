@@ -26,15 +26,12 @@ class QAndAScreen extends StatefulWidget {
   @override
   State<QAndAScreen> createState() => _QAndAScreenState();
 
-  static void onPageChangedRequestFromOutside(
-      State<QAndAScreen> outsideState, int int) {
-    final state = outsideState as _QAndAScreenState;
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final controller = state._pageController;
-      controller.animateToPage(int,
-          duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-    });
-  }
+  // TODO Move this to a controller?
+  static void animateTo(State<QAndAScreen> state, int int) =>
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) =>
+          (state as _QAndAScreenState)._pageController.animateToPage(int,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut));
 }
 
 class _QAndAScreenState extends State<QAndAScreen> {

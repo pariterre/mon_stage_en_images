@@ -43,8 +43,6 @@ void main() async {
 
   final onboardingController = OnboardingController(
     steps: onboardingSteps,
-    getCurrentScreenKey: () => RouteManager.instance.currentScreenKey,
-    getNavigatorState: () => RouteManager.instance.navigatorKey.currentState,
     shouldShowTutorial: (context) {
       final prefs = SharedPreferencesController.instance;
       if (prefs.hasSeenOnboarding || !prefs.hasAlreadySeenTheIrrstPage) {
@@ -59,7 +57,7 @@ void main() async {
       }
       return true;
     },
-    onOnboardingComplete: () {
+    onOnboardingCompleted: () {
       SharedPreferencesController.instance.hasSeenOnboarding = true;
     },
   );

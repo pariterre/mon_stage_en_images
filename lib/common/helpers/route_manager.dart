@@ -132,27 +132,22 @@ class RouteManager {
     );
   }
 
-  GlobalKey<State<StatefulWidget>>? _currentScreenKey;
-  GlobalKey<State<StatefulWidget>>? get currentScreenKey => _currentScreenKey;
-
   Widget builderForCurrentRoute(String routeName) {
-    _currentScreenKey = GlobalKey<State<StatefulWidget>>();
-
     switch (routeName) {
       case WrongVersionScreen.routeName:
-        return WrongVersionScreen(key: _currentScreenKey);
+        return WrongVersionScreen();
       case LoginScreen.routeName:
-        return LoginScreen(key: _currentScreenKey);
+        return LoginScreen();
       case TermsAndServicesScreen.routeName:
-        return TermsAndServicesScreen(key: _currentScreenKey);
+        return TermsAndServicesScreen();
       case GoToIrsstScreen.routeName:
-        return GoToIrsstScreen(key: _currentScreenKey);
+        return GoToIrsstScreen();
       case StudentsScreen.routeName:
-        return StudentsScreen(key: _currentScreenKey);
+        return StudentsScreen();
       case QAndAScreen.routeName:
-        return QAndAScreen(key: _currentScreenKey);
+        return QAndAScreen();
       default:
-        return SizedBox.shrink(key: _currentScreenKey);
+        return SizedBox.shrink();
     }
   }
 

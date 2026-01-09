@@ -1,77 +1,111 @@
 import 'package:flutter/widgets.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 
 /// The onboarding steps to be shown during the onboarding sequence
+Map<String, GlobalKey<State<StatefulWidget>>> onboardingKeys = {
+  'add_student': GlobalKey<State<StatefulWidget>>()
+};
+
 List<OnboardingStep> onboardingSteps = [
   OnboardingStep(
-      title: 'Add student',
-      routeName: StudentsScreen.routeName,
-      message: 'Appuyez ici pour ajouter des élèves'),
+    message: 'Appuyez ici pour ajouter des élèves',
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoStudentsPage(context);
+    },
+    targetKeys: ['add_student'].map((key) => onboardingKeys[key]!).toList(),
+  ),
   OnboardingStep(
-      title: 'Drawer',
-      routeName: StudentsScreen.routeName,
-      message:
-          'Appuyez ici pour accéder aux différentes pages de l’application.'),
+    message: 'Appuyez ici pour accéder aux différentes pages de l’application.',
+    navigationCallback: (_) async {},
+  ),
   OnboardingStep(
-    title: 'Drawer opened',
-    routeName: StudentsScreen.routeName,
     message: 'Appuyez ici pour poser une question à vos élèves.',
-    prepareNav: (context, outsideState) async {
-      final state = outsideState as StudentsScreenState;
-      if (state.isDrawerOpen == false) state.openDrawer();
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoStudentsPage(context);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      (state as StudentsScreenState).openDrawer();
     },
   ),
   OnboardingStep(
-      title: 'Metier',
-      routeName: QAndAScreen.routeName,
-      arguments: [Target.all, PageMode.edit, null],
-      prepareNav:
-          (BuildContext? context, State<StatefulWidget>? outsideState) async {
-        final state = outsideState as State<QAndAScreen>;
-        QAndAScreen.onPageChangedRequestFromOutside(state, 0);
-      },
-      message:
-          'Ici, choisissez la section M.É.T.I.E.R. associée à la question à poser'),
+    message:
+        'Ici, choisissez la section M.É.T.I.E.R. associée à la question à poser',
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoQAndAPage(context,
+          target: Target.all, pageMode: PageMode.edit, student: null);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      QAndAScreen.animateTo(state as State<QAndAScreen>, 0);
+    },
+  ),
   OnboardingStep(
-      title: 'New question',
-      routeName: QAndAScreen.routeName,
-      arguments: [Target.all, PageMode.edit, null],
-      prepareNav:
-          (BuildContext? context, State<StatefulWidget>? outsideState) async {
-        final state = outsideState as State<QAndAScreen>;
-        QAndAScreen.onPageChangedRequestFromOutside(state, 1);
-      },
-      message: 'Vous pourrez créer une nouvelle question originale'),
+    message: 'Vous pourrez créer une nouvelle question originale',
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoQAndAPage(context,
+          target: Target.all, pageMode: PageMode.edit, student: null);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      QAndAScreen.animateTo(state as State<QAndAScreen>, 1);
+    },
+  ),
   OnboardingStep(
-      title: 'Example questions',
-      routeName: QAndAScreen.routeName,
-      arguments: [Target.all, PageMode.edit, null],
-      prepareNav:
-          (BuildContext? context, State<StatefulWidget>? outsideState) async {
-        final state = outsideState as State<QAndAScreen>;
-        QAndAScreen.onPageChangedRequestFromOutside(state, 1);
-      },
-      message: 'Ou en choisir une déjà créée et la modifier'),
+    message: 'Ou en choisir une déjà créée et la modifier',
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoQAndAPage(context,
+          target: Target.all, pageMode: PageMode.edit, student: null);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      QAndAScreen.animateTo(state as State<QAndAScreen>, 1);
+    },
+  ),
   OnboardingStep(
-    title: 'Questions summary',
-    routeName: StudentsScreen.routeName,
     message:
         'Sur cette page, vous verrez toutes les réponses à une même question.',
-    prepareNav: (context, outsideState) async {
-      final state = outsideState as StudentsScreenState;
-      if (state.isDrawerOpen == false) state.openDrawer();
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoStudentsPage(context);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      (state as StudentsScreenState).openDrawer();
     },
   ),
   OnboardingStep(
-    title: 'Learn more',
-    routeName: StudentsScreen.routeName,
     message: 'Vous trouverez ici davantage d\'informations et du support.',
-    prepareNav: (context, outsideState) async {
-      final state = outsideState as StudentsScreenState;
-      if (state.isDrawerOpen == false) state.openDrawer();
+    navigationCallback: (_) async {
+      final context = RouteManager.instance.navigatorKey.currentContext;
+      if (context == null) return;
+
+      await RouteManager.instance.gotoStudentsPage(context);
+      if (!context.mounted) return;
+
+      final state = RouteManager.instance.navigatorKey.currentState;
+      (state as StudentsScreenState).openDrawer();
     },
   ),
 ];

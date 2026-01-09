@@ -1,37 +1,57 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/onboarding/controllers/onboarding_route_observer.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_dialog.dart';
-
-final _logger = Logger('OnboardingLayout');
 
 class OnboardingController {
   final List<OnboardingStep> steps;
 
   OnboardingController({
     required this.steps,
-    required this.getCurrentScreenKey,
-    required this.getNavigatorState,
     required this.shouldShowTutorial,
-    required this.onOnboardingComplete,
-  });
+    required this.onOnboardingCompleted,
+  }) {
+    _resetCurrentIndex();
+  }
 
   final observer = OnboardingRouteObserver();
 
-  final GlobalKey<State<StatefulWidget>>? Function() getCurrentScreenKey;
-  final NavigatorState? Function() getNavigatorState;
   final bool Function(BuildContext context) shouldShowTutorial;
-  final VoidCallback onOnboardingComplete;
+  final VoidCallback onOnboardingCompleted;
 
   _OnboardingOverlayState? _overlayState;
   void requestOnboarding() {
-    if (_overlayState?.currentStep == null) {
-      _overlayState?._resetIndex();
+    if (_overlayState?._currentStep == null) {
+      _resetCurrentIndex();
       _overlayState?._navToStepAndRefresh();
     }
+  }
+
+  int? _currentIndex;
+  void _resetCurrentIndex() => _currentIndex = steps.isNotEmpty ? 0 : null;
+
+  Future<void> _showNextStep() async {
+    if (_currentIndex == null || _currentIndex! >= steps.length) {
+      return;
+    }
+
+    _currentIndex = _currentIndex! + 1;
+    await _overlayState!._navToStepAndRefresh();
+
+    if (_currentIndex! == steps.length) {
+      onOnboardingCompleted();
+    }
+  }
+
+  Future<void> _showPreviousStep() async {
+    if (_currentIndex == null || _currentIndex! < 1) {
+      return;
+    }
+
+    _currentIndex = _currentIndex! - 1;
+    await _overlayState!._navToStepAndRefresh();
   }
 }
 
@@ -42,151 +62,91 @@ class OnboardingOverlay extends StatefulWidget {
     super.key,
     required this.child,
     required this.controller,
+    this.showDebugOptions = false,
   });
 
   final Widget child;
   final OnboardingController controller;
+  final bool showDebugOptions;
 
   @override
   State<OnboardingOverlay> createState() => _OnboardingOverlayState();
 }
 
 class _OnboardingOverlayState extends State<OnboardingOverlay> {
-  int? _currentIndex;
-
-  OnboardingStep? get currentStep {
-    if (_currentIndex == null ||
+  OnboardingStep? get _currentStep {
+    if (widget.controller._currentIndex == null ||
+        widget.controller._currentIndex! >= widget.controller.steps.length ||
         !widget.controller.shouldShowTutorial(context)) {
       return null;
     }
-    return widget.controller.steps[_currentIndex!];
-  }
-
-  void _increment() {
-    if (_currentIndex == null) return;
-    _currentIndex = _currentIndex! + 1;
-  }
-
-  void _decrement() {
-    if (_currentIndex == null || _currentIndex! < 1) return;
-    _currentIndex = _currentIndex! - 1;
-  }
-
-  void _resetIndex() {
-    _currentIndex = widget.controller.steps.isNotEmpty ? 0 : null;
-  }
-
-  Future<void> _next() async {
-    if (_currentIndex == null) return;
-    if (_currentIndex! < widget.controller.steps.length - 1) {
-      _increment();
-      _navToStepAndRefresh();
-    } else {
-      _complete();
-    }
-  }
-
-  Future<void> _previous() async {
-    if (_currentIndex == null) return;
-    if (_currentIndex! > 0) {
-      _decrement();
-      _navToStepAndRefresh();
-    }
-  }
-
-  /// Ends the onboarding sequence by writing in local storage that onboarding has been shown.
-  /// Resets the onboarding sequence to allow another run
-  Future<void> _complete() async {
-    _logger.finest('_complete is running');
-    widget.controller.onOnboardingComplete();
-    _resetIndex();
+    return widget.controller.steps[widget.controller._currentIndex!];
   }
 
   @override
   void initState() {
-    widget.controller.observer.addListener(() => _navToStepAndRefresh());
     widget.controller._overlayState = this;
 
-    _resetIndex();
     super.initState();
   }
 
-  @override
-  void dispose() {
-    widget.controller.observer.removeListener(() => _navToStepAndRefresh());
-    super.dispose();
-  }
+  bool _isProcessingNav = false;
 
   /// Navigates to screen based on the index provided if needed. Then, it prepares the screen to actually
   /// display the targeted widget
-  void _navToStepAndRefresh() =>
-      _navToStep().whenComplete(() => setState(() {}));
 
-  Future<void> _navToStep() async {
+  Future<void> _navToStepAndRefresh() async {
+    _isProcessingNav = true;
+
     // Checking if our step is null and if we should flag its index as inactive
-    final step = currentStep;
-    if (step == null) return;
-
-    // Navigating to the OnboardingStep Widget's route.
-    try {
-      final currentRouteName = widget.controller.observer.currentRouteName;
-
-      // We want to navigate only if we are not already on the desired route.
-      // If we are on the first step, we always want to navigate to this screen's step.
-      if (currentRouteName != step.routeName || _currentIndex == 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.controller
-              .getNavigatorState()
-              ?.pushReplacementNamed(step.routeName, arguments: step.arguments);
-        });
-      }
-    } catch (e, st) {
-      _logger.severe(
-          '_navToStep : error on _navToStep navigation : ${e.toString()} $st');
-      _resetIndex();
+    final step = _currentStep;
+    if (step == null) {
+      setState(() {
+        _isProcessingNav = false;
+      });
+      return;
     }
 
-    // Maybe our targeted widget is not mounted yet and required additional actions
-    // Like opening a drawer or using a pagecontroller. We will check if this is needed.
-    await _shouldPrepareOnboardingTargetDisplay(step);
+    if (step.navigationCallback != null) {
+      await step.navigationCallback!(context);
+    }
+    await _waitForWidgetsToBuild(step);
+
+    setState(() {
+      _isProcessingNav = false;
+    });
   }
 
-  /// Checks if further actions are needed after navigation to display the targeted widget.
-  /// Performs required actions to allow the targeted widget to be mounted inside the tree,
-  /// through the prepareNav parameter of the provided OnboardingStep
-  Future<void> _shouldPrepareOnboardingTargetDisplay(
-    OnboardingStep step,
-  ) async {
-    // Maybe our targeted widget is not mounted yet and required additional actions
-    // Like opening a drawer or using a pagecontroller.
-    // So we use the GlobalKey<State<StatefulWidget>> declared for the widget by onGenerateRoute
-    // to get a valid context
-
-    // Waiting for the State of the screen
-    final State<StatefulWidget>? state =
-        widget.controller.getCurrentScreenKey()?.currentState;
-    if (state == null) return;
-
-    if (step.prepareNav != null) await step.prepareNav!(null, state);
+  // Waits for the targeted widgets to be built before displaying the onboarding dialog
+  Future<void> _waitForWidgetsToBuild(OnboardingStep step) async {
+    for (final key in step.targetKeys) {
+      if (key.currentContext == null || !key.currentContext!.mounted) {
+        // Wait for one frame
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(children: [
       widget.child,
-      if (currentStep != null)
+      if (_currentStep != null && !_isProcessingNav)
         OnboardingDialog(
-            targetContext: context,
-            complete: _complete,
-            onboardingStep: currentStep,
-            onForward: () {
-              _next();
-            },
-            onBackward: _currentIndex! > 0
-                ? () {
-                    _previous();
-                  }
+            targetKeys: _currentStep!.targetKeys,
+            onboardingStep: _currentStep!,
+            onForward: () async => await widget.controller._showNextStep(),
+            onBackward: (widget.controller._currentIndex ?? -1) > 0
+                ? () async => await widget.controller._showPreviousStep()
                 : null),
+      // Shortcut to complete the onboarding
+      if (widget.showDebugOptions)
+        Center(
+          child: FloatingActionButton(
+            onPressed: widget.controller.onOnboardingCompleted,
+            child: Icon(Icons.check),
+          ),
+        ),
     ]);
   }
 }
