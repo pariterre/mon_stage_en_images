@@ -6,7 +6,10 @@ import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 
 /// The onboarding steps to be shown during the onboarding sequence
-Map<String, BuildContext?> onboardingKeys = {'add_student': null};
+Map<String, BuildContext?> onboardingKeys = {
+  'add_student': null,
+  'drawer_button': null,
+};
 
 List<OnboardingStep> onboardingSteps = [
   OnboardingStep(
@@ -22,11 +25,11 @@ List<OnboardingStep> onboardingSteps = [
   OnboardingStep(
     message: 'Appuyez ici pour accéder aux différentes pages de l’application.',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoStudentsPage(context);
+      onboardingKeys['add_student']
+          ?.findAncestorStateOfType<StudentsScreenState>()
+          ?.openDrawer();
     },
+    targetWidgetContext: () => onboardingKeys['drawer_button'],
   ),
   OnboardingStep(
     message: 'Appuyez ici pour poser une question à vos élèves.',

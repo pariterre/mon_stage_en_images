@@ -102,8 +102,12 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     if (step.navigationCallback != null) step.navigationCallback!(context);
     await _waitForWidgetsToBuild(step);
 
-    setState(() {
-      _isProcessingNav = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isProcessingNav = false;
+        });
+      }
     });
   }
 

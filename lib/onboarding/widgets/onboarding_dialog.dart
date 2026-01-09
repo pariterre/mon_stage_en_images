@@ -83,6 +83,8 @@ class _OnboardingDialogState extends State<OnboardingDialog>
     return rect;
   }
 
+  Rect? _previousRectToClip;
+
   @override
   Widget build(BuildContext context) {
     MediaQuery.of(context); // Force rebuild on MediaQuery changes
@@ -93,6 +95,16 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
     final isReady =
         widget.onboardingStep.targetWidgetContext == null || rectToClip != null;
+
+    if (isReady && rectToClip != null) {
+      // Check for moving elements / animations by repeating the setState call
+      if (_previousRectToClip != rectToClip) {
+        _previousRectToClip = rectToClip;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      }
+    }
 
     return isReady
         ? Stack(

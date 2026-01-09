@@ -4,6 +4,8 @@ import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
+import 'package:mon_stage_en_images/default_onboarding_steps.dart';
+import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -44,13 +46,17 @@ class MainDrawer extends StatelessWidget {
       child: Scaffold(
         appBar: showTitle
             ? AppBar(
-                title: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(Icons.menu),
-                    SizedBox(width: 8.0),
-                    if (!iconOnly) const Text('Menu principal'),
-                  ],
+                title: OnboardingContainer(
+                  onReady: (context) =>
+                      onboardingKeys['drawer_button'] = context,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.menu),
+                      SizedBox(width: 8.0),
+                      if (!iconOnly) const Text('Menu principal'),
+                    ],
+                  ),
                 ),
                 automaticallyImplyLeading: false,
               )
