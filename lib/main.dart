@@ -50,7 +50,9 @@ void main() async {
   SharedPreferencesController.instance.addListener(() {
     final hasSeenOnboarding =
         SharedPreferencesController.instance.hasSeenOnboarding;
-    if (hasSeenOnboarding != null && !hasSeenOnboarding) {
+    if (!onboardingController.isOnboarding &&
+        hasSeenOnboarding != null &&
+        !hasSeenOnboarding) {
       onboardingController.requestOnboarding();
     }
   });

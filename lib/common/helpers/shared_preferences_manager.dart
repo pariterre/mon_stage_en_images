@@ -40,12 +40,12 @@ class SharedPreferencesController extends ChangeNotifier {
   }
 
   final String _hasSeenOnboardingKey = 'hasSeenOnboarding';
-  bool get hasSeenOnboarding {
+  bool? get hasSeenOnboarding {
     _forceFailIfNotInitialized();
-    return _prefs!.getBool(_hasSeenOnboardingKey) ?? false;
+    return _prefs!.getBool(_hasSeenOnboardingKey);
   }
 
-  set hasSeenOnboarding(bool value) {
+  set hasSeenOnboarding(bool? value) {
     _forceFailIfNotInitialized();
     _prefs!
         .setBool(_hasSeenOnboardingKey, false) // TODO value)

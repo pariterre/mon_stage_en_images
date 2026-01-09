@@ -11,44 +11,39 @@ class OnboardingController {
   OnboardingController({
     required this.steps,
     required this.onOnboardingCompleted,
-  }) {
-    _resetCurrentIndex();
-  }
+  });
 
   final observer = OnboardingRouteObserver();
 
   final VoidCallback onOnboardingCompleted;
 
   _OnboardingOverlayState? _overlayState;
-  void requestOnboarding() {
-    if (_overlayState?._currentStep == null) {
-      _resetCurrentIndex();
-      _overlayState?._navToStepAndRefresh();
-    }
+  bool _isOnboarding = false;
+  bool get isOnboarding => _isOnboarding;
+  Future<void> requestOnboarding() async {
+    _isOnboarding = true;
+    _currentIndex = 0;
+    await _overlayState?._navToStepAndRefresh();
   }
 
-  int? _currentIndex;
-  void _resetCurrentIndex() => _currentIndex = steps.isNotEmpty ? 0 : null;
+  int _currentIndex = 0;
 
   Future<void> _showNextStep() async {
-    if (_currentIndex == null || _currentIndex! >= steps.length) {
-      return;
-    }
+    if (_currentIndex >= steps.length) return;
 
-    _currentIndex = _currentIndex! + 1;
+    _currentIndex++;
     await _overlayState!._navToStepAndRefresh();
 
-    if (_currentIndex! == steps.length) {
+    if (_currentIndex == steps.length) {
+      _isOnboarding = false;
       onOnboardingCompleted();
     }
   }
 
   Future<void> _showPreviousStep() async {
-    if (_currentIndex == null || _currentIndex! < 1) {
-      return;
-    }
+    if (_currentIndex < 1) return;
 
-    _currentIndex = _currentIndex! - 1;
+    _currentIndex--;
     await _overlayState!._navToStepAndRefresh();
   }
 }
@@ -73,11 +68,11 @@ class OnboardingOverlay extends StatefulWidget {
 
 class _OnboardingOverlayState extends State<OnboardingOverlay> {
   OnboardingStep? get _currentStep {
-    if (widget.controller._currentIndex == null ||
-        widget.controller._currentIndex! >= widget.controller.steps.length) {
+    if (!widget.controller._isOnboarding ||
+        widget.controller._currentIndex >= widget.controller.steps.length) {
       return null;
     }
-    return widget.controller.steps[widget.controller._currentIndex!];
+    return widget.controller.steps[widget.controller._currentIndex];
   }
 
   @override
@@ -104,9 +99,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       return;
     }
 
-    if (step.navigationCallback != null) {
-      await step.navigationCallback!(context);
-    }
+    if (step.navigationCallback != null) step.navigationCallback!(context);
     await _waitForWidgetsToBuild(step);
 
     setState(() {
@@ -133,7 +126,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
         OnboardingDialog(
             onboardingStep: _currentStep!,
             onForward: () async => await widget.controller._showNextStep(),
-            onBackward: (widget.controller._currentIndex ?? -1) > 0
+            onBackward: widget.controller._currentIndex > 0
                 ? () async => await widget.controller._showPreviousStep()
                 : null),
       // Shortcut to complete the onboarding

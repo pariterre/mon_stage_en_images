@@ -102,11 +102,8 @@ class MainDrawer extends StatelessWidget {
                 MenuItem(
                   title: 'Revoir le tutoriel',
                   icon: Icons.help,
-                  onTap: () {
-                    final sharedPrefs = SharedPreferencesController.instance;
-                    sharedPrefs.hasSeenOnboarding =
-                        !(sharedPrefs.hasSeenOnboarding ?? false);
-                  },
+                  onTap: () => SharedPreferencesController
+                      .instance.hasSeenOnboarding = true,
                   iconOnly: iconOnly,
                 ),
                 const Divider(),
