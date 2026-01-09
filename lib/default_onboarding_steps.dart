@@ -6,105 +6,141 @@ import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 
 /// The onboarding steps to be shown during the onboarding sequence
-Map<String, BuildContext?> onboardingKeys = {
+Map<String, BuildContext?> onboardingContexts = {
   'add_student': null,
   'drawer_button': null,
   'drawer_question_button': null,
+  'metier_tile_0': null,
 };
+
+String? _currentPage;
+
+Future<void> _navigateToPage(
+  String pageName, {
+  Target? target,
+  PageMode? pageMode,
+  dynamic student,
+}) async {
+  if (_currentPage == pageName) return;
+
+  final context = RouteManager.instance.navigatorKey.currentContext;
+  if (context == null) return;
+
+  switch (pageName) {
+    case StudentsScreen.routeName:
+      await RouteManager.instance.gotoStudentsPage(context);
+    case QAndAScreen.routeName:
+      await RouteManager.instance.gotoQAndAPage(context,
+          target: target!, pageMode: pageMode!, student: student);
+    case _:
+      throw Exception('Unknown page name: $pageName');
+  }
+
+  _currentPage = pageName;
+}
 
 List<OnboardingStep> onboardingSteps = [
   OnboardingStep(
     message: 'Appuyez ici pour ajouter des élèves',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoStudentsPage(context);
+      await _navigateToPage(StudentsScreen.routeName);
     },
-    targetWidgetContext: () => onboardingKeys['add_student'],
+    targetWidgetContext: () => onboardingContexts['add_student'],
   ),
   OnboardingStep(
     message: 'Appuyez ici pour accéder aux différentes pages de l’application.',
     navigationCallback: (_) async {
-      onboardingKeys['add_student']
+      await _navigateToPage(StudentsScreen.routeName);
+
+      onboardingContexts['add_student']
           ?.findAncestorStateOfType<StudentsScreenState>()
           ?.openDrawer();
     },
-    targetWidgetContext: () => onboardingKeys['drawer_button'],
+    targetWidgetContext: () => onboardingContexts['drawer_button'],
   ),
   OnboardingStep(
     message: 'Appuyez ici pour poser une question à vos élèves.',
-    navigationCallback: (_) async {},
-    targetWidgetContext: () => onboardingKeys['drawer_question_button'],
+    navigationCallback: (_) async {
+      await _navigateToPage(StudentsScreen.routeName);
+
+      onboardingContexts['add_student']
+          ?.findAncestorStateOfType<StudentsScreenState>()
+          ?.openDrawer();
+    },
+    targetWidgetContext: () => onboardingContexts['drawer_question_button'],
   ),
   OnboardingStep(
     message:
         'Ici, choisissez la section M.É.T.I.E.R. associée à la question à poser',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoQAndAPage(context,
+      await _navigateToPage(QAndAScreen.routeName,
           target: Target.all, pageMode: PageMode.edit, student: null);
-      if (!context.mounted) return;
 
-      final state = RouteManager.instance.navigatorKey.currentState;
-      QAndAScreen.animateTo(state as State<QAndAScreen>, 0);
+      // TODO Find why navigating does not currently work
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await onboardingContexts['metier_tile_0']
+            ?.findAncestorStateOfType<QAndAScreenState>()
+            ?.pageController
+            .animateToPage(1,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut);
+      });
     },
+    targetWidgetContext: () => onboardingContexts['metier_tile_0'],
   ),
   OnboardingStep(
     message: 'Vous pourrez créer une nouvelle question originale',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoQAndAPage(context,
+      await _navigateToPage(QAndAScreen.routeName,
           target: Target.all, pageMode: PageMode.edit, student: null);
-      if (!context.mounted) return;
 
-      final state = RouteManager.instance.navigatorKey.currentState;
-      QAndAScreen.animateTo(state as State<QAndAScreen>, 1);
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      final controller = onboardingContexts['metier_tile_0']
+          ?.findAncestorStateOfType<QAndAScreenState>()
+          ?.pageController;
+      debugPrint(controller.toString());
+      await onboardingContexts['metier_tile_0']
+          ?.findAncestorStateOfType<QAndAScreenState>()
+          ?.pageController
+          .animateToPage(1,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut);
     },
   ),
   OnboardingStep(
     message: 'Ou en choisir une déjà créée et la modifier',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoQAndAPage(context,
+      await _navigateToPage(QAndAScreen.routeName,
           target: Target.all, pageMode: PageMode.edit, student: null);
-      if (!context.mounted) return;
 
-      final state = RouteManager.instance.navigatorKey.currentState;
-      QAndAScreen.animateTo(state as State<QAndAScreen>, 1);
+      await onboardingContexts['metier_tile_0']
+          ?.findAncestorStateOfType<QAndAScreenState>()
+          ?.pageController
+          .animateToPage(1,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut);
     },
   ),
   OnboardingStep(
     message:
         'Sur cette page, vous verrez toutes les réponses à une même question.',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
+      await _navigateToPage(StudentsScreen.routeName);
 
-      await RouteManager.instance.gotoStudentsPage(context);
-      if (!context.mounted) return;
-
-      final state = RouteManager.instance.navigatorKey.currentState;
-      (state as StudentsScreenState).openDrawer();
+      onboardingContexts['add_student']
+          ?.findAncestorStateOfType<StudentsScreenState>()
+          ?.openDrawer();
     },
   ),
   OnboardingStep(
     message: 'Vous trouverez ici davantage d\'informations et du support.',
     navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
+      await _navigateToPage(StudentsScreen.routeName);
 
-      await RouteManager.instance.gotoStudentsPage(context);
-      if (!context.mounted) return;
-
-      final state = RouteManager.instance.navigatorKey.currentState;
-      (state as StudentsScreenState).openDrawer();
+      onboardingContexts['add_student']
+          ?.findAncestorStateOfType<StudentsScreenState>()
+          ?.openDrawer();
     },
   ),
 ];

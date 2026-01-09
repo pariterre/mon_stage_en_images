@@ -24,17 +24,10 @@ class QAndAScreen extends StatefulWidget {
   static const String routeName = '/q-and-a-screen';
 
   @override
-  State<QAndAScreen> createState() => _QAndAScreenState();
-
-  // TODO Move this to a controller?
-  static void animateTo(State<QAndAScreen> state, int int) =>
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) =>
-          (state as _QAndAScreenState)._pageController.animateToPage(int,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut));
+  State<QAndAScreen> createState() => QAndAScreenState();
 }
 
-class _QAndAScreenState extends State<QAndAScreen> {
+class QAndAScreenState extends State<QAndAScreen> {
   bool _isInitialized = false;
   UserType _userType = UserType.none;
   User? _student;
@@ -44,6 +37,7 @@ class _QAndAScreenState extends State<QAndAScreen> {
   VoidCallback? _pageViewAnimationListener;
 
   final _pageController = PageController();
+  PageController get pageController => _pageController;
   var _currentPage = 0;
   VoidCallback? _switchQuestionModeCallback;
 

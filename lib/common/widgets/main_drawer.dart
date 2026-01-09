@@ -48,7 +48,7 @@ class MainDrawer extends StatelessWidget {
             ? AppBar(
                 title: OnboardingContainer(
                   onReady: (context) =>
-                      onboardingKeys['drawer_button'] = context,
+                      onboardingContexts['drawer_button'] = context,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -74,7 +74,7 @@ class MainDrawer extends StatelessWidget {
             if (userType == UserType.teacher)
               OnboardingContainer(
                 onReady: (context) =>
-                    onboardingKeys['drawer_question_button'] = context,
+                    onboardingContexts['drawer_question_button'] = context,
                 child: MenuItem(
                   title: 'Gestion des questions',
                   icon: Icons.speaker_notes,

@@ -330,7 +330,7 @@ class StudentsScreenState extends State<StudentsScreen> {
         ),
         actions: [
           OnboardingContainer(
-            onReady: (context) => onboardingKeys['add_student'] = context,
+            onReady: (context) => onboardingContexts['add_student'] = context,
             child: IconButton(
               onPressed: _addStudent,
               icon: const Icon(
