@@ -9,6 +9,7 @@ import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 Map<String, BuildContext?> onboardingKeys = {
   'add_student': null,
   'drawer_button': null,
+  'drawer_question_button': null,
 };
 
 List<OnboardingStep> onboardingSteps = [
@@ -33,16 +34,8 @@ List<OnboardingStep> onboardingSteps = [
   ),
   OnboardingStep(
     message: 'Appuyez ici pour poser une question à vos élèves.',
-    navigationCallback: (_) async {
-      final context = RouteManager.instance.navigatorKey.currentContext;
-      if (context == null) return;
-
-      await RouteManager.instance.gotoStudentsPage(context);
-      if (!context.mounted) return;
-
-      final state = RouteManager.instance.navigatorKey.currentState;
-      (state as StudentsScreenState).openDrawer();
-    },
+    navigationCallback: (_) async {},
+    targetWidgetContext: () => onboardingKeys['drawer_question_button'],
   ),
   OnboardingStep(
     message:

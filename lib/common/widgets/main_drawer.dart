@@ -72,12 +72,18 @@ class MainDrawer extends StatelessWidget {
                 iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher)
-              MenuItem(
-                title: 'Gestion des questions',
-                icon: Icons.speaker_notes,
-                onTap: () => RouteManager.instance.gotoQAndAPage(context,
-                    target: Target.all, pageMode: PageMode.edit, student: null),
-                iconOnly: iconOnly,
+              OnboardingContainer(
+                onReady: (context) =>
+                    onboardingKeys['drawer_question_button'] = context,
+                child: MenuItem(
+                  title: 'Gestion des questions',
+                  icon: Icons.speaker_notes,
+                  onTap: () => RouteManager.instance.gotoQAndAPage(context,
+                      target: Target.all,
+                      pageMode: PageMode.edit,
+                      student: null),
+                  iconOnly: iconOnly,
+                ),
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
