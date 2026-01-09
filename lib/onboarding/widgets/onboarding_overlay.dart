@@ -10,7 +10,6 @@ class OnboardingController {
 
   OnboardingController({
     required this.steps,
-    required this.shouldShowTutorial,
     required this.onOnboardingCompleted,
   }) {
     _resetCurrentIndex();
@@ -18,7 +17,6 @@ class OnboardingController {
 
   final observer = OnboardingRouteObserver();
 
-  final bool Function(BuildContext context) shouldShowTutorial;
   final VoidCallback onOnboardingCompleted;
 
   _OnboardingOverlayState? _overlayState;
@@ -76,8 +74,7 @@ class OnboardingOverlay extends StatefulWidget {
 class _OnboardingOverlayState extends State<OnboardingOverlay> {
   OnboardingStep? get _currentStep {
     if (widget.controller._currentIndex == null ||
-        widget.controller._currentIndex! >= widget.controller.steps.length ||
-        !widget.controller.shouldShowTutorial(context)) {
+        widget.controller._currentIndex! >= widget.controller.steps.length) {
       return null;
     }
     return widget.controller.steps[widget.controller._currentIndex!];
@@ -119,11 +116,12 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
 
   // Waits for the targeted widgets to be built before displaying the onboarding dialog
   Future<void> _waitForWidgetsToBuild(OnboardingStep step) async {
-    for (final key in step.targetKeys) {
-      if (key.currentContext == null || !key.currentContext!.mounted) {
-        // Wait for one frame
-        await Future.delayed(const Duration(milliseconds: 50));
-      }
+    if (step.targetWidgetContext == null) return;
+
+    var context = step.targetWidgetContext!();
+    if (!(context?.mounted ?? false)) {
+      // Wait for one frame
+      await Future.delayed(const Duration(milliseconds: 50));
     }
   }
 
@@ -133,7 +131,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       widget.child,
       if (_currentStep != null && !_isProcessingNav)
         OnboardingDialog(
-            targetKeys: _currentStep!.targetKeys,
             onboardingStep: _currentStep!,
             onForward: () async => await widget.controller._showNextStep(),
             onBackward: (widget.controller._currentIndex ?? -1) > 0

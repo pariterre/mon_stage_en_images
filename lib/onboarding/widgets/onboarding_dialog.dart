@@ -11,7 +11,6 @@ final _logger = Logger('OnboardingDialogWithHighlight');
 class OnboardingDialog extends StatefulWidget {
   const OnboardingDialog({
     super.key,
-    required this.targetKeys,
     this.manualHoleRect = Rect.zero,
     required this.onboardingStep,
     required this.onForward,
@@ -22,7 +21,6 @@ class OnboardingDialog extends StatefulWidget {
   final Rect? manualHoleRect;
 
   final OnboardingStep onboardingStep;
-  final List<GlobalKey> targetKeys;
 
   final void Function() onForward;
   final void Function()? onBackward;
@@ -42,9 +40,8 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
   /// Get the RenderBox from the widgetKey getter, which is linked to the targeted Widget in the tree
   /// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
-  Rect? _rectFromWidgetKey(GlobalKey targetKey) {
+  Rect? _rectFromWidgetKey(BuildContext? targetContext) {
     Rect? rect;
-    final targetContext = targetKey.currentContext;
 
     if (targetContext == null || !targetContext.mounted) {
       _logger.severe(
@@ -88,100 +85,99 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
   @override
   Widget build(BuildContext context) {
-    final rectsToClip = widget.targetKeys.map((key) => _rectFromWidgetKey(key));
-    if (rectsToClip.length > 1) {
-      throw UnimplementedError(
-          'OnboardingDialog currently only supports one targetKeys for now.');
-    }
-    final rectToClip = rectsToClip.isNotEmpty ? rectsToClip.first : null;
+    MediaQuery.of(context); // Force rebuild on MediaQuery changes
 
-    if (rectsToClip.isNotEmpty && rectToClip == null) {
-      // The targeted widget is not mounted yet
-      return SizedBox.shrink();
-    }
+    final rectToClip = widget.onboardingStep.targetWidgetContext == null
+        ? null
+        : _rectFromWidgetKey(widget.onboardingStep.targetWidgetContext!());
 
-    return Stack(
-      children: [
-        // Ignoring click events inside the scrim
-        AbsorbPointer(
-          absorbing: true,
-          child: Container(),
-        ),
-        // Clipping the area of the screen where the targeted widget is visible
-        ClipPath(
-            clipper:
-                rectToClip == null ? null : _HoleClipper(holeRect: rectToClip),
-            child: Container(
-              decoration:
-                  BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
-              height: double.infinity,
-              width: double.infinity,
-            )),
+    final isReady =
+        widget.onboardingStep.targetWidgetContext == null || rectToClip != null;
 
-        // Displays the onboardingStep
-        Dialog(
-          backgroundColor: Theme.of(context).colorScheme.scrim.withAlpha(225),
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                    width: 4, color: Theme.of(context).primaryColor)),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                spacing: 12,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.onboardingStep.message,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall!
-                          .copyWith(color: Theme.of(context).cardColor)),
-                  SizedBox(height: 4),
-                  SizedBox(
+    return isReady
+        ? Stack(
+            children: [
+              // Ignoring click events inside the scrim
+              AbsorbPointer(absorbing: true, child: Container()),
+
+              // Clipping the area of the screen where the targeted widget is visible
+              ClipPath(
+                  clipper: rectToClip == null
+                      ? null
+                      : _HoleClipper(holeRect: rectToClip),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6)),
+                    height: double.infinity,
                     width: double.infinity,
-                    child: Wrap(
+                  )),
+
+              // Displays the onboardingStep
+              Dialog(
+                backgroundColor:
+                    Theme.of(context).colorScheme.scrim.withAlpha(225),
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          width: 4, color: Theme.of(context).primaryColor)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
                       spacing: 12,
-                      runAlignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (widget.onBackward != null)
-                          OutlinedButton.icon(
-                              onPressed: () => widget.onBackward!(),
-                              iconAlignment: IconAlignment.start,
-                              icon: Icon(Icons.keyboard_arrow_left_sharp),
-                              label: Text(
-                                'Précédent',
-                                style: TextStyle(
-                                    fontSize: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .fontSize),
-                              )),
-                        FilledButton.icon(
-                          onPressed: () => widget.onForward(),
-                          label: Text('Suivant',
-                              style: TextStyle(
-                                  fontSize: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .fontSize)),
-                          icon: Icon(Icons.keyboard_arrow_right_sharp),
-                          iconAlignment: IconAlignment.end,
+                        Text(widget.onboardingStep.message,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(color: Theme.of(context).cardColor)),
+                        SizedBox(height: 4),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Wrap(
+                            spacing: 12,
+                            runAlignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            alignment: WrapAlignment.spaceEvenly,
+                            children: [
+                              if (widget.onBackward != null)
+                                OutlinedButton.icon(
+                                    onPressed: () => widget.onBackward!(),
+                                    iconAlignment: IconAlignment.start,
+                                    icon: Icon(Icons.keyboard_arrow_left_sharp),
+                                    label: Text(
+                                      'Précédent',
+                                      style: TextStyle(
+                                          fontSize: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .fontSize),
+                                    )),
+                              FilledButton.icon(
+                                onPressed: () => widget.onForward(),
+                                label: Text('Suivant',
+                                    style: TextStyle(
+                                        fontSize: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .fontSize)),
+                                icon: Icon(Icons.keyboard_arrow_right_sharp),
+                                iconAlignment: IconAlignment.end,
+                              )
+                            ],
+                          ),
                         )
                       ],
                     ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        )
-      ],
-    );
+                  ),
+                ),
+              )
+            ],
+          )
+        : SizedBox.shrink();
   }
 }
 

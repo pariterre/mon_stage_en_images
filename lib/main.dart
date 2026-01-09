@@ -43,26 +43,14 @@ void main() async {
 
   final onboardingController = OnboardingController(
     steps: onboardingSteps,
-    shouldShowTutorial: (context) {
-      final prefs = SharedPreferencesController.instance;
-      if (prefs.hasSeenOnboarding || !prefs.hasAlreadySeenTheIrrstPage) {
-        return false;
-      }
-
-      final currentUser =
-          Provider.of<Database>(context, listen: false).currentUser;
-      if (currentUser?.userType != UserType.teacher ||
-          !currentUser!.termsAndServicesAccepted) {
-        return false;
-      }
-      return true;
-    },
     onOnboardingCompleted: () {
       SharedPreferencesController.instance.hasSeenOnboarding = true;
     },
   );
   SharedPreferencesController.instance.addListener(() {
-    if (!SharedPreferencesController.instance.hasSeenOnboarding) {
+    final hasSeenOnboarding =
+        SharedPreferencesController.instance.hasSeenOnboarding;
+    if (hasSeenOnboarding != null && !hasSeenOnboarding) {
       onboardingController.requestOnboarding();
     }
   });
@@ -141,14 +129,14 @@ class MyApp extends StatelessWidget {
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text(prefs.hasSeenOnboarding
+                              Text(prefs.hasSeenOnboarding ?? false
                                   ? 'Onboarding vu'
                                   : 'Onboarding non vu'),
                               Switch(
-                                value: prefs.hasSeenOnboarding,
+                                value: prefs.hasSeenOnboarding ?? false,
                                 onChanged: (_) {
                                   prefs.hasSeenOnboarding =
-                                      !prefs.hasSeenOnboarding;
+                                      !(prefs.hasSeenOnboarding ?? false);
                                 },
                               )
                             ],

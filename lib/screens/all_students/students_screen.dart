@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
@@ -11,6 +13,7 @@ import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
+import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/new_student_alert_dialog.dart';
@@ -46,6 +49,18 @@ bool _onlyActiveStudents = true;
 //StudentsScreenState is purposefully made public so onboarding can access its inner methods (like openDrawer)
 class StudentsScreenState extends State<StudentsScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+    if (currentUser?.userType == UserType.teacher) {
+      // If this is the first time we come to this screen, we show the onboarding
+      SharedPreferencesController.instance.hasSeenOnboarding ??= false;
+    }
+  }
 
   void openDrawer() => scaffoldKey.currentState?.openDrawer();
   bool? get isDrawerOpen => scaffoldKey.currentState?.isDrawerOpen;
@@ -314,14 +329,16 @@ class StudentsScreenState extends State<StudentsScreen> {
           },
         ),
         actions: [
-          IconButton(
-            key: onboardingKeys['add_student'],
-            onPressed: _addStudent,
-            icon: const Icon(
-              Icons.add,
+          OnboardingContainer(
+            onReady: (context) => onboardingKeys['add_student'] = context,
+            child: IconButton(
+              onPressed: _addStudent,
+              icon: const Icon(
+                Icons.add,
+              ),
+              iconSize: 35,
+              color: Colors.black,
             ),
-            iconSize: 35,
-            color: Colors.black,
           ),
           const SizedBox(width: 15),
         ],

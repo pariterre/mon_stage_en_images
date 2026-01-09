@@ -105,7 +105,7 @@ class MainDrawer extends StatelessWidget {
                   onTap: () {
                     final sharedPrefs = SharedPreferencesController.instance;
                     sharedPrefs.hasSeenOnboarding =
-                        !sharedPrefs.hasSeenOnboarding;
+                        !(sharedPrefs.hasSeenOnboarding ?? false);
                   },
                   iconOnly: iconOnly,
                 ),
