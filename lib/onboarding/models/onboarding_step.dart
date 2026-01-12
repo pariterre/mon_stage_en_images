@@ -17,6 +17,5 @@ class OnboardingStep {
 
   /// A callback by the Onboarding service to perform the required navigation,
   /// e.g. navigating to a new page, opening a drawer, etc.
-  final Future<void> Function(BuildContext onboardingContext)?
-      navigationCallback;
+  final void Function(BuildContext onboardingContext)? navigationCallback;
 }

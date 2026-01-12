@@ -82,20 +82,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     super.initState();
   }
 
-  bool _isProcessingNav = false;
-
   /// Navigates to screen based on the index provided if needed. Then, it prepares the screen to actually
   /// display the targeted widget
 
   Future<void> _navToStepAndRefresh() async {
-    _isProcessingNav = true;
-
     // Checking if our step is null and if we should flag its index as inactive
     final step = _currentStep;
     if (step == null) {
-      setState(() {
-        _isProcessingNav = false;
-      });
+      setState(() {});
       return;
     }
 
@@ -104,9 +98,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        setState(() {
-          _isProcessingNav = false;
-        });
+        setState(() {});
       }
     });
   }
@@ -116,9 +108,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     if (step.targetWidgetContext == null) return;
 
     var context = step.targetWidgetContext!();
-    if (!(context?.mounted ?? false)) {
+    while (!(context?.mounted ?? false)) {
       // Wait for one frame
       await Future.delayed(const Duration(milliseconds: 50));
+      context = step.targetWidgetContext!();
     }
   }
 
@@ -126,13 +119,16 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
   Widget build(BuildContext context) {
     return Stack(children: [
       widget.child,
-      if (_currentStep != null && !_isProcessingNav)
+      if (_currentStep != null)
         OnboardingDialog(
-            onboardingStep: _currentStep!,
-            onForward: () async => await widget.controller._showNextStep(),
-            onBackward: widget.controller._currentIndex > 0
-                ? () async => await widget.controller._showPreviousStep()
-                : null),
+          onboardingStep: _currentStep!,
+          onForward: () async => await widget.controller._showNextStep(),
+          onBackward: widget.controller._currentIndex > 0
+              ? () async => await widget.controller._showPreviousStep()
+              : null,
+          isLastStep: widget.controller._currentIndex ==
+              widget.controller.steps.length - 1,
+        ),
       // Shortcut to complete the onboarding
       if (widget.showDebugOptions)
         Center(

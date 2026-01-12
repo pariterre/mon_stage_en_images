@@ -48,7 +48,7 @@ class SharedPreferencesController extends ChangeNotifier {
   set hasSeenOnboarding(bool? value) {
     _forceFailIfNotInitialized();
     _prefs!
-        .setBool(_hasSeenOnboardingKey, false) // TODO value)
+        .setBool(_hasSeenOnboardingKey, value ?? false)
         .then((_) => notifyListeners());
   }
 

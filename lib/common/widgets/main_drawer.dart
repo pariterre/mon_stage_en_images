@@ -87,26 +87,34 @@ class MainDrawer extends StatelessWidget {
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
-              MenuItem(
-                title: 'Résumé des réponses',
-                icon: Icons.question_answer,
-                onTap: () => RouteManager.instance.gotoQAndAPage(context,
-                    target: Target.all,
-                    pageMode: PageMode.fixView,
-                    student: null),
-                iconOnly: iconOnly,
+              OnboardingContainer(
+                onReady: (context) =>
+                    onboardingContexts['drawer_answer_button'] = context,
+                child: MenuItem(
+                  title: 'Résumé des réponses',
+                  icon: Icons.question_answer,
+                  onTap: () => RouteManager.instance.gotoQAndAPage(context,
+                      target: Target.all,
+                      pageMode: PageMode.fixView,
+                      student: null),
+                  iconOnly: iconOnly,
+                ),
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
-              MenuItem(
-                title: 'Apprendre sur la SST',
-                icon: Icons.web,
-                onTap: () async {
-                  await launchUrl(GoToIrsstScreen.url);
-                  if (!context.mounted) return;
-                  if (canPop) Navigator.of(context).pop();
-                },
-                iconOnly: iconOnly,
+              OnboardingContainer(
+                onReady: (context) =>
+                    onboardingContexts['drawer_info_button'] = context,
+                child: MenuItem(
+                  title: 'Apprendre sur la SST',
+                  icon: Icons.web,
+                  onTap: () async {
+                    await launchUrl(GoToIrsstScreen.url);
+                    if (!context.mounted) return;
+                    if (canPop) Navigator.of(context).pop();
+                  },
+                  iconOnly: iconOnly,
+                ),
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
@@ -115,7 +123,7 @@ class MainDrawer extends StatelessWidget {
                   title: 'Revoir le tutoriel',
                   icon: Icons.help,
                   onTap: () => SharedPreferencesController
-                      .instance.hasSeenOnboarding = true,
+                      .instance.hasSeenOnboarding = false,
                   iconOnly: iconOnly,
                 ),
                 const Divider(),

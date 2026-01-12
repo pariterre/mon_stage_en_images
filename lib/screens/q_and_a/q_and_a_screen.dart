@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
@@ -8,13 +7,13 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
+import 'package:mon_stage_en_images/default_onboarding_steps.dart';
+import 'package:mon_stage_en_images/onboarding/widgets/onboarding_container.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/question_and_answer_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/filter_answers_dialog.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/metier_app_bar.dart';
 import 'package:provider/provider.dart';
-
-final _logger = Logger('QAndAScreen');
 
 class QAndAScreen extends StatefulWidget {
   const QAndAScreen({
@@ -34,27 +33,11 @@ class QAndAScreenState extends State<QAndAScreen> {
   Target _viewSpan = Target.individual;
   PageMode _pageMode = PageMode.fixView;
   var _answerFilter = AnswerSortAndFilter();
-  VoidCallback? _pageViewAnimationListener;
 
   final _pageController = PageController();
   PageController get pageController => _pageController;
   var _currentPage = 0;
   VoidCallback? _switchQuestionModeCallback;
-
-  @override
-  void initState() {
-    _pageViewAnimationListener = () {
-      _logger.finest("page in pageControlller is ${_pageController.page}");
-      if (_pageController.page == _pageController.page?.roundToDouble()) {
-        // TODO Remove this?
-        RouteManager.instance.animationStatus.value = AnimationStatus.completed;
-      } else {
-        RouteManager.instance.animationStatus.value = AnimationStatus.dismissed;
-      }
-    };
-    _pageController.addListener(_pageViewAnimationListener!);
-    super.initState();
-  }
 
   @override
   void didChangeDependencies() {
@@ -110,7 +93,6 @@ class QAndAScreenState extends State<QAndAScreen> {
 
   @override
   void dispose() {
-    _pageController.removeListener(_pageViewAnimationListener!);
     _pageController.dispose();
     super.dispose();
   }
@@ -142,10 +124,14 @@ class QAndAScreenState extends State<QAndAScreen> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_student?.toString() ??
-              (_pageMode == PageMode.fixView
-                  ? 'Résumé des réponses'
-                  : 'Gestion des questions')),
+          OnboardingContainer(
+            onReady: (context) =>
+                onboardingContexts['q_and_a_app_bar_title'] = context,
+            child: Text(_student?.toString() ??
+                (_pageMode == PageMode.fixView
+                    ? 'Résumé des réponses'
+                    : 'Gestion des questions')),
+          ),
           if (_userType == UserType.student)
             Text(
                 _currentPage == 0

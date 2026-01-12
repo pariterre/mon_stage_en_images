@@ -14,7 +14,8 @@ class OnboardingDialog extends StatefulWidget {
     this.manualHoleRect = Rect.zero,
     required this.onboardingStep,
     required this.onForward,
-    this.onBackward,
+    required this.onBackward,
+    required this.isLastStep,
   });
 
   /// Optional holeRect for overriding the clip provided by the globalKey (onboardingStep property)
@@ -24,6 +25,8 @@ class OnboardingDialog extends StatefulWidget {
 
   final void Function() onForward;
   final void Function()? onBackward;
+
+  final bool isLastStep;
 
   @override
   State<OnboardingDialog> createState() => _OnboardingDialogState();
@@ -106,90 +109,89 @@ class _OnboardingDialogState extends State<OnboardingDialog>
       }
     }
 
-    return isReady
-        ? Stack(
-            children: [
-              // Ignoring click events inside the scrim
-              AbsorbPointer(absorbing: true, child: Container()),
+    return Stack(
+      children: [
+        // Ignoring click events inside the scrim
+        AbsorbPointer(absorbing: true, child: Container()),
 
-              // Clipping the area of the screen where the targeted widget is visible
-              ClipPath(
-                  clipper: rectToClip == null
-                      ? null
-                      : _HoleClipper(holeRect: rectToClip),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6)),
-                    height: double.infinity,
+        // Clipping the area of the screen where the targeted widget is visible
+        if (isReady)
+          ClipPath(
+              clipper: rectToClip == null
+                  ? null
+                  : _HoleClipper(holeRect: rectToClip),
+              child: Container(
+                decoration:
+                    BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
+                height: double.infinity,
+                width: double.infinity,
+              )),
+
+        // Displays the onboardingStep
+        Dialog(
+          backgroundColor: Theme.of(context).colorScheme.scrim.withAlpha(225),
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                    width: 4, color: Theme.of(context).primaryColor)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                spacing: 12,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.onboardingStep.message,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall!
+                          .copyWith(color: Theme.of(context).cardColor)),
+                  SizedBox(height: 4),
+                  SizedBox(
                     width: double.infinity,
-                  )),
-
-              // Displays the onboardingStep
-              Dialog(
-                backgroundColor:
-                    Theme.of(context).colorScheme.scrim.withAlpha(225),
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                          width: 4, color: Theme.of(context).primaryColor)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
+                    child: Wrap(
                       spacing: 12,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      runAlignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceEvenly,
                       children: [
-                        Text(widget.onboardingStep.message,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall!
-                                .copyWith(color: Theme.of(context).cardColor)),
-                        SizedBox(height: 4),
-                        SizedBox(
-                          width: double.infinity,
-                          child: Wrap(
-                            spacing: 12,
-                            runAlignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            alignment: WrapAlignment.spaceEvenly,
-                            children: [
-                              if (widget.onBackward != null)
-                                OutlinedButton.icon(
-                                    onPressed: () => widget.onBackward!(),
-                                    iconAlignment: IconAlignment.start,
-                                    icon: Icon(Icons.keyboard_arrow_left_sharp),
-                                    label: Text(
-                                      'Précédent',
-                                      style: TextStyle(
-                                          fontSize: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .fontSize),
-                                    )),
-                              FilledButton.icon(
-                                onPressed: () => widget.onForward(),
-                                label: Text('Suivant',
-                                    style: TextStyle(
-                                        fontSize: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge!
-                                            .fontSize)),
-                                icon: Icon(Icons.keyboard_arrow_right_sharp),
-                                iconAlignment: IconAlignment.end,
-                              )
-                            ],
-                          ),
+                        if (widget.onBackward != null)
+                          OutlinedButton.icon(
+                              onPressed: () => widget.onBackward!(),
+                              iconAlignment: IconAlignment.start,
+                              icon: Icon(Icons.keyboard_arrow_left_sharp),
+                              label: Text(
+                                'Précédent',
+                                style: TextStyle(
+                                    fontSize: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .fontSize),
+                              )),
+                        FilledButton.icon(
+                          onPressed: () => widget.onForward(),
+                          label: Text(
+                              widget.isLastStep ? 'Terminer' : 'Suivant',
+                              style: TextStyle(
+                                  fontSize: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .fontSize)),
+                          icon: Icon(Icons.keyboard_arrow_right_sharp),
+                          iconAlignment: IconAlignment.end,
                         )
                       ],
                     ),
-                  ),
-                ),
-              )
-            ],
-          )
-        : SizedBox.shrink();
+                  )
+                ],
+              ),
+            ),
+          ),
+        )
+      ],
+    );
   }
 }
 

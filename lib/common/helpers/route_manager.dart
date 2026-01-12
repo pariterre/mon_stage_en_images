@@ -150,7 +150,4 @@ class RouteManager {
         return SizedBox.shrink();
     }
   }
-
-  final ValueNotifier<AnimationStatus?> animationStatus =
-      ValueNotifier(AnimationStatus.completed);
 }
