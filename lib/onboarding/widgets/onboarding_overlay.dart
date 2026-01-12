@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/onboarding/controllers/onboarding_route_observer.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_dialog.dart';
 
@@ -12,8 +11,6 @@ class OnboardingController {
     required this.steps,
     required this.onOnboardingCompleted,
   });
-
-  final observer = OnboardingRouteObserver();
 
   final VoidCallback onOnboardingCompleted;
 

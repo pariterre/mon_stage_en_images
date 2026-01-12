@@ -110,7 +110,6 @@ class MyApp extends StatelessWidget {
                 settings: RouteSettings(
                     name: settings.name, arguments: settings.arguments));
           },
-          navigatorObservers: [onboardingController.observer],
           builder: (context, child) {
             final prefs = SharedPreferencesController.instance;
             return OnboardingOverlay(
