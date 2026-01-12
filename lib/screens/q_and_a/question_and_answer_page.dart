@@ -30,10 +30,11 @@ class QuestionAndAnswerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<Database>(context, listen: false).currentUser;
-    if (!(user?.isActive ?? false)) {
+    final database = Provider.of<Database>(context, listen: false);
+    if (!(database.currentUser?.isActive ?? false)) {
       return Center(child: CircularProgressIndicator());
     }
+    final userType = database.userType;
 
     final allAnswers = Provider.of<AllAnswers>(context, listen: false);
     var questions = Provider.of<AllQuestions>(context, listen: true)
@@ -89,7 +90,7 @@ class QuestionAndAnswerPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (user!.userType == UserType.teacher)
+          if (userType == UserType.teacher)
             Container(
               padding: const EdgeInsets.only(left: 5, top: 15),
               child: Text(

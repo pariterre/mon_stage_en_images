@@ -87,9 +87,7 @@ class MetierAppBar extends StatelessWidget {
             studentIds: studentId == null ? null : [studentId!])
         .toList();
 
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType ??
-            UserType.none;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     return TakingActionNotifier(
       left: 8,

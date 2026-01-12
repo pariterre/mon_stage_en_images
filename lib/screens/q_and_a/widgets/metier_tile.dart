@@ -34,9 +34,7 @@ class MetierTile extends StatelessWidget {
     final allAnswers = Provider.of<AllAnswers>(context, listen: false);
     final questions = Provider.of<AllQuestions>(context, listen: false)
         .fromSection(sectionIndex);
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType ??
-            UserType.none;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     late final List<Answer>? answers;
     late final int? answered;

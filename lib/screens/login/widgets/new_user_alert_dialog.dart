@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 
 class NewUserAlertDialog extends StatefulWidget {
@@ -34,7 +33,6 @@ class _NewUserAlertDialogState extends State<NewUserAlertDialog> {
       firstName: _firstName!,
       lastName: _lastName!,
       email: widget.email,
-      userType: UserType.teacher,
       mustChangePassword: true,
       supervisedBy: 'The Administrator',
       supervising: {},

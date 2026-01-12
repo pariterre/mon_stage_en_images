@@ -87,8 +87,8 @@ class RouteManager {
     }
 
     if (currentState == null) return;
-    final user = Provider.of<Database>(context, listen: false).currentUser!;
-    switch (user.userType) {
+    final userType = Provider.of<Database>(context, listen: false).userType;
+    switch (userType) {
       case UserType.student:
         await gotoQAndAPage(context,
             target: Target.individual,

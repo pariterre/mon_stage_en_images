@@ -32,9 +32,7 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType ??
-            UserType.student;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     return Drawer(
       width: iconOnly ? 120.0 : null,

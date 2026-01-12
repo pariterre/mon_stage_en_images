@@ -82,19 +82,17 @@ class Answer extends ItemSerializable {
   ActionRequired action(BuildContext context) {
     if (!isActive) return ActionRequired.none;
 
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType ??
-            UserType.none;
-    if (userType == UserType.none) return ActionRequired.none;
-
-    if (userType == UserType.student &&
-        actionRequired == ActionRequired.fromStudent) {
-      return ActionRequired.fromStudent;
-    } else if (userType == UserType.teacher &&
-        actionRequired == ActionRequired.fromTeacher) {
-      return ActionRequired.fromTeacher;
-    } else {
-      return ActionRequired.none;
+    switch (Provider.of<Database>(context, listen: false).userType) {
+      case UserType.none:
+        return ActionRequired.none;
+      case UserType.student:
+        return actionRequired == ActionRequired.fromStudent
+            ? ActionRequired.fromStudent
+            : ActionRequired.none;
+      case UserType.teacher:
+        return actionRequired == ActionRequired.fromTeacher
+            ? ActionRequired.fromTeacher
+            : ActionRequired.none;
     }
   }
 

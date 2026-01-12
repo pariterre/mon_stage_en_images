@@ -114,15 +114,12 @@ class AllAnswers extends FirebaseListProvided<StudentAnswers> {
   /// [answers] is the list of answers to check
   static int numberOfActionsRequiredFrom(
       Iterable<Answer> answers, BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType ??
-            UserType.none;
-    if (userType == UserType.student) {
-      return numberNeedStudentActionFrom(answers, context);
-    } else if (userType == UserType.teacher) {
-      return numberNeedTeacherActionFrom(answers, context);
-    } else {
-      return 0;
+    switch (Provider.of<Database>(context, listen: false).userType) {
+      case UserType.none:
+        return 0;
+      case UserType.student:
+      case UserType.teacher:
+        return numberNeedStudentActionFrom(answers, context);
     }
   }
 

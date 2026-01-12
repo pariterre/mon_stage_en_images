@@ -22,8 +22,7 @@ class MainMetierPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser?.userType;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     return SingleChildScrollView(
       child: Column(

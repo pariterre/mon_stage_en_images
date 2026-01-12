@@ -54,11 +54,13 @@ class StudentsScreenState extends State<StudentsScreen> {
   void initState() {
     super.initState();
 
-    final currentUser =
-        Provider.of<Database>(context, listen: false).currentUser;
-    if (currentUser?.userType == UserType.teacher) {
-      // If this is the first time we come to this screen, we show the onboarding
-      SharedPreferencesController.instance.hasSeenOnboarding ??= false;
+    switch (Provider.of<Database>(context, listen: false).userType) {
+      case UserType.none:
+      case UserType.student:
+        break;
+      case UserType.teacher:
+        // If this is the first time we come to this screen, we show the onboarding
+        SharedPreferencesController.instance.hasSeenOnboarding ??= false;
     }
   }
 
@@ -333,9 +335,7 @@ class StudentsScreenState extends State<StudentsScreen> {
             onReady: (context) => onboardingContexts['add_student'] = context,
             child: IconButton(
               onPressed: _addStudent,
-              icon: const Icon(
-                Icons.add,
-              ),
+              icon: const Icon(Icons.add),
               iconSize: 35,
               color: Colors.black,
             ),

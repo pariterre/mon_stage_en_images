@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesController extends ChangeNotifier {
@@ -70,5 +71,18 @@ class SharedPreferencesController extends ChangeNotifier {
       throw Exception(
           'SharedPreferencesNotifier is not initialized. Call initialize() first.');
     }
+  }
+
+  final String _previousUserTypeKey = 'previousUserType';
+  UserType get previousUserType {
+    _forceFailIfNotInitialized();
+    return UserType.deserialize(_prefs!.getString(_previousUserTypeKey));
+  }
+
+  set previousUserType(UserType userType) {
+    _forceFailIfNotInitialized();
+    _prefs!
+        .setString(_previousUserTypeKey, userType.serialize())
+        .then((_) => notifyListeners());
   }
 }

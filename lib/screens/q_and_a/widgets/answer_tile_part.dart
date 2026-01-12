@@ -5,7 +5,6 @@ import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/discussion.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
-import 'package:mon_stage_en_images/common/models/exceptions.dart';
 import 'package:mon_stage_en_images/common/models/message.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
@@ -79,8 +78,10 @@ class _AnswerPartState extends State<AnswerPart> {
     bool? isPhoto,
     bool? markAsValidated,
   }) {
-    final currentUser =
-        Provider.of<Database>(context, listen: false).currentUser!;
+    final database = Provider.of<Database>(context, listen: false);
+    final currentUser = database.currentUser!;
+    final userType = database.userType;
+
     final allAnswers = Provider.of<AllAnswers>(context, listen: false);
     final currentAnswer = allAnswers.filter(
         questionIds: [widget.question.id],
@@ -96,22 +97,16 @@ class _AnswerPartState extends State<AnswerPart> {
     }
 
     // Inform the changing of status
-    late final ActionRequired newStatus;
-    if (currentUser.userType == UserType.student) {
-      newStatus = ActionRequired.fromTeacher;
-    } else if (currentUser.userType == UserType.teacher) {
-      if (markAsValidated ?? false) {
-        // If the teacher marked as valided but left a comment, the student
-        // should be notified
-        newStatus = newTextEntry == null
-            ? ActionRequired.none
-            : ActionRequired.fromStudent;
-      } else {
-        newStatus = ActionRequired.fromStudent;
-      }
-    } else {
-      throw const NotLoggedIn();
-    }
+    final newStatus = switch (userType) {
+      UserType.none => ActionRequired.none,
+      UserType.student => ActionRequired.fromTeacher,
+      UserType.teacher => (markAsValidated ?? false)
+          // If the teacher marked as valided but left a comment, the student should be notified
+          ? (newTextEntry == null
+              ? ActionRequired.none
+              : ActionRequired.fromStudent)
+          : ActionRequired.fromStudent,
+    };
 
     allAnswers.modifyAnswer(currentAnswer.copyWith(
       actionRequired: newStatus,

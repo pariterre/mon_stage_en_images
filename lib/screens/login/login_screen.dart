@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
@@ -29,8 +30,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+
   String? _email;
+  late final _emailController = TextEditingController(text: _email)
+    ..addListener(() => setState(() {}));
   String? _password;
+  late final _passwordController = TextEditingController(text: _password)
+    ..addListener(() => setState(() {}));
+
+  late UserType _userType;
+
   EzloginStatus _status = EzloginStatus.none;
   bool _isNewUser = false;
   bool _hidePassword = true;
@@ -40,6 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+
+    _userType = SharedPreferencesController.instance.previousUserType;
+
     _processConnexion(automaticConnexion: true);
   }
 
@@ -90,6 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  bool get _canConnect {
+    return _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _userType != UserType.none;
+  }
+
   Future<void> _processConnexion({bool automaticConnexion = false}) async {
     setState(() => _status = EzloginStatus.waitingForLogin);
     final database = Provider.of<Database>(context, listen: false);
@@ -113,6 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _password!,
         getNewUserInfo: () => _createUser(_email!),
         getNewPassword: _changePassword,
+        userType: _userType,
       )
           .then(
         (value) {
@@ -128,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
     }
 
-    if (_isNewUser && database.currentUser!.userType == UserType.teacher) {
+    if (_isNewUser) {
       final questions = Provider.of<AllQuestions>(context, listen: false);
       for (final question in DefaultQuestion.questions) {
         questions.add(question);
@@ -257,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? 'Inscrire un courriel'
                               : null,
                           onSaved: (value) => _email = value,
-                          initialValue: _email,
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: 12),
@@ -280,6 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? 'Entrer le mot de passe'
                               : null,
                           onSaved: (value) => _password = value,
+                          controller: _passwordController,
                           obscureText: _hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
@@ -304,18 +324,39 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 36),
               ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 500),
+                constraints: BoxConstraints(maxWidth: 400),
                 child: Column(
                   children: [
-                    // FilledButton(
-                    //     onPressed: () async {}, child: Text('Test onboarding')),
+                    RadioGroup(
+                      onChanged: (userType) {
+                        SharedPreferencesController.instance.previousUserType =
+                            userType!;
+                        setState(() => _userType = userType);
+                      },
+                      groupValue: _userType,
+                      child: Wrap(
+                        direction: Axis.horizontal,
+                        children: [
+                          SizedBox(
+                            width: 200,
+                            child: RadioListTile(
+                                title: Text('Enseignant(e)'),
+                                value: UserType.teacher),
+                          ),
+                          SizedBox(
+                            width: 200,
+                            child: RadioListTile(
+                                title: Text('Élève'), value: UserType.student),
+                          ),
+                        ],
+                      ),
+                    ),
                     SizedBox(
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _processConnexion,
+                        onPressed: _canConnect ? _processConnexion : null,
                         style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 studentTheme().colorScheme.primary),
@@ -344,7 +385,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MainTitleBackground(child: _buildPage()),
+      body: MainTitleBackground(
+          child: Theme(data: studentTheme(), child: _buildPage())),
     );
   }
 }

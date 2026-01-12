@@ -28,7 +28,6 @@ class QAndAScreen extends StatefulWidget {
 
 class QAndAScreenState extends State<QAndAScreen> {
   bool _isInitialized = false;
-  UserType _userType = UserType.none;
   User? _student;
   Target _viewSpan = Target.individual;
   PageMode _pageMode = PageMode.fixView;
@@ -45,26 +44,28 @@ class QAndAScreenState extends State<QAndAScreen> {
 
     if (_isInitialized) return;
     final database = Provider.of<Database>(context, listen: false);
+    final userType = database.userType;
 
     final currentUser = database.currentUser;
-    _userType = currentUser?.userType ?? UserType.none;
 
     final arguments = ModalRoute.of(context)!.settings.arguments as List?;
     _viewSpan = arguments?[0] as Target? ?? _viewSpan;
     _pageMode = arguments?[1] as PageMode? ?? _pageMode;
     _student =
-        _userType == UserType.student ? currentUser : arguments?[2] as User?;
+        userType == UserType.student ? currentUser : arguments?[2] as User?;
     setState(() {});
 
     _isInitialized = true;
   }
 
   void onPageChanged(BuildContext context, int page) {
+    final userType = Provider.of<Database>(context, listen: false).userType;
+
     _currentPage = page;
     // On the main question page, if it is the teacher on a single student, then
     // back brings back to the student page. Otherwise, it opens the drawer.
     _switchQuestionModeCallback = page > 0 &&
-            _userType == UserType.teacher &&
+            userType == UserType.teacher &&
             _viewSpan == Target.individual
         ? () => _switchToQuestionManagerMode(context)
         : null;
@@ -107,7 +108,8 @@ class QAndAScreenState extends State<QAndAScreen> {
   }
 
   void _switchToQuestionManagerMode(BuildContext context) {
-    if (_userType == UserType.student) return;
+    final userType = Provider.of<Database>(context, listen: false).userType;
+    if (userType == UserType.student) return;
     if (_pageMode == PageMode.fixView) return;
 
     _pageMode =
@@ -118,6 +120,7 @@ class QAndAScreenState extends State<QAndAScreen> {
   PreferredSizeWidget _setAppBar() {
     final currentTheme = Theme.of(context).textTheme.titleLarge!;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     return ResponsiveService.appBarOf(
       context,
@@ -132,14 +135,14 @@ class QAndAScreenState extends State<QAndAScreen> {
                     ? 'Résumé des réponses'
                     : 'Gestion des questions')),
           ),
-          if (_userType == UserType.student)
+          if (userType == UserType.student)
             Text(
                 _currentPage == 0
                     ? "Mon stage en images"
                     : Section.name(_currentPage - 1),
                 style:
                     currentTheme.copyWith(fontSize: 15, color: onPrimaryColor)),
-          if (_userType == UserType.teacher && _student != null)
+          if (userType == UserType.teacher && _student != null)
             Text(
               _student!.companyNames,
               style: currentTheme.copyWith(fontSize: 15, color: onPrimaryColor),
@@ -147,10 +150,10 @@ class QAndAScreenState extends State<QAndAScreen> {
         ],
       ),
       leading:
-          _currentPage != 0 || _student != null && _userType == UserType.teacher
+          _currentPage != 0 || _student != null && userType == UserType.teacher
               ? BackButton(onPressed: _onBackPressed)
               : null,
-      actions: _currentPage != 0 && _userType == UserType.teacher
+      actions: _currentPage != 0 && userType == UserType.teacher
           ? [
               if (_viewSpan == Target.individual)
                 IconButton(

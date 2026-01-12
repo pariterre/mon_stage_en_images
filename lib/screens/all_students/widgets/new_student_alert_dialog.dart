@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
-import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +43,6 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
       email: _email!,
       supervisedBy: database.currentUser!.id,
       supervising: {},
-      userType: UserType.student,
       mustChangePassword: true,
       companyNames: _companyName!,
       termsAndServicesAccepted: false,

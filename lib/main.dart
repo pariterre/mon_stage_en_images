@@ -87,8 +87,7 @@ class MyApp extends StatelessWidget {
           navigatorKey: RouteManager.instance.navigatorKey,
           debugShowCheckedModeBanner: false,
           initialRoute: RouteManager.instance.initialRoute,
-          theme: database.currentUser != null &&
-                  database.currentUser!.userType == UserType.teacher
+          theme: database.userType == UserType.teacher
               ? teacherTheme()
               : studentTheme(),
           onGenerateInitialRoutes: (initialRoute) {

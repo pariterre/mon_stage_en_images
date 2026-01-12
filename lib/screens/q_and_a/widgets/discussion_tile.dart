@@ -32,13 +32,14 @@ class DiscussionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser =
-        Provider.of<Database>(context, listen: false).currentUser!;
+    final database = Provider.of<Database>(context, listen: false);
+    final currentUser = database.currentUser!;
+    final userType = database.userType;
 
-    final Color myColor = currentUser.userType == UserType.student
+    final Color myColor = userType == UserType.student
         ? studentTheme().colorScheme.primary
         : teacherTheme().colorScheme.primary;
-    final Color otherColor = currentUser.userType == UserType.student
+    final Color otherColor = userType == UserType.student
         ? teacherTheme().colorScheme.primary
         : studentTheme().colorScheme.primary;
 

@@ -75,13 +75,15 @@ class _DiscussionListViewState extends State<DiscussionListView> {
   Future<void> _addPhoto(ImageSource source) async {
     // TODO Edit firebase rules to allow userType 'teacher' to write in storage
 
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser!.userType;
-    if (userType == UserType.teacher || kIsWeb) {
+    if (Provider.of<Database>(context, listen: false).userType ==
+            UserType.teacher ||
+        kIsWeb) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: Text('Fonctionnalité à venir'),
+          content: Text(kIsWeb
+              ? 'Cette fonctionnalité n\'est pas disponible pour la plateforme web.'
+              : 'Cette fonctionnalité n\'est pas disponible pour les enseignants.'),
         ),
       );
       return;
@@ -221,8 +223,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
   @override
   Widget build(BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser!.userType;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     final answer = widget.student == null
         ? null
@@ -287,7 +288,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: TextFormField(
-                  autocorrect: userType == UserType.student ? false : true,
+                  autocorrect: userType != UserType.student,
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(

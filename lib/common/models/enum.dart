@@ -19,7 +19,23 @@ enum ActionRequired {
 enum UserType {
   none,
   teacher,
-  student,
+  student;
+
+  String serialize() {
+    return switch (this) {
+      UserType.none => 'none',
+      UserType.teacher => 'teacher',
+      UserType.student => 'student',
+    };
+  }
+
+  static UserType deserialize(String? value) {
+    return switch (value) {
+      'teacher' => UserType.teacher,
+      'student' => UserType.student,
+      _ => UserType.none,
+    };
+  }
 }
 
 enum PageMode {

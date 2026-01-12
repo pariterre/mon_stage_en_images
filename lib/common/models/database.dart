@@ -31,6 +31,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   User? get currentUser => _currentUser;
 
+  var _userType = UserType.none;
+  UserType get userType => _userType;
+
   @override
   Future<void> initialize({bool useEmulator = false, currentPlatform}) async {
     final status = await super
@@ -38,7 +41,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
     if (super.currentUser != null) {
       _fromAutomaticLogin = true;
-      await _postLogin();
+      await _postLogin(userType: UserType.none);
     }
     return status;
   }
@@ -49,6 +52,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     required String password,
     Future<EzloginUser?> Function()? getNewUserInfo,
     Future<String?> Function()? getNewPassword,
+    UserType userType = UserType.none,
   }) async {
     final status = await super.login(
         username: username,
@@ -57,12 +61,13 @@ class Database extends EzloginFirebase with ChangeNotifier {
         getNewPassword: getNewPassword);
     if (status != EzloginStatus.success) return status;
     _fromAutomaticLogin = false;
-    await _postLogin();
+    await _postLogin(userType: userType);
     return status;
   }
 
-  Future<void> _postLogin() async {
+  Future<void> _postLogin({required UserType userType}) async {
     _currentUser = await user(fireauth.FirebaseAuth.instance.currentUser!.uid);
+    _userType = userType;
     notifyListeners();
 
     _fetchStudents();
@@ -74,7 +79,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
     await answers.initializeFetchingData();
 
-    if (_currentUser!.userType == UserType.student) {
+    if (_userType == UserType.student) {
       questions.pathToData = 'questions/${_currentUser!.supervisedBy}';
     } else {
       questions.pathToData = 'questions/${_currentUser!.id}';
@@ -141,7 +146,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     if (_currentUser == null) return;
 
     // We only have access to our own information if we are a student
-    if (_currentUser!.userType == UserType.student) {
+    if (_userType == UserType.student) {
       _students.clear();
       _students.add(_currentUser!);
       notifyListeners();

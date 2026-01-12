@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
-import 'package:mon_stage_en_images/common/models/exceptions.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
@@ -124,8 +123,7 @@ class _QuestionPartTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType =
-        Provider.of<Database>(context, listen: false).currentUser!.userType;
+    final userType = Provider.of<Database>(context, listen: false).userType;
 
     final List<Answer> allAnswers = question == null
         ? []
@@ -135,50 +133,46 @@ class _QuestionPartTrailing extends StatelessWidget {
 
     final checkIcon = Icon(Icons.check, size: 35, color: Colors.green[600]);
 
-    if (userType == UserType.student) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TakingActionNotifier(
-            number: hasAction ? 1 : null,
-            // forcedText: '?',
-            borderColor: Colors.black,
-            child: const Text(''),
-          ),
-          isReading
-              ? IconButton(
-                  onPressed: stopReadingCallback,
-                  icon: const Icon(Icons.volume_off))
-              : IconButton(
-                  onPressed: startReadingCallback,
-                  icon: const Icon(Icons.volume_up)),
-          if (allAnswers.isNotEmpty)
-            allAnswers.first.isValidated ? checkIcon : const SizedBox.shrink()
-        ],
-      );
-    } else if (userType == UserType.teacher) {
-      if (question == null) {
-        return _QuestionAddButton(newQuestionCallback: onNewQuestion);
-      } else if (viewSpan == Target.individual && pageMode == PageMode.edit) {
-        return _QuestionActivatedState(
-          question: question!,
-          studentId: studentId!,
-          initialStatus: _isQuestionActive(context),
-          onStateChange: onStateChange,
-          viewSpan: viewSpan,
-          pageMode: pageMode,
-        );
-      } else if (studentId != null && allAnswers.isNotEmpty) {
-        return allAnswers.first.isValidated
-            ? checkIcon
-            : TakingActionNotifier(
-                number: hasAction ? 1 : null, child: const Text(''));
-      } else {
-        return const SizedBox();
-      }
-    } else {
-      throw const NotLoggedIn();
-    }
+    return switch (userType) {
+      UserType.none => const SizedBox.shrink(),
+      UserType.student => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TakingActionNotifier(
+              number: hasAction ? 1 : null,
+              // forcedText: '?',
+              borderColor: Colors.black,
+              child: const Text(''),
+            ),
+            isReading
+                ? IconButton(
+                    onPressed: stopReadingCallback,
+                    icon: const Icon(Icons.volume_off))
+                : IconButton(
+                    onPressed: startReadingCallback,
+                    icon: const Icon(Icons.volume_up)),
+            if (allAnswers.isNotEmpty)
+              allAnswers.first.isValidated ? checkIcon : const SizedBox.shrink()
+          ],
+        ),
+      UserType.teacher => question == null
+          ? _QuestionAddButton(newQuestionCallback: onNewQuestion)
+          : (viewSpan == Target.individual && pageMode == PageMode.edit
+              ? _QuestionActivatedState(
+                  question: question!,
+                  studentId: studentId!,
+                  initialStatus: _isQuestionActive(context),
+                  onStateChange: onStateChange,
+                  viewSpan: viewSpan,
+                  pageMode: pageMode,
+                )
+              : (studentId != null && allAnswers.isNotEmpty
+                  ? (allAnswers.first.isValidated
+                      ? checkIcon
+                      : TakingActionNotifier(
+                          number: hasAction ? 1 : null, child: const Text('')))
+                  : const SizedBox.shrink())),
+    };
   }
 }
 
