@@ -32,13 +32,13 @@ void main() async {
   // 'Reinitialize the database' button.
   const useEmulator =
       bool.fromEnvironment('MSEI_USE_EMULATOR', defaultValue: false);
+  await SharedPreferencesController.instance.initialize();
   final userDatabase = Database();
   await userDatabase.initialize(
       useEmulator: useEmulator,
       currentPlatform: DefaultFirebaseOptions.currentPlatform);
 
   await initializeDateFormatting('fr_FR', null);
-  await SharedPreferencesController.instance.initialize();
   await RouteManager.instance.initialize();
 
   final onboardingController = OnboardingController(

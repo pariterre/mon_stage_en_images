@@ -36,7 +36,7 @@ class _NewUserAlertDialogState extends State<NewUserAlertDialog> {
       mustChangePassword: true,
       supervisedBy: 'The Administrator',
       supervising: {},
-      companyNames: '',
+      studentNotes: StudentNotes.empty(),
       termsAndServicesAccepted: false,
       creationDate: DateTime.now(),
     );

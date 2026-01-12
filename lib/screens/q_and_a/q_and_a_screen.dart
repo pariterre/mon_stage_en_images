@@ -118,6 +118,8 @@ class QAndAScreenState extends State<QAndAScreen> {
   }
 
   PreferredSizeWidget _setAppBar() {
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
     final currentTheme = Theme.of(context).textTheme.titleLarge!;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final userType = Provider.of<Database>(context, listen: false).userType;
@@ -144,7 +146,7 @@ class QAndAScreenState extends State<QAndAScreen> {
                     currentTheme.copyWith(fontSize: 15, color: onPrimaryColor)),
           if (userType == UserType.teacher && _student != null)
             Text(
-              _student!.companyNames,
+              currentUser?.studentNotes[_student!.id] ?? '',
               style: currentTheme.copyWith(fontSize: 15, color: onPrimaryColor),
             ),
         ],

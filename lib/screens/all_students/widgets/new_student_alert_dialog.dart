@@ -22,7 +22,6 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
   String? _firstName;
   String? _lastName;
   String? _email;
-  String? _companyName;
 
   void _finalize({bool hasCancelled = false}) {
     final database = Provider.of<Database>(context, listen: false);
@@ -44,7 +43,7 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
       supervisedBy: database.currentUser!.id,
       supervising: {},
       mustChangePassword: true,
-      companyNames: _companyName!,
+      studentNotes: StudentNotes.empty(),
       termsAndServicesAccepted: false,
       id: widget.student?.id,
       creationDate: DateTime.now(),
@@ -55,6 +54,9 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+
     return AlertDialog(
       title: const Text('Informations de l\'élève à ajouter'),
       content: SingleChildScrollView(
@@ -97,11 +99,15 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
               TextFormField(
                 decoration:
                     const InputDecoration(labelText: 'Entreprise de stage'),
-                initialValue: widget.student?.companyNames,
+                initialValue:
+                    currentUser?.studentNotes[widget.student!.id] ?? '',
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Ajouter un nom d\'entreprise'
+                    ? 'Ajouter une note associées à l\'élève (exemple : son entreprise de stage)'
                     : null,
-                onSaved: (value) => _companyName = value,
+                onSaved: (value) => widget.student?.id != null
+                    ? currentUser?.studentNotes[widget.student!.id] =
+                        value ?? ''
+                    : null,
               ),
             ],
           ),

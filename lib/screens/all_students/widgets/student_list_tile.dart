@@ -20,7 +20,10 @@ class StudentListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final student = Provider.of<Database>(context, listen: false)
+    final database = Provider.of<Database>(context, listen: false);
+    final currentUser = database.currentUser;
+
+    final student = database
         .students(onlyActive: false)
         .firstWhereOrNull((e) => e.id == studentId);
 
@@ -37,7 +40,10 @@ class StudentListTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(student?.companyNames ?? '',
+            Text(
+                student?.id != null
+                    ? currentUser?.studentNotes[student!.id] ?? ''
+                    : '',
                 style: const TextStyle(fontSize: 16)),
             Text(
                 'Questions répondues : ${AllAnswers.numberAnsweredFrom(allAnswers)} '

@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
 
-    _userType = SharedPreferencesController.instance.previousUserType;
+    _userType = SharedPreferencesController.instance.userType;
 
     _processConnexion(automaticConnexion: true);
   }
@@ -330,7 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     RadioGroup(
                       onChanged: (userType) {
-                        SharedPreferencesController.instance.previousUserType =
+                        SharedPreferencesController.instance.userType =
                             userType!;
                         setState(() => _userType = userType);
                       },
