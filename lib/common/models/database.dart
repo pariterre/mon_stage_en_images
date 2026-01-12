@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
@@ -31,8 +32,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   User? get currentUser => _currentUser;
 
-  var _userType = UserType.none;
-  UserType get userType => _userType;
+  UserType get userType => SharedPreferencesController.instance.userType;
 
   @override
   Future<void> initialize({bool useEmulator = false, currentPlatform}) async {
@@ -41,7 +41,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
     if (super.currentUser != null) {
       _fromAutomaticLogin = true;
-      await _postLogin(userType: UserType.none);
+      await _postLogin();
     }
     return status;
   }
@@ -65,9 +65,10 @@ class Database extends EzloginFirebase with ChangeNotifier {
     return status;
   }
 
-  Future<void> _postLogin({required UserType userType}) async {
+  Future<void> _postLogin({UserType? userType}) async {
     _currentUser = await user(fireauth.FirebaseAuth.instance.currentUser!.uid);
-    _userType = userType;
+    SharedPreferencesController.instance.userType =
+        userType ?? SharedPreferencesController.instance.userType;
     notifyListeners();
 
     _fetchStudents();
@@ -79,7 +80,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
     await answers.initializeFetchingData();
 
-    if (_userType == UserType.student) {
+    if (userType == UserType.student) {
       questions.pathToData = 'questions/${_currentUser!.supervisedBy}';
     } else {
       questions.pathToData = 'questions/${_currentUser!.id}';
@@ -119,8 +120,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
       return data.value == null
           ? null
           : User.fromSerialized((data.value as Map?)?.cast<String, dynamic>());
-    } on Exception {
-      _logger.severe('Error while fetching user $id');
+    } on Exception catch (error) {
+      _logger.severe('Error while fetching ({$error}) user $id');
       return null;
     }
   }
@@ -146,7 +147,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     if (_currentUser == null) return;
 
     // We only have access to our own information if we are a student
-    if (_userType == UserType.student) {
+    if (userType == UserType.student) {
       _students.clear();
       _students.add(_currentUser!);
       notifyListeners();

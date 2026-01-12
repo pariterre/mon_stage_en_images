@@ -73,16 +73,16 @@ class SharedPreferencesController extends ChangeNotifier {
     }
   }
 
-  final String _previousUserTypeKey = 'previousUserType';
-  UserType get previousUserType {
+  final String _userTypeKey = 'userType';
+  UserType get userType {
     _forceFailIfNotInitialized();
-    return UserType.deserialize(_prefs!.getString(_previousUserTypeKey));
+    return UserType.deserialize(_prefs!.getString(_userTypeKey));
   }
 
-  set previousUserType(UserType userType) {
+  set userType(UserType userType) {
     _forceFailIfNotInitialized();
     _prefs!
-        .setString(_previousUserTypeKey, userType.serialize())
+        .setString(_userTypeKey, userType.serialize())
         .then((_) => notifyListeners());
   }
 }
