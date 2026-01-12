@@ -1,9 +1,10 @@
-import 'package:enhanced_containers_foundation/item_serializable.dart';
 import 'package:ezlogin/ezlogin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:mon_stage_en_images/common/misc/database_helper.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
+
+final _isMigrating = [];
 
 class User extends EzloginUser {
   // Constructors and (de)serializer
@@ -20,18 +21,24 @@ class User extends EzloginUser {
     super.id,
   });
 
-  User.fromSerialized(super.map)
+  User.fromSerialized(Map? map)
       : firstName = map?['firstName'],
         lastName = map?['lastName'],
         supervisedBy = map?['supervisedBy'],
         supervising =
             (map?['supervising'] as Map?)?.map((k, v) => MapEntry(k, v)) ?? {},
-        studentNotes =
-            StudentNotes.fromSerialized(map?['studentNotes'] as Map?),
+        studentNotes = (map?['studentNotes'] as Map?)
+                ?.map((k, v) => MapEntry(k, v.toString())) ??
+            {},
         termsAndServicesAccepted = map?['termsAndServicesAccepted'] ?? false,
         creationDate =
             DateTime.parse(map?['creationDate'] ?? defaultCreationDate),
-        super.fromSerialized();
+        super.fromSerialized(map) {
+    if ((map?.containsKey('userType') ?? false)) {
+      // TODO Add onError
+      _migrateFromVersionWithUserTypes();
+    }
+  }
 
   @override
   User copyWith({
@@ -42,7 +49,7 @@ class User extends EzloginUser {
     Map<String, bool>? supervising,
     bool? mustChangePassword,
     String? id,
-    StudentNotes? studentNotes,
+    Map<String, String>? studentNotes,
     bool? termsAndServicesAccepted,
     DateTime? creationDate,
   }) {
@@ -68,7 +75,7 @@ class User extends EzloginUser {
       'lastName': lastName,
       'supervisedBy': supervisedBy,
       'supervising': supervising,
-      'studentNotes': studentNotes.serialize(),
+      'studentNotes': studentNotes,
       'termsAndServicesAccepted': termsAndServicesAccepted,
       'creationDate': creationDate.toIso8601String(),
     });
@@ -83,7 +90,7 @@ class User extends EzloginUser {
   final String lastName;
   final String supervisedBy;
   final Map<String, bool> supervising;
-  final StudentNotes studentNotes;
+  final Map<String, String> studentNotes;
   final bool termsAndServicesAccepted;
   final DateTime creationDate;
 
@@ -92,51 +99,42 @@ class User extends EzloginUser {
 
   @override
   String toString() => '$firstName $lastName';
-}
 
-class StudentNotes extends ItemSerializable {
-  final Map<String, String> _studentNotes;
+  Future<void> _migrateFromVersionWithUserTypes() async {
+    final currentId = FirebaseAuth.instance.currentUser!.uid;
+    if (_isMigrating.contains(currentId)) return;
+    _isMigrating.add(id);
 
-  StudentNotes._(this._studentNotes);
-  StudentNotes.empty() : _studentNotes = {};
+    final userType = (await FirebaseDatabase.instance
+            .ref('users')
+            .child('$currentId/userType')
+            .get())
+        .value as int?;
+    if (userType != 1) return;
 
-  @override
-  Map<String, dynamic> serializedMap() => _studentNotes;
+    // Migrate the company names to student notes
+    final supervisingData = (await FirebaseDatabase.instance
+            .ref('users')
+            .child('$currentId/supervising')
+            .get())
+        .value as Map?;
 
-  static StudentNotes fromSerialized(Map? map) {
-    return StudentNotes._((map ?? {}).map((k, v) => MapEntry(k, v.toString())));
-  }
-
-  String? operator [](String? studentId) {
-    if (studentId == null) return null;
-
-    // Historically, studentNotes was companyNames stored in the student object.
-    // Now, it is in the teacher's object as a map of studentId to notes. The
-    // following line ensures backward compatibility (and migration) for old users.
-    if (_studentNotes[studentId] == null) _updateDatabaseCompanyName(studentId);
-
-    return _studentNotes[studentId];
-  }
-
-  void operator []=(String studentId, String note) =>
-      _studentNotes[studentId] = note;
-
-  Future<void> _updateDatabaseCompanyName(String studentId) async {
-    final data = await FirebaseDatabase.instance
-        .ref('users')
-        .child('$studentId/companyNames')
-        .get();
-
-    if (data.value != null) _studentNotes[studentId] = data.value.toString();
-
+    for (final studentId in supervisingData?.keys ?? <String>[]) {
+      final data = await FirebaseDatabase.instance
+          .ref('users')
+          .child('$studentId/companyNames')
+          .get();
+      if (data.value != null) studentNotes[studentId] = data.value.toString();
+      await FirebaseDatabase.instance
+          .ref('users')
+          .child('$studentId/companyNames')
+          .remove();
+    }
     await FirebaseDatabase.instance
         .ref('users')
         .child('${FirebaseAuth.instance.currentUser!.uid}/studentNotes')
-        .set(serialize());
+        .set(studentNotes);
 
-    await FirebaseDatabase.instance
-        .ref('users')
-        .child('$studentId/companyNames')
-        .remove();
+    _isMigrating.remove(currentId);
   }
 }

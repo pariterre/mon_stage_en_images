@@ -43,7 +43,7 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
       supervisedBy: database.currentUser!.id,
       supervising: {},
       mustChangePassword: true,
-      studentNotes: StudentNotes.empty(),
+      studentNotes: {},
       termsAndServicesAccepted: false,
       id: widget.student?.id,
       creationDate: DateTime.now(),
