@@ -261,8 +261,7 @@ class StudentsScreenState extends State<StudentsScreen> {
             '    Identifiant : ${database.currentUser!.id}\n'
             'Informations de l\'élève :\n'
             '    Courriel : ${student.email}\n'
-            '    Identifiant : ${student.id}\n'
-            '    Indentifiant du superviseur actuel : ${student.supervisedBy}\n\n'
+            '    Identifiant : ${student.id}\n\n'
             'Merci de votre aide.');
     await FlutterEmailSender.send(email);
   }

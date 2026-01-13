@@ -31,10 +31,18 @@
       },
       "users": {
         "$uid": {
-          ".read": "auth.uid === $uid",
+          ".read": "auth.uid === $uid || root.child('v0_1_0/users/'+auth.uid+'/supervisedBy').val() === $uid)",
           ".write": "auth.uid === $uid || auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
           "connexionTokens": {
             ".read": "auth.uid !== null"
+          }
+        }
+      },
+      "teachingTokens": {
+        ".read": "auth.uid !== null",
+        "$uid" : {
+          "$token": {
+            ".write": "auth.uid === $uid || auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
           }
         }
       }

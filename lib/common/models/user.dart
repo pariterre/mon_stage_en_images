@@ -11,7 +11,6 @@ class User extends EzloginUser {
     required this.studentNotes,
     required this.termsAndServicesAccepted,
     required this.creationDate,
-    required this.connexionTokens,
     required this.connectedTokens,
     super.id,
   });
@@ -25,12 +24,11 @@ class User extends EzloginUser {
         termsAndServicesAccepted = map?['termsAndServicesAccepted'] ?? false,
         creationDate =
             DateTime.parse(map?['creationDate'] ?? defaultCreationDate),
-        connexionTokens = (map?['connexionTokens'] as Map?)
-                ?.map((k, v) => MapEntry(int.parse(k), v.toString())) ??
-            {},
-        connectedTokens =
-            (map?['connectedTokens'] as Map?)?.map((k, v) => MapEntry(k, v)) ??
-                {},
+        connectedTokens = (map?['connectedTokens'] as Map?)
+                ?.cast<String, dynamic>()
+                .keys
+                .toList() ??
+            [],
         super.fromSerialized();
 
   @override
@@ -43,8 +41,8 @@ class User extends EzloginUser {
     Map<String, String>? studentNotes,
     bool? termsAndServicesAccepted,
     DateTime? creationDate,
-    Map<int, String>? connexionTokens,
-    Map<String, bool>? connectedTokens,
+    Map<String, int>? teachingTokens,
+    List<String>? connectedTokens,
   }) {
     return User(
       firstName: firstName ?? this.firstName,
@@ -56,7 +54,6 @@ class User extends EzloginUser {
       termsAndServicesAccepted:
           termsAndServicesAccepted ?? this.termsAndServicesAccepted,
       creationDate: creationDate ?? this.creationDate,
-      connexionTokens: connexionTokens ?? this.connexionTokens,
       connectedTokens: connectedTokens ?? this.connectedTokens,
     );
   }
@@ -69,8 +66,8 @@ class User extends EzloginUser {
       'studentNotes': studentNotes,
       'termsAndServicesAccepted': termsAndServicesAccepted,
       'creationDate': creationDate.toIso8601String(),
-      'connexionTokens': connexionTokens,
-      'connectedTokens': connectedTokens,
+      'connectedTokens':
+          connectedTokens.asMap().map((k, v) => MapEntry(v, true)),
     });
 
   @override
@@ -84,8 +81,7 @@ class User extends EzloginUser {
   final Map<String, String> studentNotes;
   final bool termsAndServicesAccepted;
   final DateTime creationDate;
-  final Map<int, String> connexionTokens; // Tokens the user created
-  final Map<String, bool> connectedTokens; // Tokens the user is connected to
+  final List<String> connectedTokens; // Tokens the user is connected to
 
   bool get isActive => creationDate.isAfter(isActiveLimitDate);
   bool get isNotActive => !isActive;

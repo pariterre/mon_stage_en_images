@@ -34,13 +34,10 @@ class _NewUserAlertDialogState extends State<NewUserAlertDialog> {
       lastName: _lastName!,
       email: widget.email,
       mustChangePassword: true,
-      supervisedBy: 'The Administrator',
-      supervising: {},
       studentNotes: {},
       termsAndServicesAccepted: false,
       creationDate: DateTime.now(),
-      connexionTokens: {},
-      connectedTokens: {},
+      connectedTokens: [],
     );
 
     Navigator.pop(context, user);

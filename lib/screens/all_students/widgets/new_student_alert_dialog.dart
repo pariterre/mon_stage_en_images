@@ -24,8 +24,6 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
   String? _email;
 
   void _finalize({bool hasCancelled = false}) {
-    final database = Provider.of<Database>(context, listen: false);
-
     if (hasCancelled) {
       Navigator.pop(context);
       return;
@@ -40,15 +38,12 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
       firstName: _firstName!,
       lastName: _lastName!,
       email: _email!,
-      supervisedBy: database.currentUser!.id,
-      supervising: {},
       mustChangePassword: true,
       studentNotes: {},
       termsAndServicesAccepted: false,
       id: widget.student?.id,
       creationDate: DateTime.now(),
-      connexionTokens: {},
-      connectedTokens: {},
+      connectedTokens: [],
     );
 
     Navigator.pop(context, student);
