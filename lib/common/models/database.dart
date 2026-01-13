@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ezlogin/ezlogin.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
@@ -24,6 +26,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   final answers = AllAnswers();
 
   static const defaultStudentPassword = 'monStage';
+  static const _currentDatabaseVersion = 'v0_1_0';
 
   bool _fromAutomaticLogin = false;
   bool get fromAutomaticLogin => _fromAutomaticLogin;
@@ -116,7 +119,21 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   Future<User?> user(String id) async {
     try {
-      final data = await FirebaseDatabase.instance.ref('$usersPath/$id').get();
+      final data = await FirebaseDatabase.instance
+          .ref('$_currentDatabaseVersion/$usersPath/$id')
+          .get();
+      if (data.value == null) {
+        // If no data are found in the current version, try to migrate from previous version
+        try {
+          final isSuccess =
+              await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
+          if (!isSuccess) return null;
+        } on Exception catch (error) {
+          _logger.severe(
+              'Error while migrating ({$error}) user $id from old database version');
+          return null;
+        }
+      }
 
       return data.value == null
           ? null
@@ -235,5 +252,140 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<bool> resetPassword({String? email}) async {
     if (email == null) return false;
     return await super.resetPassword(email: email);
+  }
+
+  static Future<Map<String, Map<String, bool>>> teacherIdFromToken(
+      String token) async {
+    final data = await FirebaseDatabase.instance.ref('users').get();
+    if (data.value == null) return {};
+
+    final result = <String, Map<String, bool>>{};
+    for (final userData in (data.value as Map).values) {
+      final tokens = (userData['connexionTokens'] as Map?)
+          ?.map((k, v) => MapEntry(v.toString(), true));
+      if (tokens != null && tokens.containsKey(token)) {
+        result[userData['id']] = {token: true};
+      }
+    }
+    return result;
+
+//     ✅ Final recommendation
+
+// Do this:
+
+// tokenIndex/{token}/{uid}: true
+// users/{uid}/connexionTokens/{token}: true
+
+// Keep them in sync (client or Cloud Function).
+  }
+
+  ///
+  /// Generate a 6-character token that is not already in the database
+  static Future<String> generateUniqueConnexionToken() async {
+    // final existingTokensData = await FirebaseDatabase.instance
+    //     .ref('users')
+    //     .orderByChild('connexionTokens')
+    //     .get();
+
+    final existingTokens = <String>{};
+    // if (existingTokensData.value != null) {
+    //   for (final userData in (existingTokensData.value as Map).values) {
+    //     final tokens = (userData['connexionTokens'] as Map?)?.values;
+    //     if (tokens != null) {
+    //       existingTokens.addAll(tokens.map((e) => e.toString()));
+    //     }
+    //   }
+    // }
+
+    const chars = 'ABCDEFGHJKMNPQRSTUVXY3456789';
+    final rand = DateTime.now().millisecondsSinceEpoch;
+    String token;
+    do {
+      token = List.generate(6, (index) {
+        final indexChar = (rand + index * 37) % chars.length;
+        return chars[indexChar];
+      }).join();
+    } while (existingTokens.contains(token));
+
+    return token;
+  }
+}
+
+class _DatabaseMigrationHelper {
+  static Completer<bool>? _isMigratingUser;
+
+  static Future<bool> migrateFromVersion0_0_0() async {
+    final currentId = fireauth.FirebaseAuth.instance.currentUser!.uid;
+    try {
+      // Do not migrate other than the current user that is a teacher
+      if (currentId != 'jB7HOWzcTy4tavFafMYh5HMvLNEx') return false;
+      final users =
+          (await FirebaseDatabase.instance.ref('users').get()).value as Map?;
+
+      // Do not migrate twice
+      if (_isMigratingUser != null) return _isMigratingUser!.future;
+      _isMigratingUser = Completer<bool>();
+
+      // Add the connexion token
+      for (final Map teacher in users!.values) {
+        // Only migrate teachers as they will automatically migrate their students
+        if (teacher['userType'] != 1) continue;
+
+        final token = await Database.generateUniqueConnexionToken();
+        teacher['connexionTokens'] = {
+          DateTime.now().millisecondsSinceEpoch: token
+        };
+
+        // Migrate the students data
+        teacher['studentNotes'] = <String, String>{};
+        for (final Map student in users.values) {
+          // Only migrate students supervised by this teacher
+          if (student['userType'] != 2 ||
+              student['supervisedBy'] != teacher['id']) {
+            continue;
+          }
+
+          // Add the connected token to the student
+          student['connectedTokens'] = {token: true};
+
+          // Migrate the company names to student notes
+          teacher['studentNotes'][student['id']] = student['companyNames'];
+
+          // Removed obsolete fields
+          student.remove('userType');
+          student.remove('companyNames');
+          student.remove('supervisedBy');
+
+          // Send the student data to the new database
+          await FirebaseDatabase.instance
+              .ref('${Database._currentDatabaseVersion}/users')
+              .child(student['id'])
+              .set(student);
+        }
+
+        // Removed obsolete fields
+        teacher.remove('userType');
+        teacher.remove('companyNames');
+        teacher.remove('supervising');
+        teacher.remove('supervisedBy');
+
+        // Send the teacher data to the new database
+        await FirebaseDatabase.instance
+            .ref('${Database._currentDatabaseVersion}/users')
+            .child(teacher['id'])
+            .set(teacher);
+      }
+      // Migration done
+      _isMigratingUser?.complete(true);
+      _isMigratingUser = null;
+
+      return true;
+    } on Exception catch (error) {
+      _logger.severe(
+          'Error while migrating ({$error}) user from old database version');
+      _isMigratingUser?.complete(false);
+      _isMigratingUser = null;
+      return false;
+    }
   }
 }

@@ -5,31 +5,37 @@
       ".write": false
     },
     "questions": {
-      "$uid": {
-        ".read":    " auth.uid !== null && ( $uid === auth.uid  ||  root.child('/users/'+auth.uid+'/supervisedBy').val() === $uid)",
-        ".write":   " auth.uid !== null &&   $uid === auth.uid  &&  root.child('/users/'+auth.uid+'/userType').val() === 1",
-        "$questionId":{
-          ".read":  " auth.uid !== null && ( $uid === auth.uid  ||  root.child('/users/'+auth.uid+'/supervisedBy').val() === $uid)",
-          ".write": " auth.uid !== null &&   $uid === auth.uid  &&  root.child('/users/'+auth.uid+'/userType').val() === 1"
-        }
-      }
+      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
+      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
     },
     "answers": {
-      ".read":  "  auth.uid !== null ",
-      ".write": "  auth.uid !== null  &&  root.child('/users/'+auth.uid+'/userType').val() === 1 ",
-      "$uid": {
-        ".read":  "auth.uid !== null && ( $uid === auth.uid  || root.child('/users/'+auth.uid+'/supervising/'+$uid).val() === true)",
-        ".write": "auth.uid !== null && ( $uid === auth.uid  || root.child('/users/'+auth.uid+'/supervising/'+$uid).val() === true)"
-      }
+      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
+      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
     },
-    "users":{
-      ".read":    "  auth.uid !== null",
-      "$uid": {
-        ".read":    "auth.uid !== null  &&  ( $uid === auth.uid  ||  root.child('/users/'+auth.uid+'/supervising/$uid').val() === true )",
-        ".write":   "auth.uid !== null  &&  ( $uid === auth.uid  ||  root.child('/users/'+auth.uid+'/supervising/$uid').val() === true )",
-        "companyNames": {
-          ".read":  "auth.uid !== null",
-          ".write": "auth.uid !== null"
+    "users": {
+      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
+      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
+    },
+    "v0_1_0": {
+      "questions": {
+        "$uid": {
+          ".read": "  auth.uid === $uid",
+          ".write": " auth.uid === $uid"
+        }
+      },
+      "answers": {
+        "$uid": {
+          ".read": "  auth.uid === $uid",
+          ".write": " auth.uid === $uid"
+        }
+      },
+      "users": {
+        "$uid": {
+          ".read": "auth.uid === $uid",
+          ".write": "auth.uid === $uid || auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
+          "connexionTokens": {
+            ".read": "auth.uid !== null"
+          }
         }
       }
     }

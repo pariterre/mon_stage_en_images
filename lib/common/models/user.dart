@@ -1,10 +1,5 @@
-import 'package:ezlogin/ezlogin.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:mon_stage_en_images/common/misc/database_helper.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
-
-final _isMigrating = [];
 
 class User extends EzloginUser {
   // Constructors and (de)serializer
@@ -12,59 +7,57 @@ class User extends EzloginUser {
     required this.firstName,
     required this.lastName,
     required super.email,
-    required this.supervisedBy,
-    required this.supervising,
     required super.mustChangePassword,
     required this.studentNotes,
     required this.termsAndServicesAccepted,
     required this.creationDate,
+    required this.connexionTokens,
+    required this.connectedTokens,
     super.id,
   });
 
-  User.fromSerialized(Map? map)
+  User.fromSerialized(super.map)
       : firstName = map?['firstName'],
         lastName = map?['lastName'],
-        supervisedBy = map?['supervisedBy'],
-        supervising =
-            (map?['supervising'] as Map?)?.map((k, v) => MapEntry(k, v)) ?? {},
         studentNotes = (map?['studentNotes'] as Map?)
                 ?.map((k, v) => MapEntry(k, v.toString())) ??
             {},
         termsAndServicesAccepted = map?['termsAndServicesAccepted'] ?? false,
         creationDate =
             DateTime.parse(map?['creationDate'] ?? defaultCreationDate),
-        super.fromSerialized(map) {
-    if ((map?.containsKey('userType') ?? false)) {
-      // TODO Add onError
-      _migrateFromVersionWithUserTypes();
-    }
-  }
+        connexionTokens = (map?['connexionTokens'] as Map?)
+                ?.map((k, v) => MapEntry(int.parse(k), v.toString())) ??
+            {},
+        connectedTokens =
+            (map?['connectedTokens'] as Map?)?.map((k, v) => MapEntry(k, v)) ??
+                {},
+        super.fromSerialized();
 
   @override
   User copyWith({
     String? firstName,
     String? lastName,
     String? email,
-    String? supervisedBy,
-    Map<String, bool>? supervising,
     bool? mustChangePassword,
     String? id,
     Map<String, String>? studentNotes,
     bool? termsAndServicesAccepted,
     DateTime? creationDate,
+    Map<int, String>? connexionTokens,
+    Map<String, bool>? connectedTokens,
   }) {
     return User(
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
-      supervisedBy: supervisedBy ?? this.supervisedBy,
-      supervising: supervising ?? this.supervising,
       mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       id: id ?? this.id,
       studentNotes: studentNotes ?? this.studentNotes,
       termsAndServicesAccepted:
           termsAndServicesAccepted ?? this.termsAndServicesAccepted,
       creationDate: creationDate ?? this.creationDate,
+      connexionTokens: connexionTokens ?? this.connexionTokens,
+      connectedTokens: connectedTokens ?? this.connectedTokens,
     );
   }
 
@@ -73,11 +66,11 @@ class User extends EzloginUser {
     ..addAll({
       'firstName': firstName,
       'lastName': lastName,
-      'supervisedBy': supervisedBy,
-      'supervising': supervising,
       'studentNotes': studentNotes,
       'termsAndServicesAccepted': termsAndServicesAccepted,
       'creationDate': creationDate.toIso8601String(),
+      'connexionTokens': connexionTokens,
+      'connectedTokens': connectedTokens,
     });
 
   @override
@@ -88,53 +81,15 @@ class User extends EzloginUser {
   // Attributes and methods
   final String firstName;
   final String lastName;
-  final String supervisedBy;
-  final Map<String, bool> supervising;
   final Map<String, String> studentNotes;
   final bool termsAndServicesAccepted;
   final DateTime creationDate;
+  final Map<int, String> connexionTokens; // Tokens the user created
+  final Map<String, bool> connectedTokens; // Tokens the user is connected to
 
   bool get isActive => creationDate.isAfter(isActiveLimitDate);
   bool get isNotActive => !isActive;
 
   @override
   String toString() => '$firstName $lastName';
-
-  Future<void> _migrateFromVersionWithUserTypes() async {
-    final currentId = FirebaseAuth.instance.currentUser!.uid;
-    if (_isMigrating.contains(currentId)) return;
-    _isMigrating.add(id);
-
-    final userType = (await FirebaseDatabase.instance
-            .ref('users')
-            .child('$currentId/userType')
-            .get())
-        .value as int?;
-    if (userType != 1) return;
-
-    // Migrate the company names to student notes
-    final supervisingData = (await FirebaseDatabase.instance
-            .ref('users')
-            .child('$currentId/supervising')
-            .get())
-        .value as Map?;
-
-    for (final studentId in supervisingData?.keys ?? <String>[]) {
-      final data = await FirebaseDatabase.instance
-          .ref('users')
-          .child('$studentId/companyNames')
-          .get();
-      if (data.value != null) studentNotes[studentId] = data.value.toString();
-      await FirebaseDatabase.instance
-          .ref('users')
-          .child('$studentId/companyNames')
-          .remove();
-    }
-    await FirebaseDatabase.instance
-        .ref('users')
-        .child('${FirebaseAuth.instance.currentUser!.uid}/studentNotes')
-        .set(studentNotes);
-
-    _isMigrating.remove(currentId);
-  }
 }

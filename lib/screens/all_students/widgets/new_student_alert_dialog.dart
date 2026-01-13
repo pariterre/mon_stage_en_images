@@ -47,6 +47,8 @@ class _NewStudentAlertDialogState extends State<NewStudentAlertDialog> {
       termsAndServicesAccepted: false,
       id: widget.student?.id,
       creationDate: DateTime.now(),
+      connexionTokens: {},
+      connectedTokens: {},
     );
 
     Navigator.pop(context, student);
