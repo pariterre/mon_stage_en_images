@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
-
-final _logger = Logger('OnboardingDialogWithHighlight');
 
 /// Main widget for displaying an onboarding dialog with a background clipped
 /// to highlight the targeted Widget. Performs some stabilty checks,
@@ -36,7 +33,6 @@ class _OnboardingDialogState extends State<OnboardingDialog>
     with WidgetsBindingObserver {
   @override
   void didChangeMetrics() {
-    _logger.finest('didChangeMetrics called in OnBoardingDialogWithHighlight');
     setState(() {});
     super.didChangeMetrics();
   }
@@ -44,46 +40,15 @@ class _OnboardingDialogState extends State<OnboardingDialog>
   /// Get the RenderBox from the widgetKey getter, which is linked to the targeted Widget in the tree
   /// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
   Rect? _rectFromWidgetKey(BuildContext? targetContext) {
-    Rect? rect;
-
-    if (targetContext == null || !targetContext.mounted) {
-      _logger.severe(
-          '_rectFromWidgetKeyLabel : context is not mounted when trying to get widgetObject, returning');
-      return null;
-    }
-    final widgetObject = targetContext.findRenderObject() as RenderBox?;
-    if (widgetObject == null) {
-      _logger.severe(
-          '_rectFromWidgetKeyLabel : widgetObject is null after trying to find the RenderBox');
+    final widgetObject = targetContext?.findRenderObject() as RenderBox?;
+    if (targetContext?.mounted != true || widgetObject?.hasSize != true) {
       return null;
     }
 
-    if (!targetContext.mounted) {
-      _logger.severe(
-          '_rectFromWidgetKeyLabel : targetContext is not mounted after defining insets, returning');
-      return null;
-    }
-
-    final vertOffset = MediaQuery.of(targetContext).padding.top;
-
-    final offset = widgetObject.localToGlobal(Offset(0, 0 - vertOffset));
-    if (!widgetObject.hasSize) {
-      _logger.severe(
-          '_rectFromWidgetKeyLabel : widgetObject has no size after getting its localToGlobal, returning null');
-      return null;
-    }
-    final size = widgetObject.size;
-    final insets = EdgeInsets.all(12);
-
-    rect = insets.inflateRect(offset & size);
-
-    if (!mounted) {
-      _logger.severe(
-          '_rectFromWidgetKeyLabel : context isn\'t mounted after getting widgetObject\'s renderbox, returning null');
-      return null;
-    }
-    _logger.finest('_rectFromWidgetKeyLabel : rect is $rect');
-    return rect;
+    final offset = widgetObject!.localToGlobal(
+        Offset(0, 0 - MediaQuery.of(targetContext!).padding.top));
+    final rect = EdgeInsets.all(12).inflateRect(offset & widgetObject.size);
+    return mounted ? rect : null;
   }
 
   Rect? _previousRectToClip;
