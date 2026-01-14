@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
@@ -26,17 +27,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
   final answers = AllAnswers();
 
   static const defaultStudentPassword = 'monStage';
-  static const _currentDatabaseVersion = 'v0_1_0';
+  static const currentDatabaseVersion = 'v0_1_0';
 
   bool _fromAutomaticLogin = false;
   bool get fromAutomaticLogin => _fromAutomaticLogin;
   User? _currentUser;
-
-  final Map<String, Map<String, int>> _teachingTokens = {};
-  String? activeTeachingToken({required String teacherId}) {
-    // TODO: Check first is the most indeed the most recent token
-    return _teachingTokens[teacherId]?.keys.first;
-  }
 
   @override
   User? get currentUser => _currentUser;
@@ -79,35 +74,10 @@ class Database extends EzloginFirebase with ChangeNotifier {
     SharedPreferencesController.instance.userType =
         userType ?? SharedPreferencesController.instance.userType;
 
-    _teachingTokens.clear();
-    _teachingTokens.addAll(await _fetchTeachingTokens());
-    await _fetchConnectedStudents(
-        activeTeachingToken(teacherId: _currentUser!.id));
+    await _fetchConnectedStudents();
     await _startFetchingData();
 
     notifyListeners();
-  }
-
-  static Future<Map<String, Map<String, int>>> _fetchTeachingTokens() async {
-    Map<String, int> sortedTokens(Map<String, int> tokens) {
-      return Map.fromEntries(
-        [...tokens.entries]..sort((a, b) => b.value.compareTo(a.value)),
-      );
-    }
-
-    final Map<String, Map<String, int>> teachingTokens = {};
-    final data = await FirebaseDatabase.instance
-        .ref('$_currentDatabaseVersion/teachingTokens')
-        .get();
-    for (final MapEntry teacherTokenEntry
-        in (data.value as Map?)?.entries ?? []) {
-      final String teacherId = teacherTokenEntry.key;
-      final Map<String, int> teacherTokens = sortedTokens(
-          (teacherTokenEntry.value as Map?)?.cast<String, int>() ?? {});
-
-      teachingTokens[teacherId] = teacherTokens;
-    }
-    return teachingTokens;
   }
 
   Future<void> _startFetchingData() async {
@@ -135,7 +105,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await _stopFetchingData();
     notifyListeners();
     _fromAutomaticLogin = false;
-    _teachingTokens.clear();
     return super.logout();
   }
 
@@ -154,14 +123,13 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<User?> user(String id) async {
     try {
       final data = await FirebaseDatabase.instance
-          .ref('$_currentDatabaseVersion/$usersPath/$id')
+          .ref('$currentDatabaseVersion/$usersPath/$id')
           .get();
       if (data.value == null) {
         // If no data are found in the current version, try to migrate from previous version
         try {
-          final isSuccess =
-              await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
-          return isSuccess ? await user(id) : null;
+          await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
+          return null; // Migration is done, force reset
         } on Exception catch (error) {
           _logger.severe(
               'Error while migrating ({$error}) user $id from old database version');
@@ -172,8 +140,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
       return data.value == null
           ? null
           : User.fromSerialized((data.value as Map?)?.cast<String, dynamic>());
-    } on Exception catch (error) {
-      _logger.severe('Error while fetching ({$error}) user $id');
+    } on Exception catch (error, stackTrace) {
+      _logger.severe('Error while fetching ({$error}) user $id', stackTrace);
       return null;
     }
   }
@@ -197,27 +165,22 @@ class Database extends EzloginFirebase with ChangeNotifier {
         : [..._connectedStudents];
   }
 
-  Future<void> _fetchConnectedStudents(String? activeTeachingToken) async {
-    if (_currentUser == null || activeTeachingToken == null) return;
-    // TODO Make the proper rules for safety
-    late final DataSnapshot data;
-    try {
-      data = await FirebaseDatabase.instance
-          .ref('$usersPath/${_currentUser!.id}')
-          .get();
-    } on Exception {
-      _logger.severe('Error while fetching user ${_currentUser!.id}');
-      return;
+  Future<void> _fetchConnectedStudents() async {
+    if (_currentUser == null) return;
+
+    final tokens = (await TeachingTokenHelpers.createdTokens(
+            userId: _currentUser!.id, activeOnly: true))
+        .toList();
+
+    final connectedStudentIds = <String>{};
+    for (final token in tokens) {
+      connectedStudentIds
+          .addAll(await TeachingTokenHelpers.connectedUserIdsTo(token: token));
     }
 
-    _students.clear();
-
-    if (data.value != null) {
-      for (final id
-          in ((data.value! as Map)['supervising'] as Map? ?? {}).keys) {
-        final student = await user(id);
-        if (student != null) _students.add(student);
-      }
+    for (final id in connectedStudentIds) {
+      final student = await user(id);
+      if (student != null) _connectedStudents.add(student);
     }
 
     notifyListeners();
@@ -281,56 +244,26 @@ class Database extends EzloginFirebase with ChangeNotifier {
     if (email == null) return false;
     return await super.resetPassword(email: email);
   }
-
-  ///
-  /// Generate a 6-character token that is not already in the database
-  static Future<String> generateUniqueTeachingToken() async {
-    final teachingTokens = await Database._fetchTeachingTokens();
-    final existingTeachingTokens = <String>{};
-    for (final Map<String, int> tokens in teachingTokens.values) {
-      existingTeachingTokens.addAll(tokens.keys);
-    }
-
-    const chars = 'ABCDEFGHJKMNPQRSTUVXY3456789';
-    final rand = DateTime.now().millisecondsSinceEpoch;
-    String token;
-    do {
-      token = List.generate(6, (index) {
-        final indexChar = (rand + index * 37) % chars.length;
-        return chars[indexChar];
-      }).join();
-    } while (existingTeachingTokens.contains(token));
-
-    return token;
-  }
 }
 
 class _DatabaseMigrationHelper {
   static Completer<bool>? _isMigratingUser;
 
   static Future<bool> migrateFromVersion0_0_0() async {
-    final currentId = fireauth.FirebaseAuth.instance.currentUser!.uid;
+    // Do not migrate twice
+    if (_isMigratingUser != null) return _isMigratingUser!.future;
+    _isMigratingUser = Completer<bool>();
     try {
-      // Do not migrate other than the current user that is a teacher
-      if (currentId != 'jB7HOWzcTy4tavFafMYh5HMvLNEx') return false;
       final users =
           (await FirebaseDatabase.instance.ref('users').get()).value as Map?;
-
-      // Do not migrate twice
-      if (_isMigratingUser != null) return _isMigratingUser!.future;
-      _isMigratingUser = Completer<bool>();
 
       // Add the connexion token
       for (final Map teacher in users!.values) {
         // Only migrate teachers as they will automatically migrate their students
         if (teacher['userType'] != 1) continue;
 
-        final token = await Database.generateUniqueTeachingToken();
-        await FirebaseDatabase.instance
-            .ref('${Database._currentDatabaseVersion}/teachingTokens')
-            .child(teacher['id'])
-            .child(token)
-            .set(DateTime.now().millisecondsSinceEpoch);
+        final token =
+            await TeachingTokenHelpers.registerNewTeachingToken(teacher['id']);
 
         // Migrate the students data
         teacher['studentNotes'] = <String, String>{};
@@ -342,7 +275,8 @@ class _DatabaseMigrationHelper {
           }
 
           // Add the connected token to the student
-          student['connectedTokens'] = {token: true};
+          await TeachingTokenHelpers.connectToTeachingToken(
+              student['id'], teacher['id'], token);
 
           // Migrate the company names to student notes
           teacher['studentNotes'][student['id']] = student['companyNames'];
@@ -354,7 +288,7 @@ class _DatabaseMigrationHelper {
 
           // Send the student data to the new database
           await FirebaseDatabase.instance
-              .ref('${Database._currentDatabaseVersion}/users/${student['id']}')
+              .ref('${Database.currentDatabaseVersion}/users/${student['id']}')
               .set(student);
         }
 
@@ -366,12 +300,26 @@ class _DatabaseMigrationHelper {
 
         // Send the teacher data to the new database
         await FirebaseDatabase.instance
-            .ref('${Database._currentDatabaseVersion}/users/${teacher['id']}')
+            .ref('${Database.currentDatabaseVersion}/users/${teacher['id']}')
             .set(teacher);
       }
+
+      // Copy question to new database
+      final questions = (await FirebaseDatabase.instance.ref('questions').get())
+          .value as Map?;
+      await FirebaseDatabase.instance
+          .ref('${Database.currentDatabaseVersion}/questions')
+          .set(questions);
+
+      // Copy answers to new database
+      final answers =
+          (await FirebaseDatabase.instance.ref('answers').get()).value as Map?;
+      await FirebaseDatabase.instance
+          .ref('${Database.currentDatabaseVersion}/answers')
+          .set(answers);
+
       // Migration done
       _isMigratingUser?.complete(true);
-      _isMigratingUser = null;
 
       return true;
     } on Exception catch (error, stackTrace) {
@@ -379,7 +327,6 @@ class _DatabaseMigrationHelper {
           'Error while migrating ({$error}) user from old database version',
           stackTrace);
       _isMigratingUser?.complete(false);
-      _isMigratingUser = null;
       return false;
     }
   }

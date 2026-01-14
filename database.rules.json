@@ -2,47 +2,64 @@
   "rules": {
     "appInfo": {
       ".read": true,
-      ".write": false
+      ".write": false, 
+      "adminIds": {".read": false}
     },
     "questions": {
-      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
-      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
+      ".read": "  root.child('appInfo/adminIds').hasChild(auth.uid)",
+      ".write": " root.child('appInfo/adminIds').hasChild(auth.uid)"
     },
     "answers": {
-      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
-      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
+      ".read": "  root.child('appInfo/adminIds').hasChild(auth.uid)",
+      ".write": " root.child('appInfo/adminIds').hasChild(auth.uid)"
     },
     "users": {
-      ".read": "  auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
-      ".write": " auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
+      ".read": "  root.child('appInfo/adminIds').hasChild(auth.uid)",
+      ".write": " root.child('appInfo/adminIds').hasChild(auth.uid)"
     },
     "v0_1_0": {
+      ".write": "root.child('appInfo/adminIds').hasChild(auth.uid)",
       "questions": {
         "$uid": {
-          ".read": "  auth.uid === $uid",
-          ".write": " auth.uid === $uid"
+          ".read": "  auth.uid === $uid || root.child('v0_1_0/users/'+auth.uid+'/extendedPermissionsUsers').hasChild($uid) || root.child('appInfo/adminIds').hasChild(auth.uid)",
+          ".write": " auth.uid === $uid || root.child('appInfo/adminIds').hasChild(auth.uid)"
         }
       },
       "answers": {
         "$uid": {
-          ".read": "  auth.uid === $uid",
-          ".write": " auth.uid === $uid"
+          ".read": "  auth.uid === $uid || root.child('v0_1_0/tokens/status/' + $uid + '/extendedPermissionsUsers').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)",
+          ".write": " auth.uid === $uid || root.child('v0_1_0/tokens/status/' + $uid + '/extendedPermissionsUsers').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)"
         }
       },
       "users": {
         "$uid": {
-          ".read": "auth.uid === $uid || root.child('v0_1_0/users/'+auth.uid+'/supervisedBy').val() === $uid)",
-          ".write": "auth.uid === $uid || auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'",
-          "connexionTokens": {
-            ".read": "auth.uid !== null"
-          }
+          ".read": " auth.uid === $uid || root.child('v0_1_0/tokens/status/' + $uid + '/extendedPermissionsUsers').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)",
+          ".write": "auth.uid === $uid || root.child('appInfo/adminIds').hasChild(auth.uid)"
         }
       },
-      "teachingTokens": {
+      "tokens": {
         ".read": "auth.uid !== null",
-        "$uid" : {
+        "collection": {
           "$token": {
-            ".write": "auth.uid === $uid || auth.uid === 'jB7HOWzcTy4tavFafMYh5HMvLNEx'"
+            "connected": {
+              "$uid": {
+                ".write": "auth.uid === $uid || root.child('appInfo/adminIds').hasChild(auth.uid)"
+              }
+            },
+            "connectedUsers": {
+              "$uid": {
+                ".write": "auth.uid === $uid || root.child('appInfo/adminIds').hasChild(auth.uid)"
+              }
+            },
+            "metadata": {
+              ".write": "auth.uid === newData.child('createdBy').val() || root.child('appInfo/adminIds').hasChild(auth.uid)"
+            }
+          }
+        },
+        "status": {
+          "$uid": {
+              ".read": " auth.uid !== $uid || root.child('appInfo/adminIds').hasChild(auth.uid)",
+              ".write": "auth.uid !== $uid || root.child('appInfo/adminIds').hasChild(auth.uid)"
           }
         }
       }

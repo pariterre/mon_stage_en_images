@@ -826,7 +826,10 @@
     }
   },
   "appInfo": {
-    "requiredVersion": "1.1.0"
+    "requiredVersion": "1.1.0",
+    "adminIds": {
+      "kB7HOWzcTy4tavFafMYh5HMvLNEx": true
+    }
   },
   "questions": {
     "jB7HOWzcTy4tavFafMYh5HMvLNEx": {
@@ -1025,6 +1028,17 @@
     }
   },
   "users": {
+    "kB7HOWzcTy4tavFafMYh5HMvLNEx": {
+      "changePassword": false,
+      "companyNames": "",
+      "email": "admin@admin.admin",
+      "firstName": "admin",
+      "id": "kB7HOWzcTy4tavFafMYh5HMvLNEx",
+      "lastName": "admin",
+      "supervisedBy": "The Administrator",
+      "userType": 1,
+      "creationDate": "2025-08-01T00:00:00.000"
+    },
     "VaRRXIgxDfqpshYGvJJpfXZPqGwP": {
       "changePassword": true,
       "companyNames": "eee",

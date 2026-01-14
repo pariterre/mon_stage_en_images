@@ -37,7 +37,6 @@ class _NewUserAlertDialogState extends State<NewUserAlertDialog> {
       studentNotes: {},
       termsAndServicesAccepted: false,
       creationDate: DateTime.now(),
-      connectedTokens: [],
     );
 
     Navigator.pop(context, user);
