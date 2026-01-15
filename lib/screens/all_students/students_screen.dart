@@ -66,9 +66,10 @@ class StudentsScreenState extends State<StudentsScreen> {
     final teacherId =
         Provider.of<Database>(context, listen: false).currentUser!.id;
 
-    final tokens = await TeachingTokenHelpers.createdTokens(userId: teacherId);
+    final token =
+        await TeachingTokenHelpers.createdActiveToken(userId: teacherId);
     if (!mounted) return;
-    if (tokens.isEmpty) {
+    if (token == null) {
       _showSnackbar(
           const Text('Aucun code actif n\'a été trouvé pour ce compte'),
           ScaffoldMessenger.of(context));
@@ -86,7 +87,7 @@ class StudentsScreenState extends State<StudentsScreen> {
             children: [
               Center(
                 child: SelectableText(
-                  tokens.first,
+                  token,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),

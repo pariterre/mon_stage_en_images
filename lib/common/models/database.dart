@@ -80,6 +80,15 @@ class Database extends EzloginFirebase with ChangeNotifier {
     SharedPreferencesController.instance.userType =
         userType ?? SharedPreferencesController.instance.userType;
 
+    // For teachers, ensure they have an active token, otherwise create one
+    if (userType == UserType.teacher &&
+        await TeachingTokenHelpers.createdActiveToken(
+                userId: _currentUser!.id) ==
+            null) {
+      final token = await TeachingTokenHelpers.generateUniqueToken();
+      await TeachingTokenHelpers.registerToken(_currentUser!.id, token);
+    }
+
     await _fetchStudents();
     await _startFetchingData();
 
@@ -111,11 +120,10 @@ class Database extends EzloginFirebase with ChangeNotifier {
         }
       case UserType.teacher:
         {
-          final tokens = (await TeachingTokenHelpers.createdTokens(
-              userId: _currentUser!.id, activeOnly: true));
-          if (tokens.isEmpty) break;
+          final token = await TeachingTokenHelpers.createdActiveToken(
+              userId: _currentUser!.id);
+          if (token == null) break;
 
-          final token = tokens.first;
           questions.pathToData =
               '$_currentDatabaseVersion/questions/${_currentUser!.id}';
           answers.pathToData = '$_currentDatabaseVersion/answers/$token';
@@ -223,16 +231,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
         }
       case UserType.teacher:
         {
-          final tokens = (await TeachingTokenHelpers.createdTokens(
-                  userId: _currentUser!.id, activeOnly: true))
-              .toList();
+          final token = await TeachingTokenHelpers.createdActiveToken(
+              userId: _currentUser!.id);
 
-          final connectedStudentIds = <String>{};
-          for (final token in tokens) {
-            connectedStudentIds.addAll(
-                await TeachingTokenHelpers.userIdsConnectedTo(token: token));
-          }
-
+          final connectedStudentIds =
+              await TeachingTokenHelpers.userIdsConnectedTo(token: token!);
           for (final id in connectedStudentIds) {
             // TODO Move student notes to a dedicated root
             final student = await user(id);

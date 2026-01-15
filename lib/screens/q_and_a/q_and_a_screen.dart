@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -179,70 +180,102 @@ class QAndAScreenState extends State<QAndAScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final database = Provider.of<Database>(context, listen: false);
+    final userId = database.currentUser?.id;
+    if (userId == null) {
+      return ResponsiveService.scaffoldOf(
+        context,
+        appBar: _setAppBar(),
+        body: const Center(child: Text('Utilisateur non connecté')),
+        smallDrawer: MainDrawer.small,
+        mediumDrawer: MainDrawer.medium,
+        largeDrawer: MainDrawer.large,
+      );
+    }
+
     return ResponsiveService.scaffoldOf(
       context,
       appBar: _setAppBar(),
-      body: Column(
-        children: [
-          MetierAppBar(
-            selected: _currentPage - 1,
-            onPageChanged: onPageChangedRequest,
-            studentId: _student?.id,
-          ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (value) => onPageChanged(context, value),
-              children: [
-                MainMetierPage(
-                    student: _student, onPageChanged: onPageChangedRequest),
-                QuestionAndAnswerPage(
-                  0,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-                QuestionAndAnswerPage(
-                  1,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-                QuestionAndAnswerPage(
-                  2,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-                QuestionAndAnswerPage(
-                  3,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-                QuestionAndAnswerPage(
-                  4,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-                QuestionAndAnswerPage(
-                  5,
-                  studentId: _student?.id,
-                  viewSpan: _viewSpan,
-                  pageMode: _pageMode,
-                  answerFilterMode: _answerFilter,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: FutureBuilder(
+          future: switch (database.userType) {
+            UserType.teacher =>
+              TeachingTokenHelpers.createdActiveToken(userId: userId),
+            UserType.student =>
+              TeachingTokenHelpers.connectedToken(studentId: userId),
+            UserType.none => null,
+          },
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final token = snapshot.data;
+
+            return token == null
+                ? Text('Aucun code actif trouvé')
+                : Column(
+                    children: [
+                      MetierAppBar(
+                        selected: _currentPage - 1,
+                        onPageChanged: onPageChangedRequest,
+                        studentId: _student?.id,
+                      ),
+                      Expanded(
+                        child: PageView(
+                          controller: _pageController,
+                          onPageChanged: (value) =>
+                              onPageChanged(context, value),
+                          children: [
+                            MainMetierPage(
+                                student: _student,
+                                onPageChanged: onPageChangedRequest),
+                            QuestionAndAnswerPage(
+                              0,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                            QuestionAndAnswerPage(
+                              1,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                            QuestionAndAnswerPage(
+                              2,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                            QuestionAndAnswerPage(
+                              3,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                            QuestionAndAnswerPage(
+                              4,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                            QuestionAndAnswerPage(
+                              5,
+                              studentId: _student?.id,
+                              viewSpan: _viewSpan,
+                              pageMode: _pageMode,
+                              answerFilterMode: _answerFilter,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+          }),
       smallDrawer: MainDrawer.small,
       mediumDrawer: MainDrawer.medium,
       largeDrawer: MainDrawer.large,

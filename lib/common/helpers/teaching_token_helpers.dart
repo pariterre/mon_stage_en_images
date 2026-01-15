@@ -4,11 +4,8 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 class TeachingTokenHelpers {
   static Future<String> registerToken(String teacherId, String token) async {
     // Unregister previous active tokens created by the teacher
-    final previousToken =
-        await createdTokens(userId: teacherId, activeOnly: true);
-    if (previousToken.isNotEmpty) {
-      await unregisterToken(teacherId, previousToken.first);
-    }
+    final previousToken = await createdActiveToken(userId: teacherId);
+    if (previousToken != null) await unregisterToken(teacherId, previousToken);
 
     await Database.root
         .child('tokens')
@@ -148,6 +145,11 @@ class TeachingTokenHelpers {
         .child('connectedUsers')
         .get();
     return (snapshot.value as Map?)?.keys.cast<String>() ?? [];
+  }
+
+  static Future<String?> createdActiveToken({required String userId}) async {
+    final tokens = await createdTokens(userId: userId, activeOnly: true);
+    return tokens.isEmpty ? null : tokens.first;
   }
 
   static Future<Iterable<String>> createdTokens(
