@@ -89,34 +89,41 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<void> _startFetchingData() async {
     // this should be call only after user has successfully logged in
 
+    bool startFetching = false;
+    questions.pathToData = '';
+    answers.pathToData = '';
     switch (userType) {
       case UserType.none:
-        {
-          questions.pathToData = '';
-          break;
-        }
+        break;
       case UserType.student:
         {
           final token = await TeachingTokenHelpers.connectedToken(
               studentId: _currentUser!.id);
-          final teacherId =
-              await TeachingTokenHelpers.creatorIdOf(token: token!);
+          if (token == null) break;
 
+          final teacherId =
+              await TeachingTokenHelpers.creatorIdOf(token: token);
           questions.pathToData =
               '$_currentDatabaseVersion/questions/$teacherId';
           answers.pathToData = '$_currentDatabaseVersion/answers/$token';
+          startFetching = true;
+          break;
         }
       case UserType.teacher:
         {
-          final token = (await TeachingTokenHelpers.createdTokens(
-                  userId: _currentUser!.id, activeOnly: true))
-              .first;
+          final tokens = (await TeachingTokenHelpers.createdTokens(
+              userId: _currentUser!.id, activeOnly: true));
+          if (tokens.isEmpty) break;
+
+          final token = tokens.first;
           questions.pathToData =
               '$_currentDatabaseVersion/questions/${_currentUser!.id}';
           answers.pathToData = '$_currentDatabaseVersion/answers/$token';
+          startFetching = true;
         }
     }
 
+    if (!startFetching) return;
     await answers.initializeFetchingData();
     await questions.initializeFetchingData();
   }
