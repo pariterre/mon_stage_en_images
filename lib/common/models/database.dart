@@ -27,7 +27,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
   final answers = AllAnswers();
 
   static const defaultStudentPassword = 'monStage';
-  static const currentDatabaseVersion = 'v0_1_0';
+  static const _currentDatabaseVersion = 'v0_1_0';
+  static DatabaseReference get root =>
+      FirebaseDatabase.instance.ref(_currentDatabaseVersion);
 
   bool _fromAutomaticLogin = false;
   bool get fromAutomaticLogin => _fromAutomaticLogin;
@@ -86,8 +88,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await answers.initializeFetchingData();
 
     if (userType == UserType.student) {
-      questions.pathToData =
-          'questions/Tata'; // TODO THIS ${_currentUser!.supervisedBy}';
+      final conntectedToken = await TeachingTokenHelpers.connectedToken(
+          studentId: _currentUser!.id);
+      final teacherId =
+          await TeachingTokenHelpers.creatorIdOf(token: conntectedToken!);
+      questions.pathToData = 'questions/$teacherId';
     } else {
       questions.pathToData = 'questions/${_currentUser!.id}';
     }
@@ -122,9 +127,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   Future<User?> user(String id) async {
     try {
-      final data = await FirebaseDatabase.instance
-          .ref('$currentDatabaseVersion/$usersPath/$id')
-          .get();
+      final data = await Database.root.child(usersPath).child(id).get();
       if (data.value == null) {
         // If no data are found in the current version, try to migrate from previous version
         try {
@@ -148,7 +151,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
   @override
   Future<User?> userFromEmail(String email) async {
-    final data = await FirebaseDatabase.instance.ref(usersPath).get();
+    final data = await Database.root.child(usersPath).get();
     if (data.value == null) return null;
 
     final userdata =
@@ -175,7 +178,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     final connectedStudentIds = <String>{};
     for (final token in tokens) {
       connectedStudentIds
-          .addAll(await TeachingTokenHelpers.connectedUserIdsTo(token: token));
+          .addAll(await TeachingTokenHelpers.userIdsConnectedTo(token: token));
     }
 
     for (final id in connectedStudentIds) {
@@ -201,8 +204,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     //currentUser!.supervising[newStudent.id] = true;
 
     try {
-      // await FirebaseDatabase.instance
-      //     .ref('$usersPath/${currentUser!.id}/supervising')
+      // await Database.root.child(usersPath).child(currentUser!.id).child('supervising')
       //     .set(currentUser!.supervising);
     } on Exception {
       return EzloginStatus.unrecognizedError;
@@ -250,20 +252,28 @@ class _DatabaseMigrationHelper {
   static Completer<bool>? _isMigratingUser;
 
   static Future<bool> migrateFromVersion0_0_0() async {
+    final oldQuestionsRoot = FirebaseDatabase.instance.ref('questions');
+    final oldAnswersRoot = FirebaseDatabase.instance.ref('answers');
+    final oldUsersRoot = FirebaseDatabase.instance.ref('users');
+
     // Do not migrate twice
     if (_isMigratingUser != null) return _isMigratingUser!.future;
     _isMigratingUser = Completer<bool>();
     try {
-      final users =
-          (await FirebaseDatabase.instance.ref('users').get()).value as Map?;
+      // Copy questions to new database (no changes)
+      final allQuestions = (await oldQuestionsRoot.get()).value as Map?;
+      await Database.root.child('questions').set(allQuestions);
 
-      // Add the connexion token
+      // Prepare the answers to be migrated
+      final allAnswers = (await oldAnswersRoot.get()).value as Map?;
+
+      final users = (await oldUsersRoot.get()).value as Map?;
+      // Migrate each teacher
       for (final Map teacher in users!.values) {
         // Only migrate teachers as they will automatically migrate their students
         if (teacher['userType'] != 1) continue;
 
-        final token =
-            await TeachingTokenHelpers.registerNewTeachingToken(teacher['id']);
+        final token = await TeachingTokenHelpers.generateUniqueToken();
 
         // Migrate the students data
         teacher['studentNotes'] = <String, String>{};
@@ -274,10 +284,6 @@ class _DatabaseMigrationHelper {
             continue;
           }
 
-          // Add the connected token to the student
-          await TeachingTokenHelpers.connectToTeachingToken(
-              student['id'], teacher['id'], token);
-
           // Migrate the company names to student notes
           teacher['studentNotes'][student['id']] = student['companyNames'];
 
@@ -286,10 +292,19 @@ class _DatabaseMigrationHelper {
           student.remove('companyNames');
           student.remove('supervisedBy');
 
+          // Move the answers from that student inside the connected token field
+          for (final studentIds in allAnswers!.keys) {
+            if (studentIds != student['id']) continue;
+            allAnswers[studentIds] = {token: allAnswers[studentIds]};
+            break;
+          }
+
           // Send the student data to the new database
-          await FirebaseDatabase.instance
-              .ref('${Database.currentDatabaseVersion}/users/${student['id']}')
-              .set(student);
+          await Database.root.child('users').child(student['id']).set(student);
+
+          // Connect the student to the token
+          await TeachingTokenHelpers.connectToToken(
+              student['id'], teacher['id'], token);
         }
 
         // Removed obsolete fields
@@ -299,24 +314,14 @@ class _DatabaseMigrationHelper {
         teacher.remove('supervisedBy');
 
         // Send the teacher data to the new database
-        await FirebaseDatabase.instance
-            .ref('${Database.currentDatabaseVersion}/users/${teacher['id']}')
-            .set(teacher);
+        await Database.root.child('users').child(teacher['id']).set(teacher);
+
+        // Register the token created by that teacher
+        await TeachingTokenHelpers.registerToken(teacher['id'], token);
       }
 
-      // Copy question to new database
-      final questions = (await FirebaseDatabase.instance.ref('questions').get())
-          .value as Map?;
-      await FirebaseDatabase.instance
-          .ref('${Database.currentDatabaseVersion}/questions')
-          .set(questions);
-
       // Copy answers to new database
-      final answers =
-          (await FirebaseDatabase.instance.ref('answers').get()).value as Map?;
-      await FirebaseDatabase.instance
-          .ref('${Database.currentDatabaseVersion}/answers')
-          .set(answers);
+      await Database.root.child('answers').set(allAnswers);
 
       // Migration done
       _isMigratingUser?.complete(true);

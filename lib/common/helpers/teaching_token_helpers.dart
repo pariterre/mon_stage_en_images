@@ -2,20 +2,18 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 
 class TeachingTokenHelpers {
-  static Future<String> registerNewTeachingToken(String teacherId) async {
-    final token = await TeachingTokenHelpers._generateUniqueTeachingToken();
-    await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens')
-        .child('collection')
+  static Future<String> registerToken(String teacherId, String token) async {
+    await Database.root
+        .child('tokens')
         .child(token)
         .child('metadata')
         .set({'createdBy': teacherId});
     // TODO set other teachersId's token to isActive false
 
-    await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens')
-        .child('status')
+    await Database.root
+        .child('users')
         .child(teacherId)
+        .child('tokens')
         .child('created')
         .set({
       token: {'createdAt': ServerValue.timestamp, 'isActive': true}
@@ -24,38 +22,72 @@ class TeachingTokenHelpers {
     return token;
   }
 
-  static Future<void> connectToTeachingToken(
+  static Future<void> unregisterToken(String teacherId, String token) async {
+    // TODO check this
+    await Database.root
+        .child('users')
+        .child(teacherId)
+        .child('tokens')
+        .child('created')
+        .child(token)
+        .child('isActive')
+        .set(false);
+  }
+
+  static Future<void> connectToToken(
       String studentId, String teacherId, String token) async {
-    await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens')
-        .child('collection')
+    await Database.root
+        .child('tokens')
         .child(token)
         .child('connectedUsers')
         .update({studentId: true});
 
-    await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens')
-        .child('status')
+    await Database.root
+        .child('users')
         .child(studentId)
+        .child('tokens')
         .child('connected')
-        .set({
-      token: {'isActive': true}
-    });
+        .set({token: true});
 
-    await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens')
-        .child('status')
+    await Database.root
+        .child('users')
         .child(studentId)
-        .child('extendedPermissionsUsers')
+        .child('tokens')
+        .child('userWithExtendedPermissions')
         .set({teacherId: true});
+  }
 
-    // TODO set other studentsId's token to false (disconnected, but previously connected)
+  /// Disconnect a student from a token
+  static Future<void> disconnectFromToken(
+      String studentId, String token) async {
+    // TODO Check this
+    await Database.root
+        .child('tokens')
+        .child(token)
+        .child('connectedUsers')
+        .child(studentId)
+        .remove();
+
+    await Database.root
+        .child('users')
+        .child(studentId)
+        .child('tokens')
+        .child('connected')
+        .child(token)
+        .remove();
+
+    await Database.root
+        .child('users')
+        .child(studentId)
+        .child('tokens')
+        .child('userWithExtendedPermissions')
+        .remove();
   }
 
   ///
   /// Generate a 6-character token that is not already in the database
-  static Future<String> _generateUniqueTeachingToken() async {
-    final existingTeachingTokens = await _existingTeachingTokens();
+  static Future<String> generateUniqueToken() async {
+    final existingTokens = await _existingTokens();
 
     const chars = 'ABCDEFGHJKMNPQRSTUVXY3456789';
     final rand = DateTime.now().millisecondsSinceEpoch;
@@ -65,41 +97,64 @@ class TeachingTokenHelpers {
         final indexChar = (rand + index * 37) % chars.length;
         return chars[indexChar];
       }).join();
-    } while (existingTeachingTokens.contains(token));
+    } while (existingTokens.contains(token));
 
     return token;
   }
 
-  static Future<Set<String>> _existingTeachingTokens() async {
-    final data = await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens/collection')
-        .get();
+  static Future<Set<String>> _existingTokens() async {
+    final data = await Database.root.child('tokens').get();
     return (data.value as Map?)?.keys.cast<String>().toSet() ?? {};
   }
 
-  static Future<Iterable<String>> connectedUserIdsTo(
+  static Future<String?> connectedToken({required String studentId}) async {
+    final tokensSnapshot = Database.root
+        .child('users')
+        .child(studentId)
+        .child('tokens')
+        .child('connected');
+    final tokens = ((await tokensSnapshot.get()).value as Map?);
+    if (tokens == null || tokens.isEmpty) return null;
+
+    return tokens.keys.first;
+  }
+
+  static Future<String> creatorIdOf({required String token}) async {
+    final snapshot = (await Database.root
+        .child('tokens')
+        .child(token)
+        .child('metadata')
+        .child('createdBy')
+        .get());
+    return snapshot.value as String;
+  }
+
+  static Future<Iterable<String>> userIdsConnectedTo(
       {required String token}) async {
-    final connectedUsersSnapshot = await FirebaseDatabase.instance
-        .ref(
-            '${Database.currentDatabaseVersion}/tokens/collection/$token/connectedUsers')
+    final snapshot = await Database.root
+        .child('tokens')
+        .child(token)
+        .child('connectedUsers')
         .get();
-    return (connectedUsersSnapshot.value as Map?)?.keys.cast<String>() ?? [];
+    return (snapshot.value as Map?)?.keys.cast<String>() ?? [];
   }
 
   static Future<Iterable<String>> createdTokens(
       {required String userId, bool activeOnly = true}) async {
-    final statusSnapshot = await FirebaseDatabase.instance
-        .ref('${Database.currentDatabaseVersion}/tokens/status/$userId/created')
+    final snapshot = await Database.root
+        .child('users')
+        .child(userId)
+        .child('tokens')
+        .child('created')
         .get();
 
-    final statusData =
-        (statusSnapshot.value as Map?)?.cast<String, dynamic>() ?? {};
+    final tokens = (snapshot.value as Map?)?.cast<String, dynamic>() ?? {};
     if (activeOnly) {
-      return statusData.entries
+      return tokens.entries
           .where((entry) => (entry.value as Map?)?['isActive'] == true)
           .map((entry) => entry.key);
     } else {
-      return statusData.keys;
+      return tokens.keys;
     }
   }
 }
