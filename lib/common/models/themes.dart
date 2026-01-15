@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 ThemeData teacherTheme() {
-  const primaryColor = Colors.amber;
+  const primaryColor = Colors.deepOrange;
   const fontFamily = 'Urbanist';
   final colorSwatch = ColorScheme.fromSwatch(
     primarySwatch: primaryColor,
@@ -48,6 +48,7 @@ ThemeData teacherTheme() {
     surfaceTintColor: Colors.white,
     side: const BorderSide(color: primaryColor),
     textStyle: const TextStyle(fontWeight: FontWeight.bold),
+    foregroundColor: Colors.orange,
   ));
 
   final switchTheme = SwitchThemeData(

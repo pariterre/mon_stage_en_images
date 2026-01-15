@@ -250,6 +250,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   }
 
   Future<EzloginStatus> addStudent(
+      // TODO Change this to connect to teacher
       {required User newStudent,
       required AllQuestions questions,
       required AllAnswers answers}) async {

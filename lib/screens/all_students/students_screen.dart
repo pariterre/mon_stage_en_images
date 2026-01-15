@@ -1,15 +1,10 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
-import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
-import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
-import 'package:mon_stage_en_images/common/providers/all_answers.dart';
-import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
@@ -67,147 +62,89 @@ class StudentsScreenState extends State<StudentsScreen> {
   void openDrawer() => scaffoldKey.currentState?.openDrawer();
   bool? get isDrawerOpen => scaffoldKey.currentState?.isDrawerOpen;
 
-  Future<void> _addStudent() async {
-    final scaffold = ScaffoldMessenger.of(context);
+  Future<void> _showCurrentToken() async {
+    final teacherId =
+        Provider.of<Database>(context, listen: false).currentUser!.id;
 
-    Future<void> needAuthenticationFailed() async {
+    final tokens = await TeachingTokenHelpers.createdTokens(userId: teacherId);
+    if (!mounted) return;
+    if (tokens.isEmpty) {
       _showSnackbar(
-          Text.rich(TextSpan(
-            children: [
-              const TextSpan(
-                  text:
-                      'Vous devez confirmer votre identité pour pouvoir ajouter '
-                      'un élève. Svp, déconnectez-vous et reconnectez-vous en '),
-              TextSpan(
-                text: 'cliquant ici',
-                style: const TextStyle(
-                    color: Colors.blue, decoration: TextDecoration.underline),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    if (!mounted) return;
-                    scaffold.hideCurrentSnackBar;
-                    Helpers.onClickQuit(context);
-                  },
-              ),
-            ],
-          )),
-          scaffold);
-    }
-
-    final database = Provider.of<Database>(context, listen: false);
-    final questions = Provider.of<AllQuestions>(context, listen: false);
-    final answers = Provider.of<AllAnswers>(context, listen: false);
-
-    if (database.fromAutomaticLogin) {
-      await needAuthenticationFailed();
+          const Text('Aucun code actif n\'a été trouvé pour ce compte'),
+          ScaffoldMessenger.of(context));
       return;
     }
 
-    final student = await showDialog<User>(
+    await showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return const NewStudentAlertDialog();
+        return AlertDialog(
+          title: const Text('Code d\'inscription'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: SelectableText(
+                  tokens.first,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Text(
+                  'Les élèves peuvent utiliser ce code pour s\'inscrire à votre tableau.'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _generateNewToken();
+                },
+                child: const Text('Nouveau code',
+                    style: TextStyle(color: Colors.black))),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fermer'),
+            ),
+          ],
+        );
       },
     );
-    if (student == null) {
-      _showSnackbar(const Text('Ajout de l\'élève annulé'), scaffold);
+  }
+
+  bool _isGeneratingToken = false;
+  Future<void> _generateNewToken() async {
+    final teacherId =
+        Provider.of<Database>(context, listen: false).currentUser!.id;
+
+    final sure = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AreYouSureDialog(
+          title: 'Générer un nouveau code ?',
+          content: 'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
+              'Ceci archivera les données des élèves ayant utilisé l\'ancien code.',
+        );
+      },
+    );
+    if (!mounted) return;
+    if (sure != true) {
+      final scaffold = ScaffoldMessenger.of(context);
+      _showSnackbar(const Text('Génération du nouveau code annulée'), scaffold);
       return;
     }
 
-    final status = await database.addStudent(
-        newStudent: student, questions: questions, answers: answers);
+    setState(() {
+      _isGeneratingToken = true;
+    });
+    final newToken = await TeachingTokenHelpers.generateUniqueToken();
+    await TeachingTokenHelpers.registerToken(teacherId, newToken);
     if (!mounted) return;
-
-    switch (status) {
-      case EzloginStatus.success:
-        await showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: ((context) => AlertDialog(
-                  title: const Text('Élève ajouté'),
-                  content: Text.rich(TextSpan(
-                    children: [
-                      const TextSpan(
-                          text: 'L\'élève a été ajouté(e) avec succès.'),
-                      const TextSpan(
-                          text: 'Vous pouvez maintenant demander à l\'élève de '
-                              'télécharger l\'application '),
-                      const TextSpan(
-                          text: 'Mon stage en images',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      const TextSpan(
-                          text: ' et de s\'authentifier avec '
-                              'les informations suivantes:\n'
-                              '    Courriel: '),
-                      TextSpan(
-                          text: student.email,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const TextSpan(text: '\n    Mot de passe: '),
-                      const TextSpan(
-                          text: Database.defaultStudentPassword,
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  )),
-                  actions: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: studentTheme().outlinedButtonTheme.style,
-                      child: const Text('Fermer'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final email = Email(
-                            recipients: [student.email],
-                            subject: 'Mon stage en images',
-                            body:
-                                'Bonjour,\n\nJe suis ton enseignant(e)! Je t\'ai inscrit(e) à '
-                                '« Mon stage en images ». Une fois l\'application téléchargée, tu '
-                                'pourras t\'y connecter avec ces informations:\n\n'
-                                'Courriel : ${student.email}\n'
-                                'Mot de passe: ${Database.defaultStudentPassword}\n\n'
-                                'Bonne journée!');
-                        await FlutterEmailSender.send(email);
-                      },
-                      style: studentTheme().elevatedButtonTheme.style,
-                      child: const Text('Envoyer courriel'),
-                    ),
-                  ],
-                )));
-        return;
-      case EzloginStatus.needAuthentication:
-        await needAuthenticationFailed();
-        return;
-      case EzloginStatus.alreadyCreated:
-      case EzloginStatus.wrongInfoWhileCreating:
-        _showSnackbar(
-            Text.rich(TextSpan(
-              children: [
-                const TextSpan(
-                    text: 'Il n\'est pas possible d\'ajouter deux élèves '
-                        'avec la même adresse courriel.\n\n'
-                        'Si vous souhaitez demander les droits pour cet élève, '
-                        'veuillez '),
-                TextSpan(
-                  text: 'cliquer ici',
-                  style: const TextStyle(
-                      color: Colors.blue, decoration: TextDecoration.underline),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => _requestStudent(student.email),
-                ),
-                const TextSpan(
-                  text: '.',
-                ),
-              ],
-            )),
-            scaffold);
-        return;
-      default:
-        _showSnackbar(
-            const Text('Erreur inconnue lors de l\'ajout de l\'élève'),
-            scaffold);
-        return;
-    }
+    setState(() {
+      _isGeneratingToken = false;
+    });
+    await _showCurrentToken();
   }
 
   Future<void> _modifyStudent(User student) async {
@@ -242,28 +179,6 @@ class StudentsScreenState extends State<StudentsScreen> {
             scaffold);
         return;
     }
-  }
-
-  Future<void> _requestStudent(String studentEmail) async {
-    final database = Provider.of<Database>(context, listen: false);
-    final student = await database.userFromEmail(studentEmail);
-    if (student == null) return;
-
-    final email = Email(
-        recipients: ['recherchetic@gmail.com'],
-        subject: 'Mon stage en images - Prise en charge d\'un élève',
-        body: 'Bonjour,\n\nJe suis un(e) utilisateur(trice) de l\'application '
-            '« Mon stage en images » et je souhaiterais faire la demande de la '
-            'prise en charge d\'un élève. Vous trouverez les données importantes '
-            'ci-bas :\n\n'
-            'Mes informations :\n'
-            '    Courriel : ${database.currentUser!.email}\n'
-            '    Identifiant : ${database.currentUser!.id}\n'
-            'Informations de l\'élève :\n'
-            '    Courriel : ${student.email}\n'
-            '    Identifiant : ${student.id}\n\n'
-            'Merci de votre aide.');
-    await FlutterEmailSender.send(email);
   }
 
   Future<void> _removeStudent(User student) async {
@@ -301,7 +216,7 @@ class StudentsScreenState extends State<StudentsScreen> {
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<Database>(context, listen: false);
-    if (!(database.currentUser?.isActive ?? false)) {
+    if (!(database.currentUser?.isActive ?? false) || _isGeneratingToken) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -332,8 +247,8 @@ class StudentsScreenState extends State<StudentsScreen> {
           OnboardingContainer(
             onReady: (context) => onboardingContexts['add_student'] = context,
             child: IconButton(
-              onPressed: _addStudent,
-              icon: const Icon(Icons.add),
+              onPressed: _showCurrentToken,
+              icon: const Icon(Icons.qr_code_2),
               iconSize: 35,
               color: Colors.black,
             ),
@@ -350,19 +265,20 @@ class StudentsScreenState extends State<StudentsScreen> {
               Text('Mon stage en images',
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 3),
-              Align(
-                  alignment: Alignment.topRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Afficher les élèves archivés'),
-                      SizedBox(width: 10),
-                      Switch(
-                          onChanged: (value) =>
-                              setState(() => _onlyActiveStudents = !value),
-                          value: !_onlyActiveStudents),
-                    ],
-                  )),
+              // TODO Re-add this when archiving is implemented?
+              // Align(
+              //     alignment: Alignment.topRight,
+              //     child: Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         Text('Afficher les élèves archivés'),
+              //         SizedBox(width: 10),
+              //         Switch(
+              //             onChanged: (value) =>
+              //                 setState(() => _onlyActiveStudents = !value),
+              //             value: !_onlyActiveStudents),
+              //       ],
+              //     )),
               Expanded(
                 child: ListView.builder(
                   itemBuilder: (context, index) => StudentListTile(

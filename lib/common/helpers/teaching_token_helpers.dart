@@ -3,27 +3,39 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 
 class TeachingTokenHelpers {
   static Future<String> registerToken(String teacherId, String token) async {
+    // Unregister previous active tokens created by the teacher
+    final previousToken =
+        await createdTokens(userId: teacherId, activeOnly: true);
+    if (previousToken.isNotEmpty) {
+      await unregisterToken(teacherId, previousToken.first);
+    }
+
     await Database.root
         .child('tokens')
         .child(token)
         .child('metadata')
         .set({'createdBy': teacherId});
-    // TODO set other teachersId's token to isActive false
 
     await Database.root
         .child('users')
         .child(teacherId)
         .child('tokens')
         .child('created')
-        .set({
-      token: {'createdAt': ServerValue.timestamp, 'isActive': true}
-    });
+        .child(token)
+        .set({'createdAt': ServerValue.timestamp, 'isActive': true});
 
     return token;
   }
 
   static Future<void> unregisterToken(String teacherId, String token) async {
-    // TODO check this
+    // Fetch all the connected users to the token
+    final connectedUsers = await userIdsConnectedTo(token: token);
+    for (final studentId in connectedUsers) {
+      await disconnectFromToken(studentId, token);
+    }
+
+    await Database.root.child('tokens').child(token).remove();
+
     await Database.root
         .child('users')
         .child(teacherId)
@@ -60,7 +72,6 @@ class TeachingTokenHelpers {
   /// Disconnect a student from a token
   static Future<void> disconnectFromToken(
       String studentId, String token) async {
-    // TODO Check this
     await Database.root
         .child('tokens')
         .child(token)
