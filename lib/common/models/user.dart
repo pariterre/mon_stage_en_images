@@ -35,8 +35,6 @@ class User extends EzloginUser {
     Map<String, String>? studentNotes,
     bool? termsAndServicesAccepted,
     DateTime? creationDate,
-    Map<String, int>? teachingTokens,
-    List<String>? connectedTokens,
   }) {
     return User(
       firstName: firstName ?? this.firstName,

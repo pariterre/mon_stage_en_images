@@ -76,10 +76,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
   Future<void> _postLogin({UserType? userType}) async {
     _currentUser = await user(fireauth.FirebaseAuth.instance.currentUser!.uid);
+
     SharedPreferencesController.instance.userType =
         userType ?? SharedPreferencesController.instance.userType;
 
-    await _fetchConnectedStudents();
+    await _fetchStudents();
     await _startFetchingData();
 
     notifyListeners();
@@ -87,8 +88,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
   Future<void> _startFetchingData() async {
     // this should be call only after user has successfully logged in
-
-    answers.pathToData = '$_currentDatabaseVersion/answers';
 
     switch (userType) {
       case UserType.none:
@@ -98,24 +97,23 @@ class Database extends EzloginFirebase with ChangeNotifier {
         }
       case UserType.student:
         {
-          final conntectedToken = await TeachingTokenHelpers.connectedToken(
+          final token = await TeachingTokenHelpers.connectedToken(
               studentId: _currentUser!.id);
           final teacherId =
-              await TeachingTokenHelpers.creatorIdOf(token: conntectedToken!);
+              await TeachingTokenHelpers.creatorIdOf(token: token!);
+
           questions.pathToData =
               '$_currentDatabaseVersion/questions/$teacherId';
+          answers.pathToData = '$_currentDatabaseVersion/answers/$token';
         }
       case UserType.teacher:
         {
-          // When being a teacher, we must manually call connectedToken for each student
-          // so we know which token they are connected to. This is mandatory to
-          // fetch all answers with the cached version of connectedToken.
-          for (final student in students()) {
-            await TeachingTokenHelpers.connectedToken(studentId: student.id);
-          }
-
+          final token = (await TeachingTokenHelpers.createdTokens(
+                  userId: _currentUser!.id, activeOnly: true))
+              .first;
           questions.pathToData =
               '$_currentDatabaseVersion/questions/${_currentUser!.id}';
+          answers.pathToData = '$_currentDatabaseVersion/answers/$token';
         }
     }
 
@@ -140,7 +138,22 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   Future<EzloginStatus> modifyUser(
       {required EzloginUser user, required EzloginUser newInfo}) async {
+    // Get a copy of current tokens before modification (as they will be lost)
+    final tokens = (await Database.root
+            .child('users')
+            .child(user.id)
+            .child('tokens')
+            .get())
+        .value as Map?;
     final status = await super.modifyUser(user: user, newInfo: newInfo);
+    // Restore tokens after modification
+    if (tokens != null) {
+      await Database.root
+          .child('users')
+          .child(user.id)
+          .child('tokens')
+          .set(tokens);
+    }
     if (user.email == currentUser?.email) {
       _currentUser = await this.user(user.id);
       notifyListeners();
@@ -185,30 +198,45 @@ class Database extends EzloginFirebase with ChangeNotifier {
     return User.fromSerialized(userdata);
   }
 
-  final List<User> _connectedStudents = [];
+  final List<User> _students = [];
   Iterable<User> students({bool onlyActive = true}) {
-    return onlyActive
-        ? _connectedStudents.where((s) => s.isActive)
-        : [..._connectedStudents];
+    return onlyActive ? _students.where((s) => s.isActive) : [..._students];
   }
 
-  Future<void> _fetchConnectedStudents() async {
+  Future<void> _fetchStudents() async {
     if (_currentUser == null) return;
 
-    final tokens = (await TeachingTokenHelpers.createdTokens(
-            userId: _currentUser!.id, activeOnly: true))
-        .toList();
+    _students.clear();
+    switch (userType) {
+      case UserType.student:
+        {
+          final student = await user(_currentUser!.id);
+          if (student != null) _students.add(student);
+          break;
+        }
+      case UserType.teacher:
+        {
+          final tokens = (await TeachingTokenHelpers.createdTokens(
+                  userId: _currentUser!.id, activeOnly: true))
+              .toList();
 
-    final connectedStudentIds = <String>{};
-    for (final token in tokens) {
-      connectedStudentIds
-          .addAll(await TeachingTokenHelpers.userIdsConnectedTo(token: token));
-    }
+          final connectedStudentIds = <String>{};
+          for (final token in tokens) {
+            connectedStudentIds.addAll(
+                await TeachingTokenHelpers.userIdsConnectedTo(token: token));
+          }
 
-    for (final id in connectedStudentIds) {
-      // TODO Move student notes to a dedicated root
-      final student = await user(id);
-      if (student != null) _connectedStudents.add(student);
+          for (final id in connectedStudentIds) {
+            // TODO Move student notes to a dedicated root
+            final student = await user(id);
+            if (student != null) _students.add(student);
+          }
+        }
+      case UserType.none:
+        {
+          _students.clear();
+          break;
+        }
     }
 
     notifyListeners();
@@ -299,6 +327,7 @@ class _DatabaseMigrationHelper {
         if (teacher['userType'] != 1) continue;
 
         final token = await TeachingTokenHelpers.generateUniqueToken();
+        allAnswers?[token] = {};
 
         // Migrate the students data
         teacher['studentNotes'] = <String, String>{};
@@ -318,11 +347,10 @@ class _DatabaseMigrationHelper {
           student.remove('supervisedBy');
 
           // Move the answers from that student inside the connected token field
-          for (final studentIds in allAnswers!.keys) {
-            if (studentIds != student['id']) continue;
-            allAnswers[studentIds] = {token: allAnswers[studentIds]};
-            allAnswers[studentIds]['id'] = allAnswers[studentIds][token]['id'];
-            (allAnswers[studentIds][token] as Map).remove('id');
+          for (final studentId in allAnswers!.keys) {
+            if (studentId != student['id']) continue;
+            allAnswers[token][student['id']] = allAnswers[studentId];
+            allAnswers.remove(studentId);
             break;
           }
 

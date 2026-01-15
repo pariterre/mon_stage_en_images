@@ -133,12 +133,11 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
           isActive: activeStatus);
     } else {
       questions.modifyToAll(
-        widget.question!
-            .copyWith(section: question.section, text: question.text),
-        studentAnswers: answers,
-        currentUser: db.currentUser!,
-        isActive: activeStatus,
-      );
+          widget.question!
+              .copyWith(section: question.section, text: question.text),
+          studentAnswers: answers,
+          currentUser: db.currentUser!,
+          isActive: activeStatus);
     }
 
     setState(() {});

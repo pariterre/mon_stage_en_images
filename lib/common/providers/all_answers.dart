@@ -1,6 +1,5 @@
 import 'package:enhanced_containers/enhanced_containers.dart';
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -15,10 +14,7 @@ class AllAnswers extends FirebaseListProvided<StudentAnswers> {
 
   @override
   StudentAnswers deserializeItem(data) {
-    final token =
-        TeachingTokenHelpers.connectedTokenCached(studentId: data!['id']);
-
-    return StudentAnswers.fromSerialized(data[token]);
+    return StudentAnswers.fromSerialized(data);
   }
 
   ///
@@ -172,13 +168,13 @@ class AllAnswers extends FirebaseListProvided<StudentAnswers> {
   ///
   /// Removes the answers associated with the [question]
   /// [question] is the question
-  void removeQuestion(Question question) {
+  Future<void> removeQuestion(Question question) async {
     for (final student in this) {
       final toRemove =
           student.answers.indexWhere((e) => e.questionId == question.id);
       if (toRemove != -1) student.answers.removeAt(toRemove);
 
-      super.replace(student);
+      await super.replace(student);
     }
     notifyListeners();
   }

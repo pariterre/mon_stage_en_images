@@ -13,9 +13,7 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   AllQuestions() : super(pathToData: dataName);
 
   @override
-  Question deserializeItem(data) {
-    return Question.fromSerialized(data);
-  }
+  Question deserializeItem(data) => Question.fromSerialized(data);
 
   ///
   /// Returns the list of questions from a section
