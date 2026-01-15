@@ -22,6 +22,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
   /// This is an internal structure to quickly access the current
   /// user information. These may therefore be out of sync with the database
 
+  static const String _userPathInternal = 'users';
+  Database() : super(usersPath: '$_currentDatabaseVersion/$_userPathInternal');
+
   // Rerefence to the database providers
   final questions = AllQuestions();
   final answers = AllAnswers();
@@ -83,19 +86,40 @@ class Database extends EzloginFirebase with ChangeNotifier {
   }
 
   Future<void> _startFetchingData() async {
-    /// this should be call only after user has successfully logged in
+    // this should be call only after user has successfully logged in
+
+    answers.pathToData = '$_currentDatabaseVersion/answers';
+
+    switch (userType) {
+      case UserType.none:
+        {
+          questions.pathToData = '';
+          break;
+        }
+      case UserType.student:
+        {
+          final conntectedToken = await TeachingTokenHelpers.connectedToken(
+              studentId: _currentUser!.id);
+          final teacherId =
+              await TeachingTokenHelpers.creatorIdOf(token: conntectedToken!);
+          questions.pathToData =
+              '$_currentDatabaseVersion/questions/$teacherId';
+        }
+      case UserType.teacher:
+        {
+          // When being a teacher, we must manually call connectedToken for each student
+          // so we know which token they are connected to. This is mandatory to
+          // fetch all answers with the cached version of connectedToken.
+          for (final student in students()) {
+            await TeachingTokenHelpers.connectedToken(studentId: student.id);
+          }
+
+          questions.pathToData =
+              '$_currentDatabaseVersion/questions/${_currentUser!.id}';
+        }
+    }
 
     await answers.initializeFetchingData();
-
-    if (userType == UserType.student) {
-      final conntectedToken = await TeachingTokenHelpers.connectedToken(
-          studentId: _currentUser!.id);
-      final teacherId =
-          await TeachingTokenHelpers.creatorIdOf(token: conntectedToken!);
-      questions.pathToData = 'questions/$teacherId';
-    } else {
-      questions.pathToData = 'questions/${_currentUser!.id}';
-    }
     await questions.initializeFetchingData();
   }
 
@@ -127,7 +151,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   Future<User?> user(String id) async {
     try {
-      final data = await Database.root.child(usersPath).child(id).get();
+      final data = await Database.root.child(_userPathInternal).child(id).get();
       if (data.value == null) {
         // If no data are found in the current version, try to migrate from previous version
         try {
@@ -151,7 +175,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
   @override
   Future<User?> userFromEmail(String email) async {
-    final data = await Database.root.child(usersPath).get();
+    final data = await Database.root.child(_userPathInternal).get();
     if (data.value == null) return null;
 
     final userdata =
@@ -182,6 +206,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     }
 
     for (final id in connectedStudentIds) {
+      // TODO Move student notes to a dedicated root
       final student = await user(id);
       if (student != null) _connectedStudents.add(student);
     }
@@ -204,7 +229,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     //currentUser!.supervising[newStudent.id] = true;
 
     try {
-      // await Database.root.child(usersPath).child(currentUser!.id).child('supervising')
+      // await Database.root.child(_userPathInternal).child(currentUser!.id).child('supervising')
       //     .set(currentUser!.supervising);
     } on Exception {
       return EzloginStatus.unrecognizedError;
@@ -296,6 +321,8 @@ class _DatabaseMigrationHelper {
           for (final studentIds in allAnswers!.keys) {
             if (studentIds != student['id']) continue;
             allAnswers[studentIds] = {token: allAnswers[studentIds]};
+            allAnswers[studentIds]['id'] = allAnswers[studentIds][token]['id'];
+            (allAnswers[studentIds][token] as Map).remove('id');
             break;
           }
 

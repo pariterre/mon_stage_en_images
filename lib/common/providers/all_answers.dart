@@ -1,5 +1,6 @@
 import 'package:enhanced_containers/enhanced_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -14,7 +15,10 @@ class AllAnswers extends FirebaseListProvided<StudentAnswers> {
 
   @override
   StudentAnswers deserializeItem(data) {
-    return StudentAnswers.fromSerialized(data);
+    final token =
+        TeachingTokenHelpers.connectedTokenCached(studentId: data!['id']);
+
+    return StudentAnswers.fromSerialized(data[token]);
   }
 
   ///

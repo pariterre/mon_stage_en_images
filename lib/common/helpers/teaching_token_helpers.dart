@@ -107,6 +107,9 @@ class TeachingTokenHelpers {
     return (data.value as Map?)?.keys.cast<String>().toSet() ?? {};
   }
 
+  static final Map<String, String?> _connectedTokenCached = {};
+  static String? connectedTokenCached({required String studentId}) =>
+      _connectedTokenCached[studentId];
   static Future<String?> connectedToken({required String studentId}) async {
     final tokensSnapshot = Database.root
         .child('users')
@@ -116,7 +119,8 @@ class TeachingTokenHelpers {
     final tokens = ((await tokensSnapshot.get()).value as Map?);
     if (tokens == null || tokens.isEmpty) return null;
 
-    return tokens.keys.first;
+    _connectedTokenCached[studentId] = tokens.keys.first;
+    return _connectedTokenCached[studentId];
   }
 
   static Future<String> creatorIdOf({required String token}) async {

@@ -26,11 +26,10 @@
         }
       },
       "answers": {
+        ".read": " auth.uid !== null",
         "$uid": {
-          "$token": {
-            ".read": "  auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)",
-            ".write": " auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)"
-          }
+          ".read": "  auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)",
+          ".write": " auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('appInfo/adminIds').hasChild(auth.uid)"
         }
       },
       "users": {
