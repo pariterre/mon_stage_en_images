@@ -118,21 +118,61 @@ class StudentsScreenState extends State<StudentsScreen> {
     final teacherId =
         Provider.of<Database>(context, listen: false).currentUser!.id;
 
+    final controller = TextEditingController();
     final sure = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AreYouSureDialog(
-          title: 'Générer un nouveau code ?',
-          content: 'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
-              'Ceci archivera les données des élèves ayant utilisé l\'ancien code.',
-        );
+        return AlertDialog(
+            title: Text('Générer un nouveau code ?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                    'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
+                    'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
+                    'Entrez votre mot de passe pour confirmer :'),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(labelText: 'Mot de passe'),
+                  obscureText: true,
+                  autofocus: true,
+                ),
+              ],
+            ),
+            actions: [
+              OutlinedButton(
+                child: const Text('Annuler'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              ElevatedButton(
+                child: const Text('Continuer'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ]);
       },
     );
+    final password = controller.text;
+    controller.dispose();
     if (!mounted) return;
-    if (sure != true) {
+    if (sure != true || password.isEmpty) {
       final scaffold = ScaffoldMessenger.of(context);
       _showSnackbar(const Text('Génération du nouveau code annulée'), scaffold);
+      return;
+    }
+
+    // Check if the password is correct
+    final database = Provider.of<Database>(context, listen: false);
+    final loginStatus = await database.login(
+        username: database.currentUser!.email,
+        password: password,
+        skipPostLogin: true);
+    if (loginStatus != EzloginStatus.success) {
+      if (mounted) {
+        final scaffold = ScaffoldMessenger.of(context);
+        _showSnackbar(
+            const Text('Le mot de passe entré est incorrect'), scaffold);
+      }
       return;
     }
 
@@ -141,6 +181,14 @@ class StudentsScreenState extends State<StudentsScreen> {
     });
     final newToken = await TeachingTokenHelpers.generateUniqueToken();
     await TeachingTokenHelpers.registerToken(teacherId, newToken);
+
+    // Force relogin to refresh data
+    if (!mounted) return;
+    final username = database.currentUser!.email;
+    await database.logout();
+    await database.login(
+        username: username, password: password, userType: UserType.teacher);
+
     if (!mounted) return;
     setState(() {
       _isGeneratingToken = false;
@@ -214,11 +262,46 @@ class StudentsScreenState extends State<StudentsScreen> {
     }
   }
 
+  PreferredSizeWidget _setAppBar() {
+    return ResponsiveService.appBarOf(
+      context,
+      title: const Text('Mes élèves'),
+      leading: IconButton(
+        icon: Icon(Icons.menu),
+        onPressed: () {
+          scaffoldKey.currentState?.openDrawer();
+        },
+      ),
+      actions: [
+        OnboardingContainer(
+          onReady: (context) => onboardingContexts['generate_code'] = context,
+          child: IconButton(
+            onPressed: _showCurrentToken,
+            icon: const Icon(Icons.qr_code_2),
+            iconSize: 35,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 15),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<Database>(context, listen: false);
     if (!(database.currentUser?.isActive ?? false) || _isGeneratingToken) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
+      return ResponsiveService.scaffoldOf(
+        context,
+        appBar: _setAppBar(),
+        body: Center(
+            child: database.currentUser?.isActive == false
+                ? CircularProgressIndicator()
+                : Text('Génération du code d\'inscription...')),
+        smallDrawer: MainDrawer.small,
+        mediumDrawer: MainDrawer.medium,
+        largeDrawer: MainDrawer.large,
+      );
     }
 
     final students = Provider.of<Database>(context)
@@ -235,28 +318,7 @@ class StudentsScreenState extends State<StudentsScreen> {
     return ResponsiveService.scaffoldOf(
       context,
       key: scaffoldKey,
-      appBar: ResponsiveService.appBarOf(
-        context,
-        title: const Text('Mes élèves'),
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          onPressed: () {
-            scaffoldKey.currentState?.openDrawer();
-          },
-        ),
-        actions: [
-          OnboardingContainer(
-            onReady: (context) => onboardingContexts['add_student'] = context,
-            child: IconButton(
-              onPressed: _showCurrentToken,
-              icon: const Icon(Icons.qr_code_2),
-              iconSize: 35,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(width: 15),
-        ],
-      ),
+      appBar: _setAppBar(),
       body: Stack(
         alignment: Alignment.topCenter,
         children: [

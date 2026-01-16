@@ -9,7 +9,7 @@ class OnboardingContexts {
   /// The onboarding steps to be shown during the onboarding sequence
   final _onboardingContexts = <String, Map<String, BuildContext?>>{
     StudentsScreen.routeName: {
-      'add_student': null,
+      'generate_code': null,
       'drawer_button': null,
       'drawer_question_button': null,
       'drawer_answer_button': null,
@@ -65,13 +65,13 @@ Future<void> _navigateToPage(
 
 List<OnboardingStep> onboardingSteps = [
   OnboardingStep(
-    message: 'Appuyez ici pour ajouter des élèves',
+    message: 'Appuyez ici pour générer un code d\'inscription pour vos élèves.',
     navigationCallback: (_) async {
       onboardingContexts._isNavigating = true;
       await _navigateToPage(StudentsScreen.routeName);
       onboardingContexts._isNavigating = false;
     },
-    targetWidgetContext: () => onboardingContexts['add_student'],
+    targetWidgetContext: () => onboardingContexts['generate_code'],
   ),
   OnboardingStep(
     message: 'Appuyez ici pour accéder aux différentes pages de l’application.',
@@ -79,11 +79,11 @@ List<OnboardingStep> onboardingSteps = [
       onboardingContexts._isNavigating = true;
       await _navigateToPage(StudentsScreen.routeName);
 
-      while (onboardingContexts['add_student'] == null) {
+      while (onboardingContexts['generate_code'] == null) {
         await Future.delayed(const Duration(milliseconds: 50));
       }
 
-      onboardingContexts['add_student']
+      onboardingContexts['generate_code']
           ?.findAncestorStateOfType<StudentsScreenState>()
           ?.openDrawer();
       onboardingContexts._isNavigating = false;
@@ -96,11 +96,11 @@ List<OnboardingStep> onboardingSteps = [
       onboardingContexts._isNavigating = true;
       await _navigateToPage(StudentsScreen.routeName);
 
-      while (onboardingContexts['add_student'] == null) {
+      while (onboardingContexts['generate_code'] == null) {
         await Future.delayed(const Duration(milliseconds: 50));
       }
 
-      onboardingContexts['add_student']
+      onboardingContexts['generate_code']
           ?.findAncestorStateOfType<StudentsScreenState>()
           ?.openDrawer();
 
@@ -122,10 +122,7 @@ List<OnboardingStep> onboardingSteps = [
 
       await onboardingContexts['q_and_a_app_bar_title']
           ?.findAncestorStateOfType<QAndAScreenState>()
-          ?.pageController
-          .animateToPage(0,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut);
+          ?.onPageChangedRequest(-1);
 
       onboardingContexts._isNavigating = false;
     },
@@ -147,10 +144,7 @@ List<OnboardingStep> onboardingSteps = [
 
       await onboardingContexts['q_and_a_app_bar_title']
           ?.findAncestorStateOfType<QAndAScreenState>()
-          ?.pageController
-          .animateToPage(1,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut);
+          ?.onPageChangedRequest(0);
       onboardingContexts._isNavigating = false;
     },
     targetWidgetContext: () => onboardingContexts['new_question_button'],
@@ -168,10 +162,7 @@ List<OnboardingStep> onboardingSteps = [
 
       await onboardingContexts['q_and_a_app_bar_title']
           ?.findAncestorStateOfType<QAndAScreenState>()
-          ?.pageController
-          .animateToPage(1,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut);
+          ?.onPageChangedRequest(0);
       onboardingContexts._isNavigating = false;
     },
     targetWidgetContext: () => onboardingContexts['all_question_buttons'],
@@ -183,11 +174,11 @@ List<OnboardingStep> onboardingSteps = [
       onboardingContexts._isNavigating = true;
       await _navigateToPage(StudentsScreen.routeName);
 
-      while (onboardingContexts['add_student'] == null) {
+      while (onboardingContexts['generate_code'] == null) {
         await Future.delayed(const Duration(milliseconds: 50));
       }
 
-      onboardingContexts['add_student']
+      onboardingContexts['generate_code']
           ?.findAncestorStateOfType<StudentsScreenState>()
           ?.openDrawer();
 
@@ -201,10 +192,10 @@ List<OnboardingStep> onboardingSteps = [
       onboardingContexts._isNavigating = true;
       await _navigateToPage(StudentsScreen.routeName);
 
-      while (onboardingContexts['add_student'] == null) {
+      while (onboardingContexts['generate_code'] == null) {
         await Future.delayed(const Duration(milliseconds: 50));
       }
-      onboardingContexts['add_student']
+      onboardingContexts['generate_code']
           ?.findAncestorStateOfType<StudentsScreenState>()
           ?.openDrawer();
 

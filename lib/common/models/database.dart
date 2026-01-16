@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
-import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
@@ -62,13 +61,14 @@ class Database extends EzloginFirebase with ChangeNotifier {
     Future<EzloginUser?> Function()? getNewUserInfo,
     Future<String?> Function()? getNewPassword,
     UserType userType = UserType.none,
+    bool skipPostLogin = false,
   }) async {
     final status = await super.login(
         username: username,
         password: password,
         getNewUserInfo: getNewUserInfo,
         getNewPassword: getNewPassword);
-    if (status != EzloginStatus.success) return status;
+    if (skipPostLogin || status != EzloginStatus.success) return status;
     _fromAutomaticLogin = false;
     await _postLogin(userType: userType);
     return status;
@@ -252,44 +252,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<EzloginStatus> addStudent(
-      // TODO Change this to connect to teacher
-      {required User newStudent,
-      required AllQuestions questions,
-      required AllAnswers answers}) async {
-    if (_fromAutomaticLogin) return EzloginStatus.needAuthentication;
-
-    var newUser =
-        await addUser(newUser: newStudent, password: defaultStudentPassword);
-    if (newUser == null) return EzloginStatus.alreadyCreated;
-
-    newStudent = newStudent.copyWith(id: newUser.id);
-    // TODO THIS
-    //currentUser!.supervising[newStudent.id] = true;
-
-    try {
-      // await Database.root.child(_userPathInternal).child(currentUser!.id).child('supervising')
-      //     .set(currentUser!.supervising);
-    } on Exception {
-      return EzloginStatus.unrecognizedError;
-    }
-
-    try {
-      answers.addAnswers(questions.map((e) => Answer(
-            isActive: e.defaultTarget == Target.all,
-            actionRequired: ActionRequired.fromStudent,
-            createdById: currentUser!.id,
-            studentId: newStudent.id,
-            questionId: e.id,
-          )));
-    } on Exception {
-      return EzloginStatus.unrecognizedError;
-    }
-
-    //_fetchStudents(); // TODO THIS
-    return EzloginStatus.success;
-  }
-
   Future<EzloginStatus> modifyStudent({required User newInfo}) async {
     final studentUser = await user(newInfo.id);
     if (studentUser == null) return EzloginStatus.userNotFound;
@@ -370,7 +332,7 @@ class _DatabaseMigrationHelper {
 
           // Connect the student to the token
           await TeachingTokenHelpers.connectToToken(
-              student['id'], teacher['id'], token);
+              token: token, studentId: student['id'], teacherId: teacher['id']);
         }
 
         // Removed obsolete fields

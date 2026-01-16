@@ -44,7 +44,9 @@ class TeachingTokenHelpers {
   }
 
   static Future<void> connectToToken(
-      String studentId, String teacherId, String token) async {
+      {required String token,
+      required String studentId,
+      required String teacherId}) async {
     await Database.root
         .child('tokens')
         .child(token)
@@ -127,14 +129,14 @@ class TeachingTokenHelpers {
     return tokens.keys.first;
   }
 
-  static Future<String> creatorIdOf({required String token}) async {
+  static Future<String?> creatorIdOf({required String token}) async {
     final snapshot = (await Database.root
         .child('tokens')
         .child(token)
         .child('metadata')
         .child('createdBy')
         .get());
-    return snapshot.value as String;
+    return snapshot.value as String?;
   }
 
   static Future<Iterable<String>> userIdsConnectedTo(
