@@ -411,7 +411,7 @@ class QAndAScreenState extends State<QAndAScreen> {
     return ResponsiveService.scaffoldOf(
       context,
       appBar: _setAppBar(),
-      body: _currentToken == null
+      body: _currentToken == null && database.userType == UserType.student
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(30.0),
