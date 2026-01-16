@@ -7,7 +7,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
+import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
+import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
@@ -216,6 +218,44 @@ class Database extends EzloginFirebase with ChangeNotifier {
   final List<User> _students = [];
   Iterable<User> students({bool onlyActive = true}) {
     return onlyActive ? _students.where((s) => s.isActive) : [..._students];
+  }
+
+  ///
+  /// This method should only be called when a student connects to a teacher for the first time.
+  /// Otherwise, this will overwrite existing answers.
+  Future<void> initializeAnswersDatabase(
+      {required String studentId, required String token}) async {
+    // Make sure we have everything set up to fetch questions and send answers before proceeding
+    final token =
+        await TeachingTokenHelpers.connectedToken(studentId: _currentUser!.id);
+    if (token == null) return;
+
+    final teacherId = await TeachingTokenHelpers.creatorIdOf(token: token);
+    if (teacherId == null) return;
+
+    // Fetch all questions from that teacher
+    final data = await root.child('questions').child(teacherId).get();
+    if (data.value == null) return;
+    final questionsData = data.value as Map?;
+    if (questionsData == null) return;
+    final questions = questionsData.values
+        .map((q) => Question.fromSerialized((q as Map).cast<String, dynamic>()))
+        .toList();
+
+    // Reconfigure answers database provider
+    await answers.stopFetchingData();
+    answers.pathToData = '$_currentDatabaseVersion/answers/$token';
+    await answers.initializeFetchingData();
+
+    // Send the answers to the database
+    // TODO Find why the questions are doubled
+    await answers.addAnswers(questions.map((e) => Answer(
+          isActive: e.defaultTarget == Target.all,
+          actionRequired: ActionRequired.fromStudent,
+          createdById: teacherId,
+          studentId: studentId,
+          questionId: e.id,
+        )));
   }
 
   Future<void> _fetchStudents() async {

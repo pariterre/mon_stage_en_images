@@ -119,7 +119,7 @@ class QAndAScreenState extends State<QAndAScreen> {
 
     final token =
         await TeachingTokenHelpers.connectedToken(studentId: studentId);
-    if (token == null) return await _connectToToken(forceYes: true); // T7GS6F
+    if (token == null) return await _connectToToken(forceYes: true);
 
     if (!mounted) return;
     await showDialog<void>(
@@ -275,11 +275,14 @@ class QAndAScreenState extends State<QAndAScreen> {
       _isConnectingToken = true;
     });
 
+    final database = Provider.of<Database>(context, listen: false);
     _currentToken = token;
-    final studentId =
-        Provider.of<Database>(context, listen: false).currentUser!.id;
+    final studentId = database.currentUser!.id;
+
     await TeachingTokenHelpers.connectToToken(
         token: _currentToken!, studentId: studentId, teacherId: teacherId);
+    await database.initializeAnswersDatabase(
+        studentId: studentId, token: _currentToken!);
 
     if (!mounted) return;
     setState(() {
