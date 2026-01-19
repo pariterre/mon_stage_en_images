@@ -276,7 +276,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
           final connectedStudentIds =
               await TeachingTokenHelpers.userIdsConnectedTo(token: token!);
           for (final id in connectedStudentIds) {
-            // TODO Move student notes to a dedicated root
             final student = await user(id);
             if (student != null) _students.add(student);
           }
@@ -291,13 +290,13 @@ class Database extends EzloginFirebase with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<EzloginStatus> modifyStudent({required User newInfo}) async {
-    final studentUser = await user(newInfo.id);
-    if (studentUser == null) return EzloginStatus.userNotFound;
+  Future<bool> modifyNotes(
+      {required String studentId, required String notes}) async {
+    if (currentUser == null) return false;
 
-    final status = await modifyUser(user: studentUser, newInfo: newInfo);
-    //_fetchStudents(); // TODO THIS
-    return status;
+    currentUser!.studentNotes[studentId] = notes;
+    final status = await modifyUser(user: currentUser!, newInfo: currentUser!);
+    return status == EzloginStatus.success;
   }
 
   static Future<String?> getRequiredSoftwareVersion() async {

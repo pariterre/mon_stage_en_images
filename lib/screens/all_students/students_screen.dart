@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
@@ -11,7 +12,7 @@ import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:provider/provider.dart';
 
-import 'widgets/new_student_alert_dialog.dart';
+import 'widgets/student_info_dialog.dart';
 import 'widgets/student_list_tile.dart';
 
 class StudentsScreen extends StatefulWidget {
@@ -184,70 +185,53 @@ class StudentsScreenState extends State<StudentsScreen> {
     });
   }
 
-  Future<void> _modifyStudent(User student) async {
+  Future<void> _showStudentInfo(User student) async {
     final database = Provider.of<Database>(context, listen: false);
-    final scaffold = ScaffoldMessenger.of(context);
 
-    final newInfo = await showDialog<User>(
+    final newInfo = await showDialog<String>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return NewStudentAlertDialog(
-          student: student,
-          deleteCallback: _removeStudent,
-        );
-      },
+      builder: (BuildContext context) => StudentInfoDialog(
+        student: student,
+        onRemoveFromList: (password) async =>
+            _removeStudent(student: student, password: password),
+      ),
     );
     if (newInfo == null) return;
 
-    final status = await database.modifyStudent(newInfo: newInfo);
-    switch (status) {
-      case EzloginStatus.success:
-        return;
-      case EzloginStatus.userNotFound:
-        _showSnackbar(
-            const Text(
-                'L\'élève n\'a pas été trouvé(e) dans la base de donnée'),
-            scaffold);
-        return;
-      default:
-        _showSnackbar(
-            const Text('Erreur inconnue lors de la modification de l\'élève'),
-            scaffold);
-        return;
-    }
+    await database.modifyNotes(studentId: student.id, notes: newInfo);
   }
 
-  Future<void> _removeStudent(User student) async {
-    final scaffold = ScaffoldMessenger.of(context);
+  Future<void> _removeStudent(
+      {required User student, required String password}) async {
+    // Check if the password is correct
     final database = Provider.of<Database>(context, listen: false);
-
-    final sure = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AreYouSureDialog(
-          title: 'Suppression des données d\'un élève',
-          content:
-              'Êtes-vous certain(e) de vouloir supprimer les données de $student?',
-        );
-      },
-    );
-
-    if (!sure!) {
-      _showSnackbar(const Text('Suppression de l\'élève annulée'), scaffold);
+    final loginStatus = await database.login(
+        username: database.currentUser!.email,
+        password: password,
+        skipPostLogin: true);
+    if (loginStatus != EzloginStatus.success) {
+      if (mounted) {
+        final scaffold = ScaffoldMessenger.of(context);
+        _showSnackbar(
+            const Text('Le mot de passe entré est incorrect'), scaffold);
+      }
       return;
     }
 
-    final studentUser = await database.user(student.email);
-    if (studentUser == null) return;
-    var status = await database.deleteUser(user: studentUser);
-    if (status != EzloginStatus.success) {
-      _showSnackbar(
-          const Text('La supression d\'élève n\'est pas encore disponible.'),
-          scaffold);
-      return;
-    }
+    if (!mounted) return;
+    final token = await TeachingTokenHelpers.createdActiveToken(
+        userId: Provider.of<Database>(context, listen: false).currentUser!.id);
+    if (token == null) return;
+    await TeachingTokenHelpers.disconnectFromToken(student.id, token);
+    if (!mounted) return;
+
+    final username = database.currentUser!.email;
+    await database.logout();
+    await database.login(
+        username: username, password: password, userType: UserType.teacher);
+    if (!mounted) return;
+    RouteManager.instance.gotoStudentsPage(context);
   }
 
   PreferredSizeWidget _setAppBar() {
@@ -334,7 +318,7 @@ class StudentsScreenState extends State<StudentsScreen> {
                 child: ListView.builder(
                   itemBuilder: (context, index) => StudentListTile(
                     students[index].id,
-                    modifyStudentCallback: _modifyStudent,
+                    modifyStudentCallback: _showStudentInfo,
                   ),
                   itemCount: students.length,
                 ),
