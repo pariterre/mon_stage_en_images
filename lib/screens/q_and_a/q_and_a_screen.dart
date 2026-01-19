@@ -7,7 +7,6 @@ import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
-import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
@@ -120,7 +119,7 @@ class QAndAScreenState extends State<QAndAScreen> {
     final token =
         await TeachingTokenHelpers.connectedToken(studentId: studentId);
     // Token is null on first connection
-    if (token == null) return await _connectToToken(forceYes: true);
+    if (token == null) return await _connectToToken(firstConnexion: true);
 
     if (!mounted) return;
     await showDialog<void>(
@@ -159,29 +158,56 @@ class QAndAScreenState extends State<QAndAScreen> {
   }
 
   bool _isConnectingToken = false;
-  Future<void> _connectToToken({bool forceYes = false}) async {
-    if (!forceYes) {
-      final sure = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AreYouSureDialog(
-            title: 'Se connecter à un nouveau code ?',
+  Future<void> _connectToToken({bool firstConnexion = false}) async {
+    final passwordController = TextEditingController();
+    final sure = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AreYouSureDialog(
+            title: firstConnexion
+                ? 'Connecter un code'
+                : 'Se connecter à un nouveau code ?',
             canReadAloud: true,
             content:
-                'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code ?\n'
-                'Ceci archivera vos discussions avec l\'enseignant·e actuelle.',
-          );
-        },
-      );
+                '${firstConnexion ? 'Pour commencer, connectez-vous au code d\'inscription fourni par votre enseignant·e.' : 'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code ?\n'
+                    'Ceci archivera vos discussions avec l\'enseignant·e actuelle.'}\n\n'
+                'Entrez votre mot de passe pour confirmer :',
+            extraContent: Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: TextField(
+                controller: passwordController,
+                decoration: InputDecoration(labelText: 'Mot de passe'),
+                obscureText: true,
+                autofocus: true,
+              ),
+            ));
+      },
+    );
+    final password = passwordController.text;
+    passwordController.dispose();
 
-      if (!mounted) return;
-      if (sure != true) {
+    if (!mounted) return;
+    if (sure != true || password.isEmpty) {
+      final scaffold = ScaffoldMessenger.of(context);
+      _showSnackbar(
+          const Text('Connexion à un nouveau code annulée'), scaffold);
+      return;
+    }
+
+    // Check if the password is correct
+    final database = Provider.of<Database>(context, listen: false);
+    final loginStatus = await database.login(
+        username: database.currentUser!.email,
+        password: password,
+        skipPostLogin: true);
+    if (loginStatus != EzloginStatus.success) {
+      if (mounted) {
         final scaffold = ScaffoldMessenger.of(context);
         _showSnackbar(
-            const Text('Connexion à un nouveau code annulée'), scaffold);
-        return;
+            const Text('Le mot de passe entré est incorrect'), scaffold);
       }
+      return;
     }
 
     if (!mounted) return;
@@ -190,62 +216,26 @@ class QAndAScreenState extends State<QAndAScreen> {
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        final enterCodeText =
-            'Entrez ici le code d\'inscription fourni par votre enseignant·e';
-        return AlertDialog(
-          title: Text('Entrer le code d\'inscription'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: IconButton(
-                        onPressed: () {
-                          final textReader = TextReader();
-                          textReader.readText(
-                            enterCodeText,
-                            hasFinishedCallback: () => textReader.stopReading(),
-                          );
-                        },
-                        icon: const Icon(Icons.volume_up)),
-                  ),
-                  Text(enterCodeText),
-                ],
+        return AreYouSureDialog(
+          title: 'Entrer le code d\'inscription',
+          canReadAloud: true,
+          content:
+              'Entrez ici le code d\'inscription fourni par votre enseignant·e',
+          extraContent: Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: TextField(
+              controller: controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                hintText: 'Code d\'inscription',
               ),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
-                  hintText: 'Code d\'inscription',
-                ),
-                inputFormatters: [
-                  UpperCaseTextFormatter(),
-                  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-                  LengthLimitingTextInputFormatter(6),
-                ],
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 24.0, right: 12.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text('Annuler')),
-                      SizedBox(width: 20),
-                      ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text('Valider')),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              inputFormatters: [
+                UpperCaseTextFormatter(),
+                FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                LengthLimitingTextInputFormatter(6),
+              ],
+            ),
           ),
         );
       },
@@ -278,7 +268,6 @@ class QAndAScreenState extends State<QAndAScreen> {
       _isConnectingToken = true;
     });
 
-    final database = Provider.of<Database>(context, listen: false);
     _currentToken = token;
     final studentId = database.currentUser!.id;
 
@@ -287,6 +276,13 @@ class QAndAScreenState extends State<QAndAScreen> {
     await database.initializeAnswersDatabase(
         studentId: studentId, token: _currentToken!);
     await _showConnectedToken();
+
+    // Force relogin to refresh data
+    if (!mounted) return;
+    final username = database.currentUser!.email;
+    await database.logout();
+    await database.login(
+        username: username, password: password, userType: UserType.student);
 
     if (!mounted) return;
     RouteManager.instance.gotoQAndAPage(context,

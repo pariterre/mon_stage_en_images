@@ -171,7 +171,6 @@ class StudentsScreenState extends State<StudentsScreen> {
     await TeachingTokenHelpers.registerToken(teacherId, newToken);
 
     // Force relogin to refresh data
-
     if (!mounted) return;
     final username = database.currentUser!.email;
     await database.logout();

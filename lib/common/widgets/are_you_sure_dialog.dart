@@ -37,7 +37,7 @@ class AreYouSureDialog extends StatelessWidget {
                       },
                       icon: const Icon(Icons.volume_up)),
                 ),
-              Text(content),
+              Flexible(child: Text(content)),
             ],
           ),
           if (extraContent != null) extraContent!,
