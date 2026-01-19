@@ -171,6 +171,7 @@ class StudentsScreenState extends State<StudentsScreen> {
     await TeachingTokenHelpers.registerToken(teacherId, newToken);
 
     // Force relogin to refresh data
+
     if (!mounted) return;
     final username = database.currentUser!.email;
     await database.logout();
@@ -178,10 +179,10 @@ class StudentsScreenState extends State<StudentsScreen> {
         username: username, password: password, userType: UserType.teacher);
 
     if (!mounted) return;
+    await _showCurrentToken();
     setState(() {
       _isGeneratingToken = false;
     });
-    await _showCurrentToken();
   }
 
   Future<void> _modifyStudent(User student) async {
