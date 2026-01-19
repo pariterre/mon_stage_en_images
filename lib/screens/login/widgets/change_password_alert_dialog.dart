@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// TODO: Allow for chaning personal info like email and username in a dedicated dialog
 class ChangePasswordAlertDialog extends StatefulWidget {
   const ChangePasswordAlertDialog({
     super.key,

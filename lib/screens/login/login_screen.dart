@@ -374,6 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: _newTeacher,
+                        // TODO Allow for creating a new account by clicking this button
                         child: const Text('Nouvel(le) utilisateur(trice)'),
                       ),
                     ),

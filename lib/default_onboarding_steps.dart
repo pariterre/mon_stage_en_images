@@ -186,6 +186,7 @@ List<OnboardingStep> onboardingSteps = [
     },
     targetWidgetContext: () => onboardingContexts['drawer_answer_button'],
   ),
+  // TODO: Check why this last step is not showing the info dialog
   OnboardingStep(
     message: 'Vous trouverez ici davantage d\'informations et du support.',
     navigationCallback: (_) async {

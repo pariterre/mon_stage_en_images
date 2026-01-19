@@ -65,6 +65,7 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 spacing: 16,
                 children: [
+                  // TODO: Allow for reading aloud the instructions
                   Text.rich(TextSpan(
                       text:
                           'Indiquer l\'adresse courriel utilisée lors de votre inscription '
