@@ -6,33 +6,41 @@ class AreYouSureDialog extends StatelessWidget {
     super.key,
     required this.title,
     required this.content,
+    this.extraContent,
     this.canReadAloud = false,
   });
 
   final String title;
   final String content;
   final bool canReadAloud;
+  final Widget? extraContent;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(title),
-      content: Row(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (canReadAloud)
-            Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: IconButton(
-                  onPressed: () {
-                    final textReader = TextReader();
-                    textReader.readText(
-                      content,
-                      hasFinishedCallback: () => textReader.stopReading(),
-                    );
-                  },
-                  icon: const Icon(Icons.volume_up)),
-            ),
-          Text(content),
+          Row(
+            children: [
+              if (canReadAloud)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: IconButton(
+                      onPressed: () {
+                        final textReader = TextReader();
+                        textReader.readText(
+                          content,
+                          hasFinishedCallback: () => textReader.stopReading(),
+                        );
+                      },
+                      icon: const Icon(Icons.volume_up)),
+                ),
+              Text(content),
+            ],
+          ),
+          if (extraContent != null) extraContent!,
         ],
       ),
       actions: [

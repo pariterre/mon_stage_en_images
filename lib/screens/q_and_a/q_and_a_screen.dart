@@ -13,6 +13,7 @@ import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_container.dart';
+import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/question_and_answer_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/filter_answers_dialog.dart';
@@ -119,6 +120,7 @@ class QAndAScreenState extends State<QAndAScreen> {
 
     final token =
         await TeachingTokenHelpers.connectedToken(studentId: studentId);
+    // Token is null on first connection
     if (token == null) return await _connectToToken(forceYes: true);
 
     if (!mounted) return;
@@ -173,15 +175,17 @@ class QAndAScreenState extends State<QAndAScreen> {
           );
         },
       );
+
       if (!mounted) return;
       if (sure != true) {
         final scaffold = ScaffoldMessenger.of(context);
         _showSnackbar(
-            const Text('Génération du nouveau code annulée'), scaffold);
+            const Text('Connexion à un nouveau code annulée'), scaffold);
         return;
       }
     }
 
+    if (!mounted) return;
     final controller = TextEditingController();
     final isSuccess = await showDialog<bool>(
       context: context,
@@ -254,7 +258,7 @@ class QAndAScreenState extends State<QAndAScreen> {
       if (mounted) {
         final scaffold = ScaffoldMessenger.of(context);
         _showSnackbar(
-            const Text('Génération du nouveau code annulée'), scaffold);
+            const Text('Connexion à un nouveau code annulée'), scaffold);
       }
       return;
     }
@@ -283,12 +287,13 @@ class QAndAScreenState extends State<QAndAScreen> {
         token: _currentToken!, studentId: studentId, teacherId: teacherId);
     await database.initializeAnswersDatabase(
         studentId: studentId, token: _currentToken!);
+    await _showConnectedToken();
 
     if (!mounted) return;
-    setState(() {
-      _isConnectingToken = false;
-    });
-    await _showConnectedToken();
+    RouteManager.instance.gotoQAndAPage(context,
+        target: Target.individual,
+        pageMode: PageMode.editableView,
+        student: null);
   }
 
   Future<void> onPageChangedRequest(int page) async {

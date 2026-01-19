@@ -118,42 +118,30 @@ class StudentsScreenState extends State<StudentsScreen> {
     final teacherId =
         Provider.of<Database>(context, listen: false).currentUser!.id;
 
-    final controller = TextEditingController();
+    final passwordController = TextEditingController();
     final sure = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text('Générer un nouveau code ?'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                    'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
-                    'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
-                    'Entrez votre mot de passe pour confirmer :'),
-                TextField(
-                  controller: controller,
-                  decoration: InputDecoration(labelText: 'Mot de passe'),
-                  obscureText: true,
-                  autofocus: true,
-                ),
-              ],
+        return AreYouSureDialog(
+          title: 'Générer un nouveau code ?',
+          content: 'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
+              'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
+              'Entrez votre mot de passe pour confirmer :',
+          extraContent: Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: TextField(
+              controller: passwordController,
+              decoration: InputDecoration(labelText: 'Mot de passe'),
+              obscureText: true,
+              autofocus: true,
             ),
-            actions: [
-              OutlinedButton(
-                child: const Text('Annuler'),
-                onPressed: () => Navigator.pop(context, false),
-              ),
-              ElevatedButton(
-                child: const Text('Continuer'),
-                onPressed: () => Navigator.pop(context, true),
-              ),
-            ]);
+          ),
+        );
       },
     );
-    final password = controller.text;
-    controller.dispose();
+    final password = passwordController.text;
+    passwordController.dispose();
     if (!mounted) return;
     if (sure != true || password.isEmpty) {
       final scaffold = ScaffoldMessenger.of(context);
