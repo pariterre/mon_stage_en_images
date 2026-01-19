@@ -24,6 +24,15 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
           .currentUser
           ?.studentNotes[widget.student.id]);
 
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -58,7 +67,6 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
       actions: <Widget>[
         IconButton(
           onPressed: () async {
-            final passwordController = TextEditingController();
             final sure = await showDialog<bool>(
                 context: context,
                 builder: (context) {
@@ -71,7 +79,7 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
                     extraContent: Padding(
                       padding: const EdgeInsets.only(top: 12.0),
                       child: TextField(
-                        controller: passwordController,
+                        controller: _passwordController,
                         decoration: InputDecoration(labelText: 'Mot de passe'),
                         obscureText: true,
                         autofocus: true,
@@ -79,13 +87,14 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
                     ),
                   );
                 });
+            if (sure != true ||
+                _passwordController.text.isEmpty ||
+                !context.mounted) {
+              return;
+            }
 
-            final password = passwordController.text;
-            passwordController.dispose();
-            if (sure != true || password.isEmpty || !context.mounted) return;
-
+            await widget.onRemoveFromList(_passwordController.text);
             if (context.mounted) Navigator.pop(context);
-            await widget.onRemoveFromList(password);
           },
           icon: const Icon(Icons.delete),
         ),

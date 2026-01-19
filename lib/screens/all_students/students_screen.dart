@@ -177,9 +177,9 @@ class StudentsScreenState extends State<StudentsScreen> {
 
     if (!mounted) return;
     await _showCurrentToken();
-    setState(() {
-      _isGeneratingToken = false;
-    });
+
+    if (!mounted) return;
+    RouteManager.instance.gotoStudentsPage(context);
   }
 
   Future<void> _showStudentInfo(User student) async {
