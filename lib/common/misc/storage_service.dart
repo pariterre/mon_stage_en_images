@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:path/path.dart';
@@ -12,14 +12,18 @@ abstract class StorageService {
   }
 
   static Future<String> uploadImage(User student, XFile image) async {
-    return await uploadFile(student, File(image.path));
+    return await uploadFile(student, XFile(image.path));
   }
 
-  static Future<String> uploadFile(User student, File file) async {
+  static Future<String> uploadFile(User student, XFile file) async {
     final url = '/${student.id}/${file.hashCode}${extension(file.path)}';
     var ref = FirebaseStorage.instance.ref(url);
 
-    await ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
+    kIsWeb
+        ? await ref.putData(await file.readAsBytes(),
+            SettableMetadata(contentType: 'image/jpeg'))
+        : await ref.putFile(
+            File(file.path), SettableMetadata(contentType: 'image/jpeg'));
     return url;
   }
 }

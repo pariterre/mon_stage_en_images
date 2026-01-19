@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
@@ -74,38 +73,13 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
   Future<void> _addPhoto(ImageSource source) async {
     // TODO Edit firebase rules to allow userType 'teacher' to write in storage
-
-    if (Provider.of<Database>(context, listen: false).userType ==
-            UserType.teacher ||
-        kIsWeb) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content: Text(kIsWeb
-              ? 'Cette fonctionnalité n\'est pas disponible pour la plateforme web.'
-              : 'Cette fonctionnalité n\'est pas disponible pour les enseignants.'),
-        ),
-      );
-      return;
-    }
-
     final imagePicker = ImagePicker();
     final imageXFile =
         await imagePicker.pickImage(source: source, maxWidth: 500);
     if (imageXFile == null) return;
 
-    // // Image is in cache (imageXFile.path) is temporary
-    // final imageFile = File(imageXFile.path);
-
-    // // Move to hard drive
-    // final appDir = await syspath.getApplicationDocumentsDirectory();
-    // final filename = path.basename(imageFile.path);
-    // final imageFileOnHardDrive =
-    //     await imageFile.copy('${appDir.path}/$filename');
-
     final imagePath =
         await StorageService.uploadImage(widget.student!, imageXFile);
-
     _manageAnswer(newTextEntry: imagePath, isPhoto: true);
   }
 
