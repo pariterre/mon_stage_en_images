@@ -26,7 +26,6 @@ class AnswerSortAndFilter {
     this.filled = AnswerFilledFilter.withAtLeastOneAnswer,
     List<AnswerFromWhomFilter>? fromWhomFilter,
     List<AnswerContentFilter>? contentFilter,
-    this.includeArchivedStudents = false,
   })  : fromWhomFilter = fromWhomFilter ??
             [
               AnswerFromWhomFilter.teacherOnly,
@@ -39,5 +38,4 @@ class AnswerSortAndFilter {
   AnswerFilledFilter filled;
   List<AnswerFromWhomFilter> fromWhomFilter;
   List<AnswerContentFilter> contentFilter;
-  bool includeArchivedStudents;
 }

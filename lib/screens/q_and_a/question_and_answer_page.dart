@@ -31,9 +31,6 @@ class QuestionAndAnswerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<Database>(context, listen: false);
-    if (!(database.currentUser?.isActive ?? false)) {
-      return Center(child: CircularProgressIndicator());
-    }
     final userType = database.userType;
 
     final allAnswers = Provider.of<AllAnswers>(context, listen: false);

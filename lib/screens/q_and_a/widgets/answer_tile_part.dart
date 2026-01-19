@@ -57,9 +57,8 @@ class _AnswerPartState extends State<AnswerPart> {
                         .contains(AnswerContentFilter.photoOnly) &&
                     message.isPhotoUrl));
         final isAllowed = widget.filterMode == null ||
-            (widget.filterMode!.includeArchivedStudents ||
-                DateTime.fromMicrosecondsSinceEpoch(message.creationTimeStamp)
-                    .isAfter(isActiveLimitDate));
+            DateTime.fromMicrosecondsSinceEpoch(message.creationTimeStamp)
+                .isAfter(isActiveLimitDate);
         if (isTheRightCreatorId && isTheRightContent && isAllowed) {
           discussions.add(message);
         }
@@ -121,7 +120,7 @@ class _AnswerPartState extends State<AnswerPart> {
     final student = widget.studentId == null
         ? null
         : Provider.of<Database>(context, listen: false)
-            .students(onlyActive: false)
+            .students()
             .firstWhere((e) => e.id == widget.studentId);
 
     final answers = Provider.of<AllAnswers>(context).filter(

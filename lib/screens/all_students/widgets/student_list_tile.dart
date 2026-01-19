@@ -23,9 +23,8 @@ class StudentListTile extends StatelessWidget {
     final database = Provider.of<Database>(context, listen: false);
     final currentUser = database.currentUser;
 
-    final student = database
-        .students(onlyActive: false)
-        .firstWhereOrNull((e) => e.id == studentId);
+    final student =
+        database.students().firstWhereOrNull((e) => e.id == studentId);
 
     final allAnswers = Provider.of<AllAnswers>(context, listen: false)
         .filter(studentIds: [studentId]);
@@ -68,9 +67,6 @@ class StudentListTile extends StatelessWidget {
                 icon: Icon(Icons.more_horiz))
           ],
         ),
-        tileColor: student != null && student.isNotActive
-            ? Colors.blueGrey[100]
-            : null,
         onTap: () => RouteManager.instance.gotoQAndAPage(context,
             target: Target.individual,
             pageMode: PageMode.editableView,

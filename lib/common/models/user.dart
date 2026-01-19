@@ -71,9 +71,6 @@ class User extends EzloginUser {
   final bool termsAndServicesAccepted;
   final DateTime creationDate;
 
-  bool get isActive => creationDate.isAfter(isActiveLimitDate);
-  bool get isNotActive => !isActive;
-
   @override
   String toString() => '$firstName $lastName';
 }

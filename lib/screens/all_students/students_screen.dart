@@ -39,9 +39,6 @@ void _showSnackbar(Widget content, ScaffoldMessengerState scaffold) {
   );
 }
 
-// Static variable so the value is remembered when we come back to this screen
-bool _onlyActiveStudents = true;
-
 //StudentsScreenState is purposefully made public so onboarding can access its inner methods (like openDrawer)
 class StudentsScreenState extends State<StudentsScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -261,31 +258,20 @@ class StudentsScreenState extends State<StudentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final database = Provider.of<Database>(context, listen: false);
-    if (!(database.currentUser?.isActive ?? false) || _isGeneratingToken) {
+    if (_isGeneratingToken) {
       return ResponsiveService.scaffoldOf(
         context,
         appBar: _setAppBar(),
-        body: Center(
-            child: database.currentUser?.isActive == false
-                ? CircularProgressIndicator()
-                : Text('Génération du code d\'inscription...')),
+        body: Center(child: Text('Génération du code d\'inscription...')),
         smallDrawer: MainDrawer.small(),
         mediumDrawer: MainDrawer.medium(),
         largeDrawer: MainDrawer.large(),
       );
     }
 
-    final students = Provider.of<Database>(context)
-        .students(onlyActive: _onlyActiveStudents)
-        .toList();
+    final students = Provider.of<Database>(context).students().toList();
     students.sort(
         (a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
-    students.sort((a, b) => a.isActive && b.isNotActive
-        ? -1
-        : a.isNotActive && b.isActive
-            ? 1
-            : 0);
 
     return ResponsiveService.scaffoldOf(
       context,
@@ -300,20 +286,6 @@ class StudentsScreenState extends State<StudentsScreen> {
               Text('Mon stage en images',
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 3),
-              // TODO Re-add this when archiving is implemented?
-              // Align(
-              //     alignment: Alignment.topRight,
-              //     child: Row(
-              //       mainAxisSize: MainAxisSize.min,
-              //       children: [
-              //         Text('Afficher les élèves archivés'),
-              //         SizedBox(width: 10),
-              //         Switch(
-              //             onChanged: (value) =>
-              //                 setState(() => _onlyActiveStudents = !value),
-              //             value: !_onlyActiveStudents),
-              //       ],
-              //     )),
               Expanded(
                 child: ListView.builder(
                   itemBuilder: (context, index) => StudentListTile(

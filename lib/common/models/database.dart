@@ -216,8 +216,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
   }
 
   final List<User> _students = [];
-  Iterable<User> students({bool onlyActive = true}) {
-    return onlyActive ? _students.where((s) => s.isActive) : [..._students];
+  List<User> students() {
+    return [..._students];
   }
 
   ///

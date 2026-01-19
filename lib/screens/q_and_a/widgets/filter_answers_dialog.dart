@@ -20,8 +20,6 @@ class _FilterAnswerDialogState extends State<FilterAnswerDialog> {
       widget.currentFilter.fromWhomFilter;
   late final List<AnswerContentFilter> _content =
       widget.currentFilter.contentFilter;
-  late bool _includeArchivedStudents =
-      widget.currentFilter.includeArchivedStudents;
 
   void _selectSorting(AnswerSorting? value) {
     _sorting = value ?? AnswerSorting.byDate;
@@ -46,11 +44,6 @@ class _FilterAnswerDialogState extends State<FilterAnswerDialog> {
     setState(() {});
   }
 
-  void _toggleIncludeArchived(bool value) {
-    _includeArchivedStudents = value;
-    setState(() {});
-  }
-
   void _finalize(BuildContext context, {bool hasCancelled = false}) {
     if (hasCancelled) {
       Navigator.pop(context);
@@ -64,7 +57,6 @@ class _FilterAnswerDialogState extends State<FilterAnswerDialog> {
           filled: _filled,
           fromWhomFilter: _fromWhom,
           contentFilter: _content,
-          includeArchivedStudents: _includeArchivedStudents,
         ));
   }
 
@@ -89,10 +81,6 @@ class _FilterAnswerDialogState extends State<FilterAnswerDialog> {
               value: _fromWhom.contains(AnswerFromWhomFilter.teacherOnly),
               onTap: (_) => _toggleFromWhom(AnswerFromWhomFilter.teacherOnly),
             ),
-            _buildCheckBoxTile(
-                onTap: _toggleIncludeArchived,
-                value: _includeArchivedStudents,
-                text: 'Inclure les élèves archivés'),
             const Divider(),
             const SizedBox(height: 8),
             const Text(

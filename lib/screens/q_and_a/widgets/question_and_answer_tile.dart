@@ -98,17 +98,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
     final hasAnswers = widget.question != null
         ? questions[widget.question].hasAtLeastOneAnswer(answers: answers)
         : false;
-
     final currentStudent = arguments[2] as User?;
-    if (currentStudent != null && currentStudent.isNotActive) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Vous ne pouvez pas modifier les questions d\'un élève archivé'),
-            duration: const Duration(seconds: 5)),
-      );
-      return;
-    }
 
     final output = await showDialog(
       context: context,
