@@ -111,39 +111,17 @@ class StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  bool _isGeneratingToken = false;
-  Future<void> _generateNewToken() async {
-    final teacherId =
-        Provider.of<Database>(context, listen: false).currentUser!.id;
-
-    final passwordController = TextEditingController();
-    final sure = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AreYouSureDialog(
-          title: 'Générer un nouveau code ?',
-          content: 'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
-              'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
-              'Entrez votre mot de passe pour confirmer :',
-          extraContent: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: TextField(
-              controller: passwordController,
-              decoration: InputDecoration(labelText: 'Mot de passe'),
-              obscureText: true,
-              autofocus: true,
-            ),
-          ),
-        );
-      },
-    );
-    final password = passwordController.text;
-    passwordController.dispose();
-    if (!mounted) return;
-    if (sure != true || password.isEmpty) {
-      final scaffold = ScaffoldMessenger.of(context);
-      _showSnackbar(const Text('Génération du nouveau code annulée'), scaffold);
+  final _passwordFormKey = GlobalKey<FormState>();
+  StateSetter? _passwordDialogSetState;
+  String _password = '';
+  String? _passwordError;
+  Future<void> _validatePasswordDialogForm() async {
+    if (_password.isEmpty) {
+      if (_passwordDialogSetState != null) {
+        _passwordDialogSetState!(() {
+          _passwordError = 'Veuillez entrer votre mot de passe';
+        });
+      }
       return;
     }
 
@@ -151,14 +129,73 @@ class StudentsScreenState extends State<StudentsScreen> {
     final database = Provider.of<Database>(context, listen: false);
     final loginStatus = await database.login(
         username: database.currentUser!.email,
-        password: password,
+        password: _password,
         skipPostLogin: true);
     if (loginStatus != EzloginStatus.success) {
-      if (mounted) {
-        final scaffold = ScaffoldMessenger.of(context);
-        _showSnackbar(
-            const Text('Le mot de passe entré est incorrect'), scaffold);
+      if (_passwordDialogSetState != null) {
+        _passwordDialogSetState!(() {
+          _passwordError = 'Le mot de passe entré est incorrect';
+        });
       }
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context, true);
+  }
+
+  bool _isGeneratingToken = false;
+  Future<void> _generateNewToken() async {
+    final teacherId =
+        Provider.of<Database>(context, listen: false).currentUser!.id;
+
+    final isSuccess = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            _passwordDialogSetState = setState;
+            return AreYouSureDialog(
+              title: 'Générer un nouveau code ?',
+              content:
+                  'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
+                  'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
+                  'Entrez votre mot de passe pour confirmer :',
+              extraContent: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Form(
+                  key: _passwordFormKey,
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Mot de passe',
+                      errorText: _passwordError,
+                    ),
+                    obscureText: true,
+                    autofocus: true,
+                    onChanged: (value) {
+                      _password = value;
+                      _passwordDialogSetState!(() {
+                        _passwordError = null;
+                      });
+                    },
+                    onFieldSubmitted: (_) => _validatePasswordDialogForm(),
+                    validator: (value) => _passwordError,
+                  ),
+                ),
+              ),
+              onCancelled: () => Navigator.pop(context, false),
+              onConfirmed: _validatePasswordDialogForm,
+            );
+          },
+        );
+      },
+    );
+    _passwordDialogSetState = null;
+    if (!mounted) return;
+    if (isSuccess != true) {
+      final scaffold = ScaffoldMessenger.of(context);
+      _showSnackbar(const Text('Génération du nouveau code annulée'), scaffold);
       return;
     }
 
@@ -170,10 +207,11 @@ class StudentsScreenState extends State<StudentsScreen> {
 
     // Force relogin to refresh data
     if (!mounted) return;
+    final database = Provider.of<Database>(context, listen: false);
     final username = database.currentUser!.email;
     await database.logout();
     await database.login(
-        username: username, password: password, userType: UserType.teacher);
+        username: username, password: _password, userType: UserType.teacher);
 
     if (!mounted) return;
     await _showCurrentToken();
@@ -201,21 +239,6 @@ class StudentsScreenState extends State<StudentsScreen> {
 
   Future<void> _removeStudent(
       {required User student, required String password}) async {
-    // Check if the password is correct
-    final database = Provider.of<Database>(context, listen: false);
-    final loginStatus = await database.login(
-        username: database.currentUser!.email,
-        password: password,
-        skipPostLogin: true);
-    if (loginStatus != EzloginStatus.success) {
-      if (mounted) {
-        final scaffold = ScaffoldMessenger.of(context);
-        _showSnackbar(
-            const Text('Le mot de passe entré est incorrect'), scaffold);
-      }
-      return;
-    }
-
     if (!mounted) return;
     final token = await TeachingTokenHelpers.createdActiveToken(
         userId: Provider.of<Database>(context, listen: false).currentUser!.id);
@@ -223,6 +246,7 @@ class StudentsScreenState extends State<StudentsScreen> {
     await TeachingTokenHelpers.disconnectFromToken(student.id, token);
     if (!mounted) return;
 
+    final database = Provider.of<Database>(context, listen: false);
     final username = database.currentUser!.email;
     await database.logout();
     await database.login(

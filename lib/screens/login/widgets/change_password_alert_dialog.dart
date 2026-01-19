@@ -51,6 +51,7 @@ class _ChangePasswordAlertDialogState extends State<ChangePasswordAlertDialog> {
                 autocorrect: false,
                 keyboardType: TextInputType.visiblePassword,
                 onSaved: (value) => _password = value,
+                onFieldSubmitted: (_) => _finalize(),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -65,6 +66,7 @@ class _ChangePasswordAlertDialogState extends State<ChangePasswordAlertDialog> {
                 enableSuggestions: false,
                 autocorrect: false,
                 keyboardType: TextInputType.visiblePassword,
+                onFieldSubmitted: (_) => _finalize(),
               ),
             ],
           ),

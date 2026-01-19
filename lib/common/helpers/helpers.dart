@@ -10,9 +10,11 @@ class Helpers {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const AreYouSureDialog(
+        return AreYouSureDialog(
           title: 'Déconnexion',
           content: 'Êtes-vous certain(e) de vouloir vous déconnecter?',
+          onCancelled: () => Navigator.pop(context, false),
+          onConfirmed: () => Navigator.pop(context, true),
         );
       },
     );

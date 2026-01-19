@@ -8,12 +8,16 @@ class AreYouSureDialog extends StatelessWidget {
     required this.content,
     this.extraContent,
     this.canReadAloud = false,
+    required this.onConfirmed,
+    required this.onCancelled,
   });
 
   final String title;
   final String content;
   final bool canReadAloud;
   final Widget? extraContent;
+  final Function() onConfirmed;
+  final Function() onCancelled;
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +49,12 @@ class AreYouSureDialog extends StatelessWidget {
       ),
       actions: [
         OutlinedButton(
+          onPressed: onCancelled,
           child: const Text('Annuler'),
-          onPressed: () => Navigator.pop(context, false),
         ),
         ElevatedButton(
+          onPressed: onConfirmed,
           child: const Text('Continuer'),
-          onPressed: () => Navigator.pop(context, true),
         ),
       ],
     );

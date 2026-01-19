@@ -222,6 +222,8 @@ class _QuestionActivatedState extends StatelessWidget {
                 content:
                     'Voulez-vous vraiment ${value ? 'activer' : 'désactiver'} '
                     'cette question pour tous les élèves ?',
+                onCancelled: () => Navigator.pop(context, false),
+                onConfirmed: () => Navigator.pop(context, true),
               );
             },
           )

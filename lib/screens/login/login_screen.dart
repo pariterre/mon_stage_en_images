@@ -278,6 +278,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onSaved: (value) => _email = value,
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          onFieldSubmitted: (_) =>
+                              _canConnect ? _processConnexion() : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -304,6 +306,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           enableSuggestions: false,
                           autocorrect: false,
                           keyboardType: TextInputType.visiblePassword,
+                          onFieldSubmitted: (_) =>
+                              _canConnect ? _processConnexion() : null,
                         ),
                         Align(
                           alignment: Alignment.centerRight,

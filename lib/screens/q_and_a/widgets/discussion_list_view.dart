@@ -224,6 +224,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                   onPressed: () => _addPhoto(ImageSource.camera),
                   style:
                       TextButton.styleFrom(backgroundColor: Colors.grey[700]),
+                  // TODO This should not appear in "Résumé des réponses"
                   child: const Row(
                     children: [
                       Icon(Icons.camera_alt),

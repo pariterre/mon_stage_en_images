@@ -24,13 +24,43 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
           .currentUser
           ?.studentNotes[widget.student.id]);
 
-  final _passwordController = TextEditingController();
-
   @override
   void dispose() {
     _noteController.dispose();
-    _passwordController.dispose();
     super.dispose();
+  }
+
+  final _passwordFormKey = GlobalKey<FormState>();
+  StateSetter? _passwordDialogSetState;
+  String _password = '';
+  String? _passwordError;
+  Future<void> _validatePasswordDialogForm() async {
+    if (_password.isEmpty) {
+      if (_passwordDialogSetState != null) {
+        _passwordDialogSetState!(() {
+          _passwordError = 'Veuillez entrer votre mot de passe';
+        });
+      }
+      return;
+    }
+
+    // Check if the password is correct
+    final database = Provider.of<Database>(context, listen: false);
+    final loginStatus = await database.login(
+        username: database.currentUser!.email,
+        password: _password,
+        skipPostLogin: true);
+    if (loginStatus != EzloginStatus.success) {
+      if (_passwordDialogSetState != null) {
+        _passwordDialogSetState!(() {
+          _passwordError = 'Le mot de passe entré est incorrect';
+        });
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context, true);
   }
 
   @override
@@ -67,34 +97,52 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
       actions: <Widget>[
         IconButton(
           onPressed: () async {
-            final sure = await showDialog<bool>(
+            final isSuccess = await showDialog<bool>(
                 context: context,
                 builder: (context) {
-                  return AreYouSureDialog(
-                    title: 'Retirer de la liste',
-                    content:
-                        'Êtes-vous sûr de vouloir retirer cet élève de la liste d\'élèves inscrits à votre code d\'inscription ?\n'
-                        'Cette action est irréversible.\n\n'
-                        'Veuillez entrer votre mot de passe pour confirmer :',
-                    extraContent: Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: TextField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(labelText: 'Mot de passe'),
-                        obscureText: true,
-                        autofocus: true,
-                      ),
-                    ),
+                  return StatefulBuilder(
+                    builder: (context, setState) {
+                      _passwordDialogSetState = setState;
+                      return AreYouSureDialog(
+                        title: 'Retirer de la liste',
+                        content:
+                            'Êtes-vous sûr de vouloir retirer cet élève de la liste d\'élèves inscrits à votre code d\'inscription ?\n'
+                            'Cette action est irréversible.\n\n'
+                            'Veuillez entrer votre mot de passe pour confirmer :',
+                        extraContent: Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Form(
+                            key: _passwordFormKey,
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                labelText: 'Mot de passe',
+                                errorText: _passwordError,
+                              ),
+                              obscureText: true,
+                              autofocus: true,
+                              onChanged: (value) {
+                                _password = value;
+                                _passwordDialogSetState!(() {
+                                  _passwordError = null;
+                                });
+                              },
+                              onFieldSubmitted: (_) =>
+                                  _validatePasswordDialogForm(),
+                              validator: (value) => _passwordError,
+                            ),
+                          ),
+                        ),
+                        onCancelled: () => Navigator.pop(context, false),
+                        onConfirmed: _validatePasswordDialogForm,
+                      );
+                    },
                   );
                 });
-            if (sure != true ||
-                _passwordController.text.isEmpty ||
-                !context.mounted) {
-              return;
-            }
-
-            await widget.onRemoveFromList(_passwordController.text);
+            _passwordDialogSetState = null;
             if (context.mounted) Navigator.pop(context);
+            if (isSuccess != true || !context.mounted) return;
+
+            await widget.onRemoveFromList(_password);
           },
           icon: const Icon(Icons.delete),
         ),
@@ -109,7 +157,7 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
           child: Text('Enregistrer',
               style: const TextStyle(
                   fontWeight: FontWeight.bold, color: Colors.white)),
-          onPressed: () => Navigator.pop(context, _noteController.text),
+          onPressed: () => _validatePasswordDialogForm(),
         ),
       ],
     );

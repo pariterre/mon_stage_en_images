@@ -218,9 +218,11 @@ class _NewQuestionAlertDialogState extends State<NewQuestionAlertDialog> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const AreYouSureDialog(
+        return AreYouSureDialog(
           title: 'Suppression d\'une question',
           content: 'Êtes-vous certain(e) de vouloir supprimer cette question?',
+          onCancelled: () => Navigator.pop(context, false),
+          onConfirmed: () => Navigator.pop(context, true),
         );
       },
     );
