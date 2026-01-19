@@ -248,7 +248,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await answers.initializeFetchingData();
 
     // Send the answers to the database
-    // TODO Find why the questions are doubled (it is duplicated at the first connection of the teacher)
     await answers.addAnswers(questions.map((e) => Answer(
           isActive: e.defaultTarget == Target.all,
           actionRequired: ActionRequired.fromStudent,

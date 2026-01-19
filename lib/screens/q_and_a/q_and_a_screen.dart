@@ -356,10 +356,7 @@ class QAndAScreenState extends State<QAndAScreen> {
             ),
         ],
       ),
-      leading:
-          _currentPage != 0 || _student != null && userType == UserType.teacher
-              ? BackButton(onPressed: _onBackPressed)
-              : null,
+      leading: _currentPage != 0 ? BackButton(onPressed: _onBackPressed) : null,
       actions: _currentPage != 0 && userType == UserType.teacher
           ? [
               if (_viewSpan == Target.individual)
@@ -402,9 +399,9 @@ class QAndAScreenState extends State<QAndAScreen> {
             child: Text(userId == null
                 ? 'Utilisateur non connecté'
                 : 'Connexion au code...')),
-        smallDrawer: MainDrawer.small,
-        mediumDrawer: MainDrawer.medium,
-        largeDrawer: MainDrawer.large,
+        smallDrawer: MainDrawer.small(),
+        mediumDrawer: MainDrawer.medium(),
+        largeDrawer: MainDrawer.large(),
       );
     }
 
@@ -485,9 +482,12 @@ class QAndAScreenState extends State<QAndAScreen> {
                 ),
               ],
             ),
-      smallDrawer: MainDrawer.small,
-      mediumDrawer: MainDrawer.medium,
-      largeDrawer: MainDrawer.large,
+      smallDrawer: MainDrawer.small(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      mediumDrawer: MainDrawer.medium(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      largeDrawer: MainDrawer.large(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
     );
   }
 }

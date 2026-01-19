@@ -298,9 +298,9 @@ class StudentsScreenState extends State<StudentsScreen> {
             child: database.currentUser?.isActive == false
                 ? CircularProgressIndicator()
                 : Text('Génération du code d\'inscription...')),
-        smallDrawer: MainDrawer.small,
-        mediumDrawer: MainDrawer.medium,
-        largeDrawer: MainDrawer.large,
+        smallDrawer: MainDrawer.small(),
+        mediumDrawer: MainDrawer.medium(),
+        largeDrawer: MainDrawer.large(),
       );
     }
 
@@ -355,9 +355,9 @@ class StudentsScreenState extends State<StudentsScreen> {
           ),
         ],
       ),
-      smallDrawer: MainDrawer.small,
-      mediumDrawer: MainDrawer.medium,
-      largeDrawer: MainDrawer.large,
+      smallDrawer: MainDrawer.small(),
+      mediumDrawer: MainDrawer.medium(),
+      largeDrawer: MainDrawer.large(),
     );
   }
 }

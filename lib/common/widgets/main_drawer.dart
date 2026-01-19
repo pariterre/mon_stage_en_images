@@ -13,22 +13,34 @@ import 'package:url_launcher/url_launcher.dart';
 class MainDrawer extends StatelessWidget {
   const MainDrawer({
     super.key,
-    this.showTitle = true,
     this.iconOnly = false,
     this.canPop = true,
     this.roundedCorners = true,
+    this.canNavigateBack,
+    this.navigationBack,
   });
 
-  static MainDrawer get small => const MainDrawer();
-  static MainDrawer get medium =>
-      const MainDrawer(iconOnly: true, canPop: false, roundedCorners: false);
-  static MainDrawer get large =>
-      const MainDrawer(canPop: false, roundedCorners: false);
+  static MainDrawer small({Function()? navigationBack}) => MainDrawer(
+      iconOnly: false,
+      canPop: true,
+      roundedCorners: true,
+      navigationBack: navigationBack);
+  static MainDrawer medium({Function()? navigationBack}) => MainDrawer(
+      iconOnly: true,
+      canPop: false,
+      roundedCorners: false,
+      navigationBack: navigationBack);
+  static MainDrawer large({Function()? navigationBack}) => MainDrawer(
+      iconOnly: false,
+      canPop: false,
+      roundedCorners: false,
+      navigationBack: navigationBack);
 
-  final bool showTitle;
   final bool iconOnly;
   final bool canPop;
   final bool roundedCorners;
+  final bool? canNavigateBack;
+  final Function()? navigationBack;
 
   @override
   Widget build(BuildContext context) {
@@ -42,23 +54,24 @@ class MainDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(0.0),
             ),
       child: Scaffold(
-        appBar: showTitle
-            ? AppBar(
-                title: OnboardingContainer(
-                  onReady: (context) =>
-                      onboardingContexts['drawer_button'] = context,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(Icons.menu),
-                      SizedBox(width: 8.0),
-                      if (!iconOnly) const Text('Menu principal'),
-                    ],
-                  ),
+        appBar: AppBar(
+          leading: navigationBack == null
+              ? null
+              : IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: navigationBack,
                 ),
-                automaticallyImplyLeading: false,
-              )
-            : null,
+          title: OnboardingContainer(
+            onReady: (context) => onboardingContexts['drawer_button'] = context,
+            child: navigationBack == null
+                ? Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    Icon(Icons.menu),
+                    SizedBox(width: 8.0),
+                    if (!iconOnly) Text('Menu principal'),
+                  ])
+                : SizedBox.shrink(),
+          ),
+        ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
