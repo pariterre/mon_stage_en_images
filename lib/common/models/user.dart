@@ -7,12 +7,11 @@ class User extends EzloginUser {
     required this.firstName,
     required this.lastName,
     required super.email,
-    required super.mustChangePassword,
     required this.studentNotes,
     required this.termsAndServicesAccepted,
     required this.creationDate,
     super.id,
-  });
+  }) : super(mustChangePassword: false);
 
   User.fromSerialized(super.map)
       : firstName = map?['firstName'],
@@ -36,11 +35,15 @@ class User extends EzloginUser {
     bool? termsAndServicesAccepted,
     DateTime? creationDate,
   }) {
+    if (mustChangePassword != null) {
+      throw UnimplementedError(
+          'User model does not support changing mustChangePassword');
+    }
+
     return User(
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
-      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       id: id ?? this.id,
       studentNotes: studentNotes ?? this.studentNotes,
       termsAndServicesAccepted:

@@ -10,10 +10,8 @@ import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/default_questions.dart';
-import 'package:mon_stage_en_images/screens/login/widgets/change_password_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/forgot_password_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/main_title_background.dart';
-import 'package:mon_stage_en_images/screens/login/widgets/new_user_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 final _logger = Logger('LoginScreen');
@@ -50,29 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _userType = SharedPreferencesController.instance.userType;
 
     _processConnexion(automaticConnexion: true);
-  }
-
-  Future<User?> _createUser(String email) async {
-    final user = await showDialog<User>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return NewUserAlertDialog(email: email);
-      },
-    );
-    _isNewUser = true;
-    return user;
-  }
-
-  Future<String> _changePassword() async {
-    final password = await showDialog<String>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return const ChangePasswordAlertDialog();
-      },
-    );
-    return password!;
   }
 
   void _showSnackbar() {
@@ -126,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
           .login(
         username: _email!,
         password: _password!,
-        getNewUserInfo: () => _createUser(_email!),
+        // TODO RENDU ICI
         getNewPassword: _changePassword,
         userType: _userType,
       )
@@ -174,6 +149,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _newUser() async {
+    String firstName = '';
+    String lastName = '';
     String email = _emailController.text;
     String password = _passwordController.text;
     String passwordConfirmation = '';
@@ -198,51 +175,75 @@ class _LoginScreenState extends State<LoginScreen> {
           },
           extraContent: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Courriel'),
-                  initialValue: email,
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) => email = value,
-                  validator: (value) => value == null
-                      ? 'Inscrire un courriel'
-                      : (value.isValidEmail()
-                          ? null
-                          : 'Inscrire un courriel valide'),
-                ),
-                SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Mot de passe'),
-                  initialValue: password,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  keyboardType: TextInputType.visiblePassword,
-                  onChanged: (value) => password = value,
-                  validator: PasswordValidator.validate,
-                ),
-                SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(
-                      labelText: 'Confirmer le mot de passe'),
-                  initialValue: passwordConfirmation,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  keyboardType: TextInputType.visiblePassword,
-                  onChanged: (value) => passwordConfirmation = value,
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) return 'Copier le mot de passe';
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 12),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Prénom'),
+                    initialValue: firstName,
+                    onChanged: (value) => firstName = value,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Inscrire un prénom'
+                        : null,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    decoration:
+                        const InputDecoration(labelText: 'Nom de famille'),
+                    initialValue: lastName,
+                    onChanged: (value) => lastName = value,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Inscrire un nom de famille'
+                        : null,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Courriel'),
+                    initialValue: email,
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (value) => email = value,
+                    validator: (value) => value == null
+                        ? 'Inscrire un courriel'
+                        : (value.isValidEmail()
+                            ? null
+                            : 'Inscrire un courriel valide'),
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    decoration:
+                        const InputDecoration(labelText: 'Mot de passe'),
+                    initialValue: password,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    keyboardType: TextInputType.visiblePassword,
+                    onChanged: (value) => password = value,
+                    validator: PasswordValidator.validate,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                        labelText: 'Confirmer le mot de passe'),
+                    initialValue: passwordConfirmation,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    keyboardType: TextInputType.visiblePassword,
+                    onChanged: (value) => passwordConfirmation = value,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Copier le mot de passe';
+                      }
 
-                    return value != password
-                        ? 'Les mots de passe doivent correspondre'
-                        : null;
-                  },
-                ),
-              ],
+                      return value != password
+                          ? 'Les mots de passe doivent correspondre'
+                          : null;
+                    },
+                  ),
+                ],
+              ),
             ),
           )),
     );
@@ -256,6 +257,22 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       return;
     }
+
+    if (!mounted) return;
+    final database = Provider.of<Database>(context, listen: false);
+    _emailController.text = email;
+    _passwordController.text = password;
+
+    await database.addUser(
+        newUser: User(
+          firstName: firstName,
+          lastName: lastName,
+          email: _emailController.text,
+          studentNotes: {},
+          termsAndServicesAccepted: false,
+          creationDate: DateTime.now(),
+        ),
+        password: _passwordController.text);
   }
 
   void _changeTypeSelection(UserType type) {

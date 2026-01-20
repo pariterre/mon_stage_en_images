@@ -28,4 +28,12 @@ class Helpers {
     RouteManager.instance.gotoLoginPage(context);
     await database.logout();
   }
+
+  static String? passwordValidate(String? value) {
+    if (value == null || value.isEmpty) return 'Ajouter un mot de passe';
+    if (value.length < 6) {
+      return 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    return null;
+  }
 }
