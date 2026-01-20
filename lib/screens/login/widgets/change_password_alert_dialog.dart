@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
 
+class PasswordValidator {
+  static String? validate(String? value) {
+    if (value == null || value.isEmpty) return 'Ajouter un mot de passe';
+    if (value.length < 6) {
+      return 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    return null;
+  }
+}
+
 // TODO: Allow for chaning personal info like email and username in a dedicated dialog
 class ChangePasswordAlertDialog extends StatefulWidget {
   const ChangePasswordAlertDialog({
@@ -25,12 +35,7 @@ class _ChangePasswordAlertDialogState extends State<ChangePasswordAlertDialog> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Ajouter un mot de passe';
-    if (value.length < 6) {
-      return 'Le mot de passe doit contenir au moins 6 caractères';
-    }
-
-    return null;
+    return PasswordValidator.validate(value);
   }
 
   @override

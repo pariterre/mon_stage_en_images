@@ -55,6 +55,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
     return status;
   }
 
+  Future<bool> createUser() async {
+    // TODO: Finalize user creation process
+    return false;
+  }
+
   @override
   Future<EzloginStatus> login({
     required String username,

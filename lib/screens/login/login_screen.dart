@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
+import 'package:mon_stage_en_images/common/misc/email_validator.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
+import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/default_questions.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/change_password_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/forgot_password_alert_dialog.dart';
@@ -171,52 +173,90 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _newTeacher() async {
-    const studentTextPart =
-        'Si vous êtes un ou une élève, veuillez attendre que votre enseignant ou enseignante vous inscrive.';
-    await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Future<void> _newUser() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
+    String passwordConfirmation = '';
+
+    final formKey = GlobalKey<FormState>();
+
+    final isSuccess = await showDialog<bool?>(
+      context: context,
+      builder: (context) => AreYouSureDialog(
+          title: 'Inscription',
+          content: 'Compléter les informations pour créer un nouveau compte',
+          canReadAloud: true,
+          onConfirmed: () {
+            if (formKey.currentState == null ||
+                !formKey.currentState!.validate()) {
+              return;
+            }
+            Navigator.pop(context, true);
+          },
+          onCancelled: () {
+            Navigator.pop(context, false);
+          },
+          extraContent: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Inscription'),
-                IconButton(
-                    onPressed: () => _textReader.readText(
-                          'Inscription.\n$studentTextPart',
-                          hasFinishedCallback: () => _textReader.stopReading(),
-                        ),
-                    icon: const Icon(Icons.volume_up))
+                SizedBox(height: 12),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Courriel'),
+                  initialValue: email,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) => email = value,
+                  validator: (value) => value == null
+                      ? 'Inscrire un courriel'
+                      : (value.isValidEmail()
+                          ? null
+                          : 'Inscrire un courriel valide'),
+                ),
+                SizedBox(height: 12),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Mot de passe'),
+                  initialValue: password,
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  onChanged: (value) => password = value,
+                  validator: PasswordValidator.validate,
+                ),
+                SizedBox(height: 12),
+                TextFormField(
+                  decoration: const InputDecoration(
+                      labelText: 'Confirmer le mot de passe'),
+                  initialValue: passwordConfirmation,
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  onChanged: (value) => passwordConfirmation = value,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) return 'Copier le mot de passe';
+
+                    return value != password
+                        ? 'Les mots de passe doivent correspondre'
+                        : null;
+                  },
+                ),
               ],
             ),
-            content: Text.rich(TextSpan(children: [
-              const TextSpan(
-                text: 'Si vous êtes un(e) enseignant(e), vous pouvez faire '
-                    'la demande pour un compte en remplissant ',
-              ),
-              TextSpan(
-                text: 'ce formulaire',
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () async {
-                    final email = Email(
-                        recipients: ['recherchetic@gmail.com'],
-                        subject: 'Mon stage en images - Inscription',
-                        body:
-                            'Bonjour,\n\nJe suis un(e) enseignant(e) et je souhaite utiliser '
-                            '« Mon stage en images ». Voici mes informations :\n\n'
-                            'Mes informations :\n'
-                            '    Commission scolaire : INSCRIRE VOTRE COMMISSION SCOLAIRE\n'
-                            '    Nom de l\'école : INSCRIRE LE NOM DE VOTRE ÉCOLE\n'
-                            '    Indentifiant : INSCRIRE UN IDENTIFIANT À VOTRE COMMISSION SCOLAIRE QUI NOUS PERMETTRA DE VOUS IDENTIFIER\n'
-                            '    Courriel : INSCRIRE UN COURRIEL VALIDE\n\n'
-                            'Merci de votre aide.');
-                    await FlutterEmailSender.send(email);
-                  },
-                style: const TextStyle(
-                    color: Colors.blue, decoration: TextDecoration.underline),
-              ),
-              const TextSpan(text: '.\n\n$studentTextPart'),
-            ]))));
+          )),
+    );
+
+    if (isSuccess != true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('L\'inscription a été annulée'),
+          duration: Duration(seconds: 5),
+        ));
+      }
+      return;
+    }
+  }
 
   void _changeTypeSelection(UserType type) {
     _userType = type;
@@ -371,8 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: _newTeacher,
-                        // TODO Allow for creating a new account by clicking this button
+                        onPressed: _newUser,
                         child: const Text('Nouvel(le) utilisateur(trice)'),
                       ),
                     ),
