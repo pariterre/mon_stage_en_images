@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/misc/email_validator.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:provider/provider.dart';
 
 class ForgotPasswordAlertDialog extends StatefulWidget {
@@ -65,17 +66,37 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 spacing: 16,
                 children: [
-                  // TODO: Allow for reading aloud the instructions
-                  Text.rich(TextSpan(
-                      text:
-                          'Indiquer l\'adresse courriel utilisée lors de votre inscription '
-                          'pour recevoir',
-                      children: [
-                        TextSpan(
-                            text: ' un courriel de réinitialisation',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: ' de vos accès.')
-                      ])),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: IconButton(
+                            onPressed: () {
+                              final textReader = TextReader();
+                              textReader.readText(
+                                'Indiquer l\'adresse courriel utilisée lors de votre inscription '
+                                'pour recevoir un courriel de réinitialisation de vos accès.',
+                                hasFinishedCallback: () =>
+                                    textReader.stopReading(),
+                              );
+                            },
+                            icon: const Icon(Icons.volume_up)),
+                      ),
+                      Flexible(
+                        child: Text.rich(TextSpan(
+                            text:
+                                'Indiquer l\'adresse courriel utilisée lors de votre inscription '
+                                'pour recevoir',
+                            children: [
+                              TextSpan(
+                                  text: ' un courriel de réinitialisation',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              TextSpan(text: ' de vos accès.')
+                            ])),
+                      ),
+                    ],
+                  ),
                   SizedBox(
                     height: 4,
                   ),
