@@ -100,7 +100,7 @@ class QuestionAndAnswerPage extends StatelessWidget {
           if (viewSpan != Target.individual) const SizedBox(height: 10),
           if (viewSpan != Target.individual && pageMode == PageMode.edit)
             OnboardingContainer(
-              onReady: (context) =>
+              onInitialize: (context) =>
                   onboardingContexts['new_question_button'] = context,
               child: QuestionAndAnswerTile(
                 null,
@@ -205,7 +205,7 @@ class _QAndAListViewState extends State<QAndAListView> {
     }
 
     return OnboardingContainer(
-      onReady: (context) =>
+      onInitialize: (context) =>
           onboardingContexts['all_question_buttons'] = context,
       child: ListView.builder(
         reverse: true,

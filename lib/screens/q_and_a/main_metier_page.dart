@@ -33,7 +33,7 @@ class MainMetierPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge),
           if (student != null) const SizedBox(height: 5),
           OnboardingContainer(
-              onReady: (context) =>
+              onInitialize: (context) =>
                   onboardingContexts['metier_tile_0'] = context,
               child:
                   MetierTile(0, studentId: student?.id, onTap: onPageChanged)),

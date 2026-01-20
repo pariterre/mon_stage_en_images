@@ -1,23 +1,28 @@
 import 'package:flutter/widgets.dart';
 
-class OnboardingContainer extends StatelessWidget {
-  final Widget child;
-  final void Function(BuildContext) onReady;
-
+class OnboardingContainer extends StatefulWidget {
   const OnboardingContainer({
     super.key,
     required this.child,
-    required this.onReady,
+    required this.onInitialize,
   });
+
+  final Widget child;
+  final void Function(BuildContext) onInitialize;
+
+  @override
+  State<OnboardingContainer> createState() => _OnboardingContainerState();
+}
+
+class _OnboardingContainerState extends State<OnboardingContainer> {
+  @override
+  void initState() {
+    widget.onInitialize(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        onReady(context);
-      }
-    });
-
-    return child;
+    return widget.child;
   }
 }

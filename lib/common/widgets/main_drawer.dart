@@ -62,7 +62,8 @@ class MainDrawer extends StatelessWidget {
                   onPressed: navigationBack,
                 ),
           title: OnboardingContainer(
-            onReady: (context) => onboardingContexts['drawer_button'] = context,
+            onInitialize: (context) =>
+                onboardingContexts['drawer_button'] = context,
             child: navigationBack == null
                 ? Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                     Icon(Icons.menu),
@@ -84,7 +85,7 @@ class MainDrawer extends StatelessWidget {
               ),
             if (userType == UserType.teacher)
               OnboardingContainer(
-                onReady: (context) =>
+                onInitialize: (context) =>
                     onboardingContexts['drawer_question_button'] = context,
                 child: MenuItem(
                   title: 'Gestion des questions',
@@ -99,7 +100,7 @@ class MainDrawer extends StatelessWidget {
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
               OnboardingContainer(
-                onReady: (context) =>
+                onInitialize: (context) =>
                     onboardingContexts['drawer_answer_button'] = context,
                 child: MenuItem(
                   title: 'Résumé des réponses',
@@ -114,7 +115,7 @@ class MainDrawer extends StatelessWidget {
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
               OnboardingContainer(
-                onReady: (context) =>
+                onInitialize: (context) =>
                     onboardingContexts['drawer_info_button'] = context,
                 child: MenuItem(
                   title: 'Apprendre sur la SST',

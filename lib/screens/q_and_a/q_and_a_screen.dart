@@ -419,7 +419,7 @@ class QAndAScreenState extends State<QAndAScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           OnboardingContainer(
-            onReady: (context) =>
+            onInitialize: (context) =>
                 onboardingContexts['q_and_a_app_bar_title'] = context,
             child: Text(_student?.toString() ??
                 (_pageMode == PageMode.fixView
