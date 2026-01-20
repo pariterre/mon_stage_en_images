@@ -9,6 +9,7 @@ import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
 import 'package:mon_stage_en_images/screens/login/login_screen.dart';
 import 'package:mon_stage_en_images/screens/login/terms_and_services_screen.dart';
 import 'package:mon_stage_en_images/screens/login/wrong_version_screen.dart';
+import 'package:mon_stage_en_images/screens/my_info/my_info_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -106,6 +107,15 @@ class RouteManager {
     }
   }
 
+  Future<void> gotoMyInfoPage(BuildContext context) async {
+    if (!isInitialized) {
+      throw Exception(
+          'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
+    }
+
+    await currentState?.pushReplacementNamed(MyInfoScreen.routeName);
+  }
+
   Future<void> gotoStudentsPage(BuildContext context) async {
     if (!isInitialized) {
       throw Exception(
@@ -134,6 +144,8 @@ class RouteManager {
 
   Widget builderForCurrentRoute(String routeName) {
     switch (routeName) {
+      case MyInfoScreen.routeName:
+        return MyInfoScreen();
       case WrongVersionScreen.routeName:
         return WrongVersionScreen();
       case LoginScreen.routeName:

@@ -44,7 +44,12 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType = Provider.of<Database>(context, listen: false).userType;
+    final database = Provider.of<Database>(context, listen: false);
+    final user = database.currentUser;
+    if (user == null) {
+      return SizedBox.shrink();
+    }
+    final userType = database.userType;
 
     return Drawer(
       width: iconOnly ? 120.0 : null,
@@ -76,6 +81,12 @@ class MainDrawer extends StatelessWidget {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            MenuItem(
+              title: 'Mes informations',
+              icon: Icons.home,
+              onTap: () => RouteManager.instance.gotoMyInfoPage(context),
+              iconOnly: iconOnly,
+            ),
             if (userType == UserType.teacher)
               MenuItem(
                 title: 'Mes élèves',
@@ -83,20 +94,26 @@ class MainDrawer extends StatelessWidget {
                 onTap: () => RouteManager.instance.gotoStudentsPage(context),
                 iconOnly: iconOnly,
               ),
-            if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) =>
-                    onboardingContexts['drawer_question_button'] = context,
-                child: MenuItem(
-                  title: 'Gestion des questions',
-                  icon: Icons.speaker_notes,
-                  onTap: () => RouteManager.instance.gotoQAndAPage(context,
-                      target: Target.all,
-                      pageMode: PageMode.edit,
-                      student: null),
-                  iconOnly: iconOnly,
-                ),
+            OnboardingContainer(
+              onInitialize: (context) =>
+                  onboardingContexts['drawer_question_button'] = context,
+              child: MenuItem(
+                title: userType == UserType.teacher
+                    ? 'Gestion des questions'
+                    : 'Mon stage',
+                icon: Icons.speaker_notes,
+                onTap: () => userType == UserType.teacher
+                    ? RouteManager.instance.gotoQAndAPage(context,
+                        target: Target.all,
+                        pageMode: PageMode.edit,
+                        student: null)
+                    : RouteManager.instance.gotoQAndAPage(context,
+                        target: Target.individual,
+                        pageMode: PageMode.editableView,
+                        student: user),
+                iconOnly: iconOnly,
               ),
+            ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
               OnboardingContainer(
