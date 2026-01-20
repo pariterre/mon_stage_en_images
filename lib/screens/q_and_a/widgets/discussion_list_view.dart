@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
@@ -72,14 +73,16 @@ class _DiscussionListViewState extends State<DiscussionListView> {
   }
 
   Future<void> _addPhoto(ImageSource source) async {
-    // TODO Edit firebase rules to allow userType 'teacher' to write in storage
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+    if (currentUser == null) return;
+
     final imagePicker = ImagePicker();
     final imageXFile =
         await imagePicker.pickImage(source: source, maxWidth: 500);
     if (imageXFile == null) return;
 
-    final imagePath =
-        await StorageService.uploadImage(widget.student!, imageXFile);
+    final imagePath = await StorageService.uploadImage(currentUser, imageXFile);
     _manageAnswer(newTextEntry: imagePath, isPhoto: true);
   }
 
@@ -221,7 +224,8 @@ class _DiscussionListViewState extends State<DiscussionListView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: () => _addPhoto(ImageSource.camera),
+                  onPressed:
+                      kIsWeb ? null : () => _addPhoto(ImageSource.camera),
                   style:
                       TextButton.styleFrom(backgroundColor: Colors.grey[700]),
                   child: const Row(
