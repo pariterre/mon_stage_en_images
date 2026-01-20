@@ -323,7 +323,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.only(top: 8.0),
+              padding: const EdgeInsets.only(top: 16.0),
               child: answer.isValidated
                   ? OutlinedButton(
                       child: Text('Rouvrir la question',

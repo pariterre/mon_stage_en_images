@@ -4,6 +4,7 @@ import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.da
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
+import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';
 import 'package:provider/provider.dart';
 
 class MyInfoScreen extends StatefulWidget {
@@ -25,7 +26,8 @@ class MyInfoScreenState extends State<MyInfoScreen> {
   void initState() {
     super.initState();
 
-    switch (Provider.of<Database>(context, listen: false).userType) {
+    final database = Provider.of<Database>(context, listen: false);
+    switch (database.userType) {
       case UserType.none:
       case UserType.student:
         break;
@@ -50,35 +52,72 @@ class MyInfoScreenState extends State<MyInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<Database>(context, listen: false).currentUser!;
+    final user = Provider.of<Database>(context, listen: false).currentUser;
+    if (user == null) {
+      return SizedBox.shrink();
+    }
+
+    final fontSize = 20.0;
 
     return ResponsiveService.scaffoldOf(
       context,
       key: scaffoldKey,
       appBar: _setAppBar(),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 15),
-            Text('Mes informations',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 3),
-            Row(
-              children: [
-                Text('Nom, prénom : ',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('${user.firstName} ${user.lastName}'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text('Courriel : ',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(user.email),
-              ],
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 15),
+              Center(
+                child: Text('Mes informations',
+                    style: Theme.of(context).textTheme.titleLarge),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text('Nom, prénom : ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: fontSize)),
+                  Text('${user.firstName} ${user.lastName}',
+                      style: TextStyle(fontSize: fontSize)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text('Courriel : ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: fontSize)),
+                  Text(user.email, style: TextStyle(fontSize: fontSize)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => UserInfoDialog(
+                                    title: const Text('Mes informations'),
+                                    editInformation: true,
+                                    user: user,
+                                  ));
+                        },
+                        child: Text('Modifier mes informations')),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                        onPressed: () {},
+                        child: Text('Changer mon mot de passe')),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
       smallDrawer: MainDrawer.small(),

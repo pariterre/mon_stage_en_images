@@ -8,12 +8,11 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
+import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/onboarding.dart';
+import 'package:mon_stage_en_images/screens/all_students/widgets/student_list_tile.dart';
 import 'package:provider/provider.dart';
-
-import 'widgets/student_info_dialog.dart';
-import 'widgets/student_list_tile.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({
@@ -226,8 +225,10 @@ class StudentsScreenState extends State<StudentsScreen> {
     final newInfo = await showDialog<String>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) => StudentInfoDialog(
-        student: student,
+      builder: (BuildContext context) => UserInfoDialog(
+        title: const Text('Informations de l\'élève'),
+        user: student,
+        showEditableNotes: true,
         onRemoveFromList: (password) async =>
             _removeStudent(student: student, password: password),
       ),
