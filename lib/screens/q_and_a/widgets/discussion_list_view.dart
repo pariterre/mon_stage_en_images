@@ -214,7 +214,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
         SizedBox(
           height: 4,
         ),
-        if (!widget.isAnswerValidated)
+        if (widget.student != null && !widget.isAnswerValidated)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
@@ -224,7 +224,6 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                   onPressed: () => _addPhoto(ImageSource.camera),
                   style:
                       TextButton.styleFrom(backgroundColor: Colors.grey[700]),
-                  // TODO This should not appear in "Résumé des réponses"
                   child: const Row(
                     children: [
                       Icon(Icons.camera_alt),
@@ -253,7 +252,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
               ],
             ),
           ),
-        if (!widget.isAnswerValidated && widget.student != null)
+        if (widget.student != null && !widget.isAnswerValidated)
           Container(
             padding: const EdgeInsets.only(left: 15),
             child: Form(
