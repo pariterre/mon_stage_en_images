@@ -1,12 +1,9 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
-import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
@@ -43,8 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
   EzloginStatus _status = EzloginStatus.none;
   bool _isNewUser = false;
   bool _hidePassword = true;
-
-  final _textReader = TextReader();
 
   @override
   void initState() {
@@ -222,6 +217,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const TextSpan(text: '.\n\n$studentTextPart'),
             ]))));
+
+  void _changeTypeSelection(UserType type) {
+    _userType = type;
+    SharedPreferencesController.instance.userType = type;
+    setState(() {});
   }
 
   Widget _buildPage() {
@@ -268,7 +268,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
+                        Text('Je suis un(e) :', style: TextStyle(fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _RadioTile(
+                              value: UserType.student,
+                              groupValue: _userType,
+                              label: 'Élève',
+                              onChanged: _changeTypeSelection,
+                              selectedColor: studentTheme().colorScheme.primary,
+                            ),
+                            _RadioTile(
+                              value: UserType.teacher,
+                              groupValue: _userType,
+                              label: 'Enseignant(e)',
+                              onChanged: _changeTypeSelection,
+                              selectedColor: teacherTheme().colorScheme.primary,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         TextFormField(
                           decoration:
                               const InputDecoration(labelText: 'Courriel'),
@@ -332,30 +354,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 constraints: BoxConstraints(maxWidth: 400),
                 child: Column(
                   children: [
-                    RadioGroup(
-                      onChanged: (userType) {
-                        SharedPreferencesController.instance.userType =
-                            userType!;
-                        setState(() => _userType = userType);
-                      },
-                      groupValue: _userType,
-                      child: Wrap(
-                        direction: Axis.horizontal,
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: RadioListTile(
-                                title: Text('Enseignant(e)'),
-                                value: UserType.teacher),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: RadioListTile(
-                                title: Text('Élève'), value: UserType.student),
-                          ),
-                        ],
-                      ),
-                    ),
                     SizedBox(
                       height: 60,
                       width: double.infinity,
@@ -392,6 +390,53 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: MainTitleBackground(
           child: Theme(data: studentTheme(), child: _buildPage())),
+    );
+  }
+}
+
+class _RadioTile<T> extends StatelessWidget {
+  const _RadioTile({
+    super.key,
+    required this.value,
+    required this.label,
+    required this.onChanged,
+    required this.groupValue,
+    required this.selectedColor,
+  });
+
+  final T value;
+  final String label;
+  final void Function(T) onChanged;
+  final T groupValue;
+  final Color selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = value == groupValue;
+
+    return InkWell(
+      onTap: () => onChanged(value),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? selectedColor : Colors.grey,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? selectedColor : Colors.transparent,
+        ),
+        width: 160,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: isSelected ? Colors.white : Colors.black),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

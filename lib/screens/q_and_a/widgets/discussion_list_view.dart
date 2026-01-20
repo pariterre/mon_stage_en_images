@@ -218,6 +218,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
           height: 4,
         ),
         if (widget.student != null && !widget.isAnswerValidated)
+          // TODO Add the capability to remove a sent photo or a sent message
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(

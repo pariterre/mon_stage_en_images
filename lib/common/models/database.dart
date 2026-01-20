@@ -30,7 +30,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
   final questions = AllQuestions();
   final answers = AllAnswers();
 
-  static const defaultStudentPassword = 'monStage';
   static const _currentDatabaseVersion = 'v0_1_0';
   static DatabaseReference get root =>
       FirebaseDatabase.instance.ref(_currentDatabaseVersion);

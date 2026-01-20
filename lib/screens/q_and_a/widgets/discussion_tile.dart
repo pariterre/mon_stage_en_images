@@ -56,6 +56,7 @@ class DiscussionTile extends StatelessWidget {
               : otherColor.withAlpha(80),
         ),
         child: Column(
+          // TODO Add the date and time
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (discussion.isPhotoUrl) _showNameOfSender(),
