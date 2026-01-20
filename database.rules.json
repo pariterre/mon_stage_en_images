@@ -5,6 +5,10 @@
       ".write": false, 
       "adminIds": {".read": false}
     },
+    "adminTester": {
+      ".read": " root.child('appInfo/adminIds').hasChild(auth.uid)",
+      ".write": " root.child('appInfo/adminIds').hasChild(auth.uid)"
+    },
     "questions": {
       ".read": "  root.child('appInfo/adminIds').hasChild(auth.uid)",
       ".write": " root.child('appInfo/adminIds').hasChild(auth.uid)"

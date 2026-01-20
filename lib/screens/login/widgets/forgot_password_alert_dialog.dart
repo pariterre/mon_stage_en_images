@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/common/misc/email_validator.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:provider/provider.dart';
@@ -20,21 +20,12 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
   String? _validationError;
   bool _isloading = false;
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Entrer une adresse courriel';
-    if (!value.isValidEmail())
-      // ignore: curly_braces_in_flow_control_structures
-      return 'Entrer une adresse valide';
-
-    return null;
-  }
-
   Future<void> _finalize() async {
     _formKey.currentState?.save();
 
     _isloading = true;
     setState(() {});
-    _validationError = _validateEmail(_email);
+    _validationError = Helpers.emailValidator(_email);
 
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
@@ -109,7 +100,7 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
                     },
                     onSaved: (value) async {
                       _email = value;
-                      _validationError = _validateEmail(value);
+                      _validationError = Helpers.emailValidator(value);
                     },
                   ),
                   Wrap(

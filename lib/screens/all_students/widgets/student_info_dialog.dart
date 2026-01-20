@@ -63,6 +63,18 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
     Navigator.pop(context, true);
   }
 
+  void _saveNotes() {
+    final database = Provider.of<Database>(context, listen: false);
+    final user = database.currentUser;
+    final newInfo = user!.copyWith(studentNotes: {
+      ...user.studentNotes,
+      widget.student.id: _noteController.text,
+    });
+
+    database.modifyUser(user: user, newInfo: newInfo);
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -88,9 +100,11 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
             ),
             const SizedBox(height: 12),
             TextFormField(
-                controller: _noteController,
-                decoration: const InputDecoration(
-                    labelText: 'Note associée à l\'élève')),
+              controller: _noteController,
+              decoration:
+                  const InputDecoration(labelText: 'Note associée à l\'élève'),
+              onFieldSubmitted: (_) => _saveNotes(),
+            ),
           ],
         ),
       ),
@@ -147,17 +161,17 @@ class _StudentInfoDialogState extends State<StudentInfoDialog> {
           icon: const Icon(Icons.delete),
         ),
         OutlinedButton(
+          onPressed: () => Navigator.pop(context),
           child: Text('Annuler',
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.secondary)),
-          onPressed: () => Navigator.pop(context),
         ),
         ElevatedButton(
+          onPressed: _saveNotes,
           child: Text('Enregistrer',
               style: const TextStyle(
                   fontWeight: FontWeight.bold, color: Colors.white)),
-          onPressed: () => _validatePasswordDialogForm(),
         ),
       ],
     );

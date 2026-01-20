@@ -496,6 +496,7 @@ class QAndAScreenState extends State<QAndAScreen> {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(30.0),
+                // TODO Add text to speech
                 child: Text(
                   'Aucun code actif trouvé\n'
                   'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.',

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
-import 'package:mon_stage_en_images/common/misc/email_validator.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
@@ -28,17 +28,14 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _email;
-  late final _emailController = TextEditingController(text: _email)
+  late final _emailController = TextEditingController()
     ..addListener(() => setState(() {}));
-  String? _password;
-  late final _passwordController = TextEditingController(text: _password)
+  late final _passwordController = TextEditingController()
     ..addListener(() => setState(() {}));
 
   late UserType _userType;
 
   EzloginStatus _status = EzloginStatus.none;
-  bool _isNewUser = false;
   bool _hidePassword = true;
 
   @override
@@ -47,7 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     _userType = SharedPreferencesController.instance.userType;
 
-    _processConnexion(automaticConnexion: true);
+    // Try automatic connexion
+    _processConnexion(automaticConnexion: true, isUserNew: false);
   }
 
   void _showSnackbar() {
@@ -80,7 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
         _userType != UserType.none;
   }
 
-  Future<void> _processConnexion({bool automaticConnexion = false}) async {
+  Future<void> _processConnexion(
+      {required bool automaticConnexion, required bool isUserNew}) async {
     setState(() => _status = EzloginStatus.waitingForLogin);
     final database = Provider.of<Database>(context, listen: false);
 
@@ -99,12 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       _status = await database
           .login(
-        username: _email!,
-        password: _password!,
-        // TODO RENDU ICI
-        getNewPassword: _changePassword,
-        userType: _userType,
-      )
+              username: _emailController.text,
+              password: _passwordController.text,
+              userType: _userType)
           .then(
         (value) {
           _logger.info("$value login is complete");
@@ -119,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
     }
 
-    if (_isNewUser) {
+    if (isUserNew && _userType == UserType.teacher) {
       final questions = Provider.of<AllQuestions>(context, listen: false);
       for (final question in DefaultQuestion.questions) {
         questions.add(question);
@@ -131,10 +127,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _showForgotPasswordDialog(String? email) async {
+  Future<void> _showForgotPasswordDialog() async {
     await showDialog<bool?>(
       context: context,
-      builder: (context) => ForgotPasswordAlertDialog(email: email),
+      builder: (context) =>
+          ForgotPasswordAlertDialog(email: _emailController.text),
     ).then((response) {
       if (response != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -165,7 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
           canReadAloud: true,
           onConfirmed: () {
             if (formKey.currentState == null ||
-                !formKey.currentState!.validate()) {
+                !formKey.currentState!.validate() &&
+                    _userType != UserType.none) {
               return;
             }
             Navigator.pop(context, true);
@@ -204,11 +202,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     initialValue: email,
                     keyboardType: TextInputType.emailAddress,
                     onChanged: (value) => email = value,
-                    validator: (value) => value == null
-                        ? 'Inscrire un courriel'
-                        : (value.isValidEmail()
-                            ? null
-                            : 'Inscrire un courriel valide'),
+                    validator: Helpers.emailValidator,
+                  ),
+                  Text('Je suis un(e) :', style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 8),
+                  StatefulBuilder(
+                    builder: (context, setState) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _RadioTile(
+                          value: UserType.student,
+                          groupValue: _userType,
+                          label: 'Élève',
+                          onChanged: (value) {
+                            _changeTypeSelection(value);
+                            setState(() {});
+                          },
+                          selectedColor: studentTheme().colorScheme.primary,
+                        ),
+                        _RadioTile(
+                          value: UserType.teacher,
+                          groupValue: _userType,
+                          label: 'Enseignant(e)',
+                          onChanged: (value) {
+                            _changeTypeSelection(value);
+                            setState(() {});
+                          },
+                          selectedColor: teacherTheme().colorScheme.primary,
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 12),
                   TextFormField(
@@ -220,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     autocorrect: false,
                     keyboardType: TextInputType.visiblePassword,
                     onChanged: (value) => password = value,
-                    validator: PasswordValidator.validate,
+                    validator: Helpers.passwordValidator,
                   ),
                   SizedBox(height: 12),
                   TextFormField(
@@ -263,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.text = email;
     _passwordController.text = password;
 
-    await database.addUser(
+    final hasRegistered = await database.registerAsNewUser(
         newUser: User(
           firstName: firstName,
           lastName: lastName,
@@ -273,6 +296,18 @@ class _LoginScreenState extends State<LoginScreen> {
           creationDate: DateTime.now(),
         ),
         password: _passwordController.text);
+    if (!hasRegistered) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Erreur lors de la création du compte. Veuillez vérifier que le courriel n\'est pas déjà utilisé.'),
+          duration: Duration(seconds: 5),
+        ));
+      }
+      return;
+    }
+
+    await _processConnexion(automaticConnexion: false, isUserNew: true);
   }
 
   void _changeTypeSelection(UserType type) {
@@ -354,11 +389,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           validator: (value) => value == null || value.isEmpty
                               ? 'Inscrire un courriel'
                               : null,
-                          onSaved: (value) => _email = value,
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          onFieldSubmitted: (_) =>
-                              _canConnect ? _processConnexion() : null,
+                          onFieldSubmitted: (_) => _canConnect
+                              ? _processConnexion(
+                                  automaticConnexion: false, isUserNew: false)
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -379,21 +415,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           validator: (value) => value == null || value.isEmpty
                               ? 'Entrer le mot de passe'
                               : null,
-                          onSaved: (value) => _password = value,
                           controller: _passwordController,
                           obscureText: _hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           keyboardType: TextInputType.visiblePassword,
-                          onFieldSubmitted: (_) =>
-                              _canConnect ? _processConnexion() : null,
+                          onFieldSubmitted: (_) => _canConnect
+                              ? _processConnexion(
+                                  automaticConnexion: false, isUserNew: false)
+                              : null,
                         ),
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
                               onPressed: () {
                                 _formKey.currentState?.save();
-                                _showForgotPasswordDialog(_email);
+                                _showForgotPasswordDialog();
                               },
                               child: Text(
                                 'Mot de passe oublié',
@@ -415,7 +452,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _canConnect ? _processConnexion : null,
+                        onPressed: _canConnect
+                            ? () => _processConnexion(
+                                automaticConnexion: false, isUserNew: false)
+                            : null,
                         style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 studentTheme().colorScheme.primary),

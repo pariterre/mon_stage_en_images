@@ -29,11 +29,19 @@ class Helpers {
     await database.logout();
   }
 
-  static String? passwordValidate(String? value) {
+  static String? passwordValidator(String? value) {
     if (value == null || value.isEmpty) return 'Ajouter un mot de passe';
     if (value.length < 6) {
       return 'Le mot de passe doit contenir au moins 6 caractères';
     }
     return null;
+  }
+
+  static String? emailValidator(String? email) {
+    if (email == null) return 'Ajouter une adresse courriel';
+
+    final emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$';
+    final regex = RegExp(emailPattern);
+    return regex.hasMatch(email) ? null : 'Adresse courriel invalide';
   }
 }

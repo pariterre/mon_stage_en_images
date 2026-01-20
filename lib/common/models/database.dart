@@ -55,11 +55,6 @@ class Database extends EzloginFirebase with ChangeNotifier {
     return status;
   }
 
-  Future<bool> createUser() async {
-    // TODO: Finalize user creation process
-    return false;
-  }
-
   @override
   Future<EzloginStatus> login({
     required String username,
@@ -189,8 +184,15 @@ class Database extends EzloginFirebase with ChangeNotifier {
       if (data.value == null) {
         // If no data are found in the current version, try to migrate from previous version
         try {
-          await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
-          return null; // Migration is done, force reset
+          // Try writing a value to ensure we have access to the new database
+          try {
+            await FirebaseDatabase.instance.ref('adminTester').set(true);
+            await FirebaseDatabase.instance.ref('adminTester').remove();
+            await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
+            return null; // Migration is done, force reset
+          } on Exception {
+            // This is not a user who is suppose to migrate, ignore
+          }
         } on Exception catch (error) {
           _logger.severe(
               'Error while migrating ({$error}) user $id from old database version');
