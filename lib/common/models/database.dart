@@ -117,6 +117,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
           questions.pathToData =
               '$_currentDatabaseVersion/questions/$teacherId';
           answers.pathToData = '$_currentDatabaseVersion/answers/$token';
+          answers.students = null;
           startFetching = true;
           break;
         }
@@ -129,6 +130,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
           questions.pathToData =
               '$_currentDatabaseVersion/questions/${_currentUser!.id}';
           answers.pathToData = '$_currentDatabaseVersion/answers/$token';
+          answers.students = _students;
           startFetching = true;
         }
     }

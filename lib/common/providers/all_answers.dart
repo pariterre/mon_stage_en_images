@@ -4,13 +4,27 @@ import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
+import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:provider/provider.dart';
 
 class AllAnswers extends FirebaseListProvided<StudentAnswers> {
   int get count => length;
   static const String dataName = 'answers';
+  List<User>? students; // This should be set for teacher databases only
 
   AllAnswers() : super(pathToData: dataName);
+
+  /// Remove answers from non-registered students (it happens when a student
+  /// removed themselves from the group)
+  @override
+  void onItemAdded(String id) {
+    if (students == null) return; // If the user is not a teacher, do nothing
+
+    // If the student exists in the database, do nothing
+    if (students!.any((s) => s.id == id)) return;
+
+    rawList.removeWhere((a) => a.id == id);
+  }
 
   @override
   StudentAnswers deserializeItem(data) {

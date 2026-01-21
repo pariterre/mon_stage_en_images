@@ -28,7 +28,6 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   /// [question] is the question to add
   /// [answers] is the list of answers
   /// [currentUser] is the current user
-  /// [currentStudent] is the current student
   /// [isActive] is the map of the students and if the question is active for them
   /// [notify] is if the listeners should be notified
   void addToAll(

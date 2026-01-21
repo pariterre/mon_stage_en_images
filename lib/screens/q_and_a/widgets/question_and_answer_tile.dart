@@ -116,7 +116,6 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
     final question = output[0] as Question;
     final activeStatus = output[1] as Map<String, bool>;
 
-    // TODO Check why adding a new question fails
     if (widget.question == null) {
       questions.addToAll(question,
           answers: answers,
