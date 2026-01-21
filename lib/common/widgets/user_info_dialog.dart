@@ -37,6 +37,22 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
           .currentUser
           ?.studentNotes[widget.user.id]);
 
+  final _focusNodes = <String, FocusNode>{};
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.editInformation) {
+      _focusNodes['firstName'] = FocusNode();
+      _focusNodes['lastName'] = FocusNode();
+      _focusNodes['email'] = FocusNode();
+    }
+    if (widget.showEditableNotes) {
+      _focusNodes['note'] = FocusNode();
+    }
+  }
+
   @override
   void dispose() {
     if (widget.editInformation) {
@@ -126,6 +142,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                               width: 175,
                               child: TextFormField(
                                 controller: _firstNameController,
+                                focusNode: _focusNodes['firstName'],
                                 decoration:
                                     const InputDecoration(labelText: 'Prénom'),
                                 validator: (value) {
@@ -134,7 +151,8 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                                   }
                                   return null;
                                 },
-                                onFieldSubmitted: (_) => _save(),
+                                onFieldSubmitted: (_) =>
+                                    _focusNodes['lastName']!.requestFocus(),
                               ),
                             ),
                             SizedBox(width: 12),
@@ -142,6 +160,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                               width: 175,
                               child: TextFormField(
                                 controller: _lastNameController,
+                                focusNode: _focusNodes['lastName'],
                                 decoration:
                                     const InputDecoration(labelText: 'Nom'),
                                 onFieldSubmitted: (_) => _save(),
@@ -172,6 +191,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                         SizedBox(height: 8),
                         TextFormField(
                           controller: _emailController,
+                          focusNode: _focusNodes['email'],
                           enabled: false,
                           decoration:
                               const InputDecoration(labelText: 'Courriel'),
@@ -192,6 +212,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _noteController,
+                      focusNode: _focusNodes['note'],
                       decoration: const InputDecoration(
                           labelText: 'Note associée à l\'élève'),
                       onFieldSubmitted: (_) => _save(),

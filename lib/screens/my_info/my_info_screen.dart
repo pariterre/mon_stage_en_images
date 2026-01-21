@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
+import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
@@ -157,9 +158,18 @@ class _ChangePasswordAlertDialogState
   String? _oldPasswordError;
   final _newPassword = TextEditingController();
   final _confirmPassword = TextEditingController();
+  final _focusNodes = FocusNodes()
+    ..add('oldPassword')
+    ..add('newPassword')
+    ..add('confirmPassword');
 
   Future<void> _finalize() async {
     _formKey.currentState!.save();
+    setState(() {
+      _oldPasswordError = _oldPassword.text.isEmpty
+          ? 'Veuillez entrer le mot de passe actuel'
+          : null;
+    });
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
@@ -205,19 +215,20 @@ class _ChangePasswordAlertDialogState
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               TextFormField(
-                controller: _oldPassword,
-                decoration: InputDecoration(
-                    labelText: 'Entrer le mot de passe actuel',
-                    errorText: _oldPasswordError),
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
-                keyboardType: TextInputType.visiblePassword,
-                onFieldSubmitted: (_) => _finalize(),
-              ),
+                  controller: _oldPassword,
+                  focusNode: _focusNodes['oldPassword'],
+                  decoration: InputDecoration(
+                      labelText: 'Entrer le mot de passe actuel',
+                      errorText: _oldPasswordError),
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  onFieldSubmitted: (_) => _focusNodes.next()),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _newPassword,
+                focusNode: _focusNodes['newPassword'],
                 decoration: const InputDecoration(
                     labelText: 'Entrer le nouveau mot de passe'),
                 validator: Helpers.passwordValidator,
@@ -225,11 +236,12 @@ class _ChangePasswordAlertDialogState
                 enableSuggestions: false,
                 autocorrect: false,
                 keyboardType: TextInputType.visiblePassword,
-                onFieldSubmitted: (_) => _finalize(),
+                onFieldSubmitted: (_) => _focusNodes.next(),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _confirmPassword,
+                focusNode: _focusNodes['confirmPassword'],
                 decoration: const InputDecoration(
                     labelText: 'Copier le nouveau mot de passe'),
                 validator: (value) => Helpers.passwordConfirmationValidator(

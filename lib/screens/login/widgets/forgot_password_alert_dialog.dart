@@ -102,6 +102,14 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
                       _email = value;
                       _validationError = Helpers.emailValidator(value);
                     },
+                    onFieldSubmitted: _isloading
+                        ? null
+                        : (value) async {
+                            await _finalize();
+                            setState(() {
+                              _isloading = false;
+                            });
+                          },
                   ),
                   Wrap(
                     alignment: WrapAlignment.spaceEvenly,
