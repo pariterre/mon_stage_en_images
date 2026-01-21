@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
+import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
@@ -489,6 +490,9 @@ class QAndAScreenState extends State<QAndAScreen> {
       );
     }
 
+    final noCodeFoundText = 'Aucun code actif trouvé\n'
+        'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
+
     return ResponsiveService.scaffoldOf(
       context,
       appBar: _setAppBar(),
@@ -496,12 +500,29 @@ class QAndAScreenState extends State<QAndAScreen> {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(30.0),
-                // TODO Add text to speech
-                child: Text(
-                  'Aucun code actif trouvé\n'
-                  'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.',
-                  style: TextStyle(fontSize: 18),
-                  textAlign: TextAlign.center,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: IconButton(
+                          onPressed: () {
+                            final textReader = TextReader();
+                            textReader.readText(
+                              noCodeFoundText,
+                              hasFinishedCallback: () =>
+                                  textReader.stopReading(),
+                            );
+                          },
+                          icon: const Icon(Icons.volume_up)),
+                    ),
+                    Flexible(
+                      child: Text(
+                        noCodeFoundText,
+                        style: TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )
