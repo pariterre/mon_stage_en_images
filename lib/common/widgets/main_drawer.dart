@@ -81,12 +81,6 @@ class MainDrawer extends StatelessWidget {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MenuItem(
-              title: 'Mes informations',
-              icon: Icons.home,
-              onTap: () => RouteManager.instance.gotoMyInfoPage(context),
-              iconOnly: iconOnly,
-            ),
             if (userType == UserType.teacher)
               MenuItem(
                 title: 'Mes élèves',
@@ -147,16 +141,20 @@ class MainDrawer extends StatelessWidget {
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
-              Column(children: [
-                MenuItem(
-                  title: 'Revoir le tutoriel',
-                  icon: Icons.help,
-                  onTap: () => SharedPreferencesController
-                      .instance.hasSeenOnboarding = false,
-                  iconOnly: iconOnly,
-                ),
-                const Divider(),
-              ]),
+              MenuItem(
+                title: 'Revoir le tutoriel',
+                icon: Icons.help,
+                onTap: () => SharedPreferencesController
+                    .instance.hasSeenOnboarding = false,
+                iconOnly: iconOnly,
+              ),
+            if (userType == UserType.teacher) const Divider(),
+            MenuItem(
+              title: 'Mes informations',
+              icon: Icons.home,
+              onTap: () => RouteManager.instance.gotoMyInfoPage(context),
+              iconOnly: iconOnly,
+            ),
             MenuItem(
               title: 'Déconnexion',
               icon: Icons.exit_to_app,
