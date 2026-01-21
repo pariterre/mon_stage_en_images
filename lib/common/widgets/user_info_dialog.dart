@@ -25,6 +25,7 @@ class UserInfoDialog extends StatefulWidget {
 }
 
 class _UserInfoDialogState extends State<UserInfoDialog> {
+  final _formKey = GlobalKey<FormState>();
   late final _firstNameController =
       TextEditingController(text: widget.user.firstName);
   late final _lastNameController =
@@ -86,6 +87,10 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
   void _save() {
     final database = Provider.of<Database>(context, listen: false);
     final user = database.currentUser!;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final newUser = user.copyWith(
       firstName:
           widget.editInformation ? _firstNameController.text : user.firstName,
@@ -107,78 +112,94 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
     return AlertDialog(
       title: widget.title,
       content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            widget.editInformation
-                ? Column(
-                    children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 175,
-                            child: TextFormField(
-                              controller: _firstNameController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Prénom'),
-                              onFieldSubmitted: (_) => _save(),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              widget.editInformation
+                  ? Column(
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 175,
+                              child: TextFormField(
+                                controller: _firstNameController,
+                                decoration:
+                                    const InputDecoration(labelText: 'Prénom'),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Le prénom ne peut pas être vide';
+                                  }
+                                  return null;
+                                },
+                                onFieldSubmitted: (_) => _save(),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 12),
-                          SizedBox(
-                            width: 175,
-                            child: TextFormField(
-                              controller: _lastNameController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Nom'),
-                              onFieldSubmitted: (_) => _save(),
+                            SizedBox(width: 12),
+                            SizedBox(
+                              width: 175,
+                              child: TextFormField(
+                                controller: _lastNameController,
+                                decoration:
+                                    const InputDecoration(labelText: 'Nom'),
+                                onFieldSubmitted: (_) => _save(),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Le nom ne peut pas être vide';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Text('Nom, prénom : ',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('${widget.user.firstName} ${widget.user.lastName}'),
-                    ],
-                  ),
-            const SizedBox(height: 8),
-            widget.editInformation
-                ? Column(
-                    children: [
-                      SizedBox(height: 8),
-                      TextFormField(
-                        controller: _emailController,
-                        enabled: false,
-                        decoration:
-                            const InputDecoration(labelText: 'Courriel'),
-                        onFieldSubmitted: (_) => _save(),
-                      )
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Text('Courriel : ',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(widget.user.email),
-                    ],
-                  ),
-            if (widget.showEditableNotes)
-              Column(
-                children: [
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _noteController,
-                    decoration: const InputDecoration(
-                        labelText: 'Note associée à l\'élève'),
-                    onFieldSubmitted: (_) => _save(),
-                  ),
-                ],
-              ),
-          ],
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Text('Nom, prénom : ',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                            '${widget.user.firstName} ${widget.user.lastName}'),
+                      ],
+                    ),
+              const SizedBox(height: 8),
+              widget.editInformation
+                  ? Column(
+                      children: [
+                        SizedBox(height: 8),
+                        TextFormField(
+                          controller: _emailController,
+                          enabled: false,
+                          decoration:
+                              const InputDecoration(labelText: 'Courriel'),
+                          onFieldSubmitted: (_) => _save(),
+                        )
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Text('Courriel : ',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(widget.user.email),
+                      ],
+                    ),
+              if (widget.showEditableNotes)
+                Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _noteController,
+                      decoration: const InputDecoration(
+                          labelText: 'Note associée à l\'élève'),
+                      onFieldSubmitted: (_) => _save(),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
       actions: <Widget>[
