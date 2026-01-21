@@ -9,12 +9,14 @@ class Message extends ItemSerializableWithCreationTime {
     super.id,
     super.creationTimeStamp,
     required this.creatorId,
+    required this.isDeleted,
   });
   Message.fromSerialized(super.map)
       : name = map?['name'],
         text = map?['text'],
         isPhotoUrl = map?['isPhotoUrl'],
         creatorId = map?['creatorId'],
+        isDeleted = map?['isDeleted'] ?? false,
         super.fromSerialized();
 
   Message deserializeItem(Map? map) => Message.fromSerialized(map);
@@ -25,8 +27,35 @@ class Message extends ItemSerializableWithCreationTime {
       'name': name,
       'text': text,
       'isPhotoUrl': isPhotoUrl,
-      'creatorId': creatorId
+      'creatorId': creatorId,
+      'isDeleted': isDeleted,
     };
+  }
+
+  Message copyWith({
+    String? name,
+    String? text,
+    bool? isPhotoUrl,
+    String? creatorId,
+    bool? isDeleted,
+  }) {
+    if (isDeleted == true) {
+      if (text != null) {
+        throw Exception('A deleted message cannot have a text.');
+      }
+      text = isPhotoUrl == true ? '[Photo supprimée]' : '[Message supprimé]';
+      isPhotoUrl = false;
+    }
+
+    return Message(
+      name: name ?? this.name,
+      text: text ?? this.text,
+      isPhotoUrl: isPhotoUrl ?? this.isPhotoUrl,
+      id: id,
+      creationTimeStamp: creationTimeStamp,
+      creatorId: creatorId ?? this.creatorId,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
   }
 
   // Attributes and methods
@@ -34,4 +63,5 @@ class Message extends ItemSerializableWithCreationTime {
   final String text;
   final bool isPhotoUrl;
   final String creatorId;
+  final bool isDeleted;
 }

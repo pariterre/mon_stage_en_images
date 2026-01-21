@@ -490,6 +490,7 @@ class QAndAScreenState extends State<QAndAScreen> {
       );
     }
 
+    // TODO Add icon in the text (or overlay?)
     final noCodeFoundText = 'Aucun code actif trouvé\n'
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 

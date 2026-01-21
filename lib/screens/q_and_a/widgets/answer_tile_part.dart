@@ -75,6 +75,7 @@ class _AnswerPartState extends State<AnswerPart> {
   void _manageAnswerCallback({
     String? newTextEntry,
     bool? isPhoto,
+    String? markAnswerAsDeleted,
     bool? markAsValidated,
   }) {
     final database = Provider.of<Database>(context, listen: false);
@@ -86,13 +87,21 @@ class _AnswerPartState extends State<AnswerPart> {
         questionIds: [widget.question.id],
         studentIds: [widget.studentId!]).first;
 
-    if (newTextEntry != null) {
+    if (newTextEntry != null && markAnswerAsDeleted != null) {
+      throw Exception(
+          'You cannot add a new message and delete one at the same time.');
+    } else if (newTextEntry != null) {
       currentAnswer.addToDiscussion(Message(
-        name: currentUser.firstName,
-        text: newTextEntry,
-        isPhotoUrl: isPhoto ?? false,
-        creatorId: currentUser.id,
-      ));
+          name: currentUser.firstName,
+          text: newTextEntry,
+          isPhotoUrl: isPhoto ?? false,
+          creatorId: currentUser.id,
+          isDeleted: false));
+    } else if (markAnswerAsDeleted != null) {
+      final index = currentAnswer.discussion
+          .indexWhere((message) => message.id == markAnswerAsDeleted);
+      currentAnswer.discussion[index] =
+          currentAnswer.discussion[index].copyWith(isDeleted: true);
     }
 
     // Inform the changing of status

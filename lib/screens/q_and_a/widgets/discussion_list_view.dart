@@ -34,6 +34,7 @@ class DiscussionListView extends StatefulWidget {
   final void Function({
     String? newTextEntry,
     bool? isPhoto,
+    String? markAnswerAsDeleted,
     bool? markAsValidated,
   }) manageAnswerCallback;
 
@@ -89,6 +90,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
   void _manageAnswer({
     String? newTextEntry,
     bool? isPhoto,
+    String? markAnswerAsDeleted,
     bool markAsValidated = false,
   }) async {
     // If it is the very first time the teacher validates an answer, we want to
@@ -125,6 +127,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     widget.manageAnswerCallback(
       newTextEntry: newTextEntry,
       isPhoto: isPhoto,
+      markAnswerAsDeleted: markAnswerAsDeleted,
       markAsValidated: markAsValidated,
     );
     setState(() {});
@@ -213,12 +216,14 @@ class _DiscussionListViewState extends State<DiscussionListView> {
       children: [
         _MessageListView(
           discussion: widget.messages,
+          onDeleteMessage: (id) {
+            _manageAnswer(markAnswerAsDeleted: id);
+          },
         ),
         SizedBox(
           height: 4,
         ),
         if (widget.student != null && !widget.isAnswerValidated)
-          // TODO Add the capability to remove a sent photo or a sent message
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
@@ -349,9 +354,11 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 }
 
 class _MessageListView extends StatelessWidget {
-  const _MessageListView({required this.discussion});
+  const _MessageListView(
+      {required this.discussion, required this.onDeleteMessage});
 
   final List<Message> discussion;
+  final Function(String id) onDeleteMessage;
 
   void _scrollDown(ScrollController scroller) {
     // Scolling "min" brings us to the end. See comment below.
@@ -369,6 +376,8 @@ class _MessageListView extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) _scrollDown(scroller);
     });
+
+    final reversedList = discussion.reversed.toList();
 
     // We have to reverse the answers so last appears first allowing to "scroll"
     // to the end without having to load the photo to know their size. Since we
@@ -392,8 +401,9 @@ class _MessageListView extends StatelessWidget {
               itemBuilder: (context, index) => Column(
                 children: [
                   DiscussionTile(
-                    discussion: discussion.reversed.toList()[index],
+                    discussion: reversedList[index],
                     isLast: index == 0,
+                    onDeleted: () => onDeleteMessage(reversedList[index].id),
                   ),
                   const SizedBox(height: 10),
                 ],

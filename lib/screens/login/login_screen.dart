@@ -480,6 +480,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: _newUser,
+                        // TODO error on wrong password (instead of quitting)
                         child: const Text('Nouvel(le) utilisateur(trice)'),
                       ),
                     ),

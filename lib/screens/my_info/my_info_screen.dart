@@ -128,6 +128,7 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                             }
                           }
                         },
+                        // TODO Sizedbox
                         child: Text('Changer mon mot de passe')),
                   ],
                 ),

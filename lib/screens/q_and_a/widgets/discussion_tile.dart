@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/message.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
+import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:provider/provider.dart';
 
 class DiscussionTile extends StatelessWidget {
@@ -14,10 +15,12 @@ class DiscussionTile extends StatelessWidget {
     super.key,
     required this.discussion,
     required this.isLast,
+    required this.onDeleted,
   });
 
   final Message discussion;
   final bool isLast;
+  final Function() onDeleted;
 
   void _showImageFullScreen(BuildContext context,
       {required Uint8List imageData}) {
@@ -28,6 +31,10 @@ class DiscussionTile extends StatelessWidget {
               child: AlertDialog(
                   content: Image.memory(imageData, fit: BoxFit.contain)),
             ));
+  }
+
+  Future<void> _deleteMessage(BuildContext context) async {
+    onDeleted();
   }
 
   @override
@@ -58,7 +65,17 @@ class DiscussionTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (discussion.isPhotoUrl) _showNameOfSender(),
+            if (discussion.isPhotoUrl)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _showNameOfSender(),
+                  if (!discussion.isDeleted)
+                    _DeleteButton(
+                        messageAuthorId: discussion.creatorId,
+                        onTap: () => _deleteMessage(context)),
+                ],
+              ),
             if (discussion.isPhotoUrl)
               FutureBuilder<Uint8List?>(
                   future: StorageService.getImage(discussion.text),
@@ -92,13 +109,21 @@ class DiscussionTile extends StatelessWidget {
             if (!discussion.isPhotoUrl)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   _showNameOfSender(),
-                  Flexible(
-                      child: Text(
-                    discussion.text,
-                    style: const TextStyle(fontSize: 16),
+                  Expanded(
+                      child: Padding(
+                    padding: const EdgeInsets.only(top: 2.0),
+                    child: Text(
+                      discussion.text,
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   )),
+                  if (!discussion.isDeleted)
+                    _DeleteButton(
+                        messageAuthorId: discussion.creatorId,
+                        onTap: () => _deleteMessage(context)),
                 ],
               ),
             Row(
@@ -132,5 +157,52 @@ class DiscussionTile extends StatelessWidget {
             color: Colors.grey[800],
             fontWeight: FontWeight.bold,
             fontSize: 18));
+  }
+}
+
+class _DeleteButton extends StatelessWidget {
+  const _DeleteButton({required this.messageAuthorId, required this.onTap});
+
+  final String messageAuthorId;
+  final Function() onTap;
+
+  Future<void> _showConfirmationDialog(BuildContext context) async {
+    final bool? confirmDelete = await showDialog(
+        context: context,
+        builder: (context) => AreYouSureDialog(
+              title: 'Supprimer le message',
+              canReadAloud: true,
+              content: 'Êtes-vous sûr de vouloir supprimer ce message ?',
+              onConfirmed: () => Navigator.of(context).pop(true),
+              onCancelled: () => Navigator.of(context).pop(false),
+            ));
+
+    if (confirmDelete == true) {
+      onTap();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final database = Provider.of<Database>(context, listen: false);
+    final currentUser = database.currentUser!;
+    final userType = database.userType;
+
+    if (messageAuthorId != currentUser.id && userType != UserType.teacher) {
+      return SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          splashColor: Colors.red.withAlpha(50),
+          onTap: () => _showConfirmationDialog(context),
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child:
+                Icon(Icons.delete, color: Colors.red.withAlpha(200), size: 20),
+          )),
+    );
   }
 }
