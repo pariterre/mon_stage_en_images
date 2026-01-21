@@ -98,8 +98,10 @@ class MyInfoScreenState extends State<MyInfoScreen> {
               ),
               const SizedBox(height: 12),
               Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Wrap(
+                  direction: Axis.horizontal,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
                     ElevatedButton(
                         onPressed: () {
@@ -112,7 +114,6 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                                   ));
                         },
                         child: Text('Modifier mes informations')),
-                    const SizedBox(width: 12),
                     ElevatedButton(
                         onPressed: () async {
                           final isSuccess = await showDialog<bool>(
@@ -128,7 +129,6 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                             }
                           }
                         },
-                        // TODO Sizedbox
                         child: Text('Changer mon mot de passe')),
                   ],
                 ),
