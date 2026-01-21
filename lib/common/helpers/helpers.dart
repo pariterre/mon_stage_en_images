@@ -37,6 +37,17 @@ class Helpers {
     return null;
   }
 
+  static String? passwordConfirmationValidator(
+      String? password, String? confirmation) {
+    if (confirmation == null || confirmation.isEmpty) {
+      return 'Confirmer le mot de passe';
+    }
+    if (password != confirmation) {
+      return 'Les mots de passe ne correspondent pas';
+    }
+    return null;
+  }
+
   static String? emailValidator(String? email) {
     if (email == null) return 'Ajouter une adresse courriel';
 

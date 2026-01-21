@@ -255,15 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     autocorrect: false,
                     keyboardType: TextInputType.visiblePassword,
                     onChanged: (value) => passwordConfirmation = value,
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Copier le mot de passe';
-                      }
-
-                      return value != password
-                          ? 'Les mots de passe doivent correspondre'
-                          : null;
-                    },
+                    validator: (value) =>
+                        Helpers.passwordConfirmationValidator(password, value),
                   ),
                 ],
               ),

@@ -60,6 +60,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     required String username,
     required String password,
     Future<EzloginUser?> Function()? getNewUserInfo,
+    Future<String?> Function()? getOldPassword,
     Future<String?> Function()? getNewPassword,
     UserType userType = UserType.none,
     bool skipPostLogin = false,

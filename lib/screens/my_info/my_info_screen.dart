@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
@@ -52,7 +53,8 @@ class MyInfoScreenState extends State<MyInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<Database>(context, listen: false).currentUser;
+    final database = Provider.of<Database>(context, listen: false);
+    final user = database.currentUser;
     if (user == null) {
       return SizedBox.shrink();
     }
@@ -111,7 +113,20 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                         child: Text('Modifier mes informations')),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final isSuccess = await showDialog<bool>(
+                              context: context,
+                              builder: (context) =>
+                                  const _ChangePasswordAlertDialog());
+                          if (isSuccess != true) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Changement de mot de passe annulé')));
+                            }
+                          }
+                        },
                         child: Text('Changer mon mot de passe')),
                   ],
                 ),
@@ -123,6 +138,127 @@ class MyInfoScreenState extends State<MyInfoScreen> {
       smallDrawer: MainDrawer.small(),
       mediumDrawer: MainDrawer.medium(),
       largeDrawer: MainDrawer.large(),
+    );
+  }
+}
+
+class _ChangePasswordAlertDialog extends StatefulWidget {
+  const _ChangePasswordAlertDialog();
+
+  @override
+  State<_ChangePasswordAlertDialog> createState() =>
+      _ChangePasswordAlertDialogState();
+}
+
+class _ChangePasswordAlertDialogState
+    extends State<_ChangePasswordAlertDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _oldPassword = TextEditingController();
+  String? _oldPasswordError;
+  final _newPassword = TextEditingController();
+  final _confirmPassword = TextEditingController();
+
+  Future<void> _finalize() async {
+    _formKey.currentState!.save();
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final database = Provider.of<Database>(context, listen: false);
+    final status = await database.updatePassword(
+        user: database.currentUser!,
+        oldPassword: _oldPassword.text,
+        newPassword: _newPassword.text);
+
+    if (status == EzloginStatus.success) {
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mot de passe changé avec succès')));
+      return;
+    }
+
+    _oldPasswordError = switch (status) {
+      EzloginStatus.wrongPassword => 'Le mot de passe actuel est incorrect',
+      _ => 'Une erreur est survenue lors du changement de mot de passe',
+    };
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _oldPassword.dispose();
+    _newPassword.dispose();
+    _confirmPassword.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Svp, changer votre mot de passe'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              TextFormField(
+                controller: _oldPassword,
+                decoration: InputDecoration(
+                    labelText: 'Entrer le mot de passe actuel',
+                    errorText: _oldPasswordError),
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                keyboardType: TextInputType.visiblePassword,
+                onFieldSubmitted: (_) => _finalize(),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _newPassword,
+                decoration: const InputDecoration(
+                    labelText: 'Entrer le nouveau mot de passe'),
+                validator: Helpers.passwordValidator,
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                keyboardType: TextInputType.visiblePassword,
+                onFieldSubmitted: (_) => _finalize(),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _confirmPassword,
+                decoration: const InputDecoration(
+                    labelText: 'Copier le nouveau mot de passe'),
+                validator: (value) => Helpers.passwordConfirmationValidator(
+                    _newPassword.text, value),
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                keyboardType: TextInputType.visiblePassword,
+                onFieldSubmitted: (_) => _finalize(),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Annuler',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.secondary)),
+        ),
+        ElevatedButton(
+          child: Text('Enregistrer',
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+          onPressed: () => _finalize(),
+        ),
+      ],
     );
   }
 }
