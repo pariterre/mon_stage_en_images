@@ -154,13 +154,14 @@ class _LoginScreenState extends State<LoginScreen> {
     String lastName = '';
     String email = _emailController.text;
     String password = _passwordController.text;
+    String? errorEmail;
     final focusNodes = FocusNodes()
       ..add('firstName')
       ..add('lastName')
       ..add('email')
       ..add('password')
       ..add('passwordConfirmation');
-
+    StateSetter? setStateForm;
     final formKey = GlobalKey<FormState>();
 
     final isSuccess = await showDialog<bool?>(
@@ -171,6 +172,31 @@ class _LoginScreenState extends State<LoginScreen> {
               !formKey.currentState!.validate() && _userType != UserType.none) {
             return;
           }
+
+          if (!mounted) return;
+          final database = Provider.of<Database>(context, listen: false);
+          _emailController.text = email;
+          _passwordController.text = password;
+
+          final hasRegistered = await database.registerAsNewUser(
+              newUser: User(
+                firstName: firstName,
+                lastName: lastName,
+                email: _emailController.text,
+                studentNotes: {},
+                termsAndServicesAccepted: false,
+                creationDate: DateTime.now(),
+              ),
+              password: _passwordController.text);
+          if (!hasRegistered) {
+            errorEmail = 'Ce courriel est déjà utilisé.';
+            if (setStateForm != null) setStateForm!(() {});
+
+            return;
+          }
+
+          await _processConnexion(automaticConnexion: false, isUserNew: true);
+          if (!context.mounted) return;
           Navigator.pop(context, true);
         }
 
@@ -184,100 +210,114 @@ class _LoginScreenState extends State<LoginScreen> {
             },
             extraContent: Form(
               key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(height: 12),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Prénom'),
-                      focusNode: focusNodes['firstName'],
-                      onChanged: (value) => firstName = value,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Inscrire un prénom'
-                          : null,
-                      onEditingComplete: () => focusNodes.next(),
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  setStateForm = setState;
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: 12),
+                        TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: 'Prénom'),
+                          focusNode: focusNodes['firstName'],
+                          onChanged: (value) => firstName = value,
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Inscrire un prénom'
+                              : null,
+                          onEditingComplete: () => focusNodes.next(),
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                              labelText: 'Nom de famille'),
+                          focusNode: focusNodes['lastName'],
+                          onChanged: (value) => lastName = value,
+                          validator: (value) {
+                            return value == null || value.isEmpty
+                                ? 'Inscrire un nom de famille'
+                                : null;
+                          },
+                          onEditingComplete: () => focusNodes.next(),
+                        ),
+                        SizedBox(height: 8),
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Je suis un(e) :',
+                                style: TextStyle(fontSize: 16))),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _RadioTile(
+                              value: UserType.student,
+                              groupValue: _userType,
+                              label: 'Élève',
+                              onChanged: (value) {
+                                _changeTypeSelection(value);
+                                if (setStateForm != null) setStateForm!(() {});
+                              },
+                              selectedColor: studentTheme().colorScheme.primary,
+                            ),
+                            _RadioTile(
+                              value: UserType.teacher,
+                              groupValue: _userType,
+                              label: 'Enseignant(e)',
+                              onChanged: (value) {
+                                _changeTypeSelection(value);
+                                if (setStateForm != null) setStateForm!(() {});
+                              },
+                              selectedColor: teacherTheme().colorScheme.primary,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          decoration: InputDecoration(
+                              labelText: 'Courriel', errorText: errorEmail),
+                          initialValue: email,
+                          focusNode: focusNodes['email'],
+                          keyboardType: TextInputType.emailAddress,
+                          onChanged: (value) => email = value,
+                          validator: (value) {
+                            errorEmail = Helpers.emailValidator(value);
+                            return errorEmail;
+                          },
+                          onEditingComplete: () => focusNodes.next(),
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          decoration:
+                              const InputDecoration(labelText: 'Mot de passe'),
+                          initialValue: password,
+                          focusNode: focusNodes['password'],
+                          obscureText: true,
+                          enableSuggestions: false,
+                          autocorrect: false,
+                          keyboardType: TextInputType.visiblePassword,
+                          onChanged: (value) => password = value,
+                          validator: Helpers.passwordValidator,
+                          onEditingComplete: () => focusNodes.next(),
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                              labelText: 'Confirmer le mot de passe'),
+                          focusNode: focusNodes['passwordConfirmation'],
+                          obscureText: true,
+                          enableSuggestions: false,
+                          autocorrect: false,
+                          keyboardType: TextInputType.visiblePassword,
+                          validator: (value) =>
+                              Helpers.passwordConfirmationValidator(
+                                  password, value),
+                          onFieldSubmitted: (_) async => await confirm(),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 12),
-                    TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: 'Nom de famille'),
-                      focusNode: focusNodes['lastName'],
-                      onChanged: (value) => lastName = value,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Inscrire un nom de famille'
-                          : null,
-                      onEditingComplete: () => focusNodes.next(),
-                    ),
-                    SizedBox(height: 12),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Courriel'),
-                      initialValue: email,
-                      focusNode: focusNodes['email'],
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (value) => email = value,
-                      validator: Helpers.emailValidator,
-                      onEditingComplete: () => focusNodes.next(),
-                    ),
-                    Text('Je suis un(e) :', style: TextStyle(fontSize: 16)),
-                    const SizedBox(height: 8),
-                    StatefulBuilder(
-                      builder: (context, setState) => Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _RadioTile(
-                            value: UserType.student,
-                            groupValue: _userType,
-                            label: 'Élève',
-                            onChanged: (value) {
-                              _changeTypeSelection(value);
-                              setState(() {});
-                            },
-                            selectedColor: studentTheme().colorScheme.primary,
-                          ),
-                          _RadioTile(
-                            value: UserType.teacher,
-                            groupValue: _userType,
-                            label: 'Enseignant(e)',
-                            onChanged: (value) {
-                              _changeTypeSelection(value);
-                              setState(() {});
-                            },
-                            selectedColor: teacherTheme().colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: 'Mot de passe'),
-                      initialValue: password,
-                      focusNode: focusNodes['password'],
-                      obscureText: true,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      keyboardType: TextInputType.visiblePassword,
-                      onChanged: (value) => password = value,
-                      validator: Helpers.passwordValidator,
-                      onEditingComplete: () => focusNodes.next(),
-                    ),
-                    SizedBox(height: 12),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                          labelText: 'Confirmer le mot de passe'),
-                      focusNode: focusNodes['passwordConfirmation'],
-                      obscureText: true,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      keyboardType: TextInputType.visiblePassword,
-                      validator: (value) =>
-                          Helpers.passwordConfirmationValidator(
-                              password, value),
-                      onFieldSubmitted: (_) async => await confirm(),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ));
       },
@@ -292,34 +332,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       return;
     }
-
-    if (!mounted) return;
-    final database = Provider.of<Database>(context, listen: false);
-    _emailController.text = email;
-    _passwordController.text = password;
-
-    final hasRegistered = await database.registerAsNewUser(
-        newUser: User(
-          firstName: firstName,
-          lastName: lastName,
-          email: _emailController.text,
-          studentNotes: {},
-          termsAndServicesAccepted: false,
-          creationDate: DateTime.now(),
-        ),
-        password: _passwordController.text);
-    if (!hasRegistered) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Erreur lors de la création du compte. Veuillez vérifier que le courriel n\'est pas déjà utilisé.'),
-          duration: Duration(seconds: 5),
-        ));
-      }
-      return;
-    }
-
-    await _processConnexion(automaticConnexion: false, isUserNew: true);
   }
 
   void _changeTypeSelection(UserType type) {
@@ -480,7 +492,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: _newUser,
-                        // TODO error on wrong password (instead of quitting)
                         child: const Text('Nouvel(le) utilisateur(trice)'),
                       ),
                     ),
