@@ -183,6 +183,7 @@ class _ChangePasswordAlertDialogState
     _oldPassword.dispose();
     _newPassword.dispose();
     _confirmPassword.dispose();
+    _focusNodes.dispose();
 
     super.dispose();
   }

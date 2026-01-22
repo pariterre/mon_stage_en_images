@@ -10,7 +10,7 @@ class FocusNodes {
     _order.add(name);
   }
 
-  FocusNode operator [](String name) => _list[name]!;
+  FocusNode? operator [](String name) => _list[name];
 
   void dispose() {
     for (final node in _list.values) {

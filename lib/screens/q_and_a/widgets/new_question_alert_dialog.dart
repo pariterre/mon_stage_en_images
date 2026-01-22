@@ -61,6 +61,12 @@ class _NewQuestionAlertDialogState extends State<NewQuestionAlertDialog> {
     _fieldText.text = widget.question?.text ?? '';
   }
 
+  @override
+  void dispose() {
+    _fieldText.dispose();
+    super.dispose();
+  }
+
   void _finalize(BuildContext context, {bool hasCancelled = false}) {
     if (hasCancelled) {
       Navigator.pop(context);
@@ -232,12 +238,6 @@ class _NewQuestionAlertDialogState extends State<NewQuestionAlertDialog> {
 
     if (mounted) Navigator.pop(context);
     return;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _fieldText.dispose();
   }
 
   void _dictateMessage() {

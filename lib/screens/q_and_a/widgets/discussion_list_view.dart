@@ -50,8 +50,8 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
   @override
   void dispose() {
-    super.dispose();
     _fieldText.dispose();
+    super.dispose();
   }
 
   void _clearFieldText() {

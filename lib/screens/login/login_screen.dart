@@ -52,6 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
     _processConnexion(automaticConnexion: true);
   }
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _focusNodes.dispose();
+    super.dispose();
+  }
+
   void _showSnackbar() {
     late final String message;
     if (_status == EzloginStatus.waitingForLogin) {

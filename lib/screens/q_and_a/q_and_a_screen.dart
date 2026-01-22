@@ -362,8 +362,6 @@ class QAndAScreenState extends State<QAndAScreen> {
     super.dispose();
   }
 
-  // TODO Make sure all the TextEditingControllers are disposed of.
-
   void _onBackPressed() async {
     if (_currentPage == 0) {
       // Replacement is used to force the redraw of the Notifier.
@@ -473,7 +471,6 @@ class QAndAScreenState extends State<QAndAScreen> {
       );
     }
 
-    // TODO Add icon in the text (or overlay?)
     final noCodeFoundText = 'Aucun code actif trouvé\n'
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 

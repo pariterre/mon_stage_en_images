@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
@@ -37,33 +38,31 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
           .currentUser
           ?.studentNotes[widget.user.id]);
 
-  final _focusNodes = <String, FocusNode>{};
+  final _focusNodes = FocusNodes();
 
   @override
   void initState() {
     super.initState();
 
     if (widget.editInformation) {
-      _focusNodes['firstName'] = FocusNode();
-      _focusNodes['lastName'] = FocusNode();
-      _focusNodes['email'] = FocusNode();
+      _focusNodes.add('firstName');
+      _focusNodes.add('lastName');
+      _focusNodes.add('email');
     }
     if (widget.showEditableNotes) {
-      _focusNodes['note'] = FocusNode();
+      _focusNodes.add('note');
     }
   }
 
   @override
   void dispose() {
-    if (widget.editInformation) {
-      _firstNameController.dispose();
-      _lastNameController.dispose();
-      _emailController.dispose();
-    }
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _noteController.dispose();
 
-    if (widget.showEditableNotes) {
-      _noteController.dispose();
-    }
+    _focusNodes.dispose();
+
     super.dispose();
   }
 
