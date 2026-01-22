@@ -40,16 +40,29 @@ class SharedPreferencesController extends ChangeNotifier {
         .then((_) => notifyListeners());
   }
 
-  final String _hasSeenOnboardingKey = 'hasSeenOnboarding';
-  bool? get hasSeenOnboarding {
+  final String _hasSeenTeacherOnboardingKey = 'hasTeacherSeenOnboarding';
+  bool get hasSeenTeacherOnboarding {
     _forceFailIfNotInitialized();
-    return _prefs!.getBool(_hasSeenOnboardingKey);
+    return _prefs!.getBool(_hasSeenTeacherOnboardingKey) ?? false;
   }
 
-  set hasSeenOnboarding(bool? value) {
+  set hasSeenTeacherOnboarding(bool value) {
     _forceFailIfNotInitialized();
     _prefs!
-        .setBool(_hasSeenOnboardingKey, value ?? false)
+        .setBool(_hasSeenTeacherOnboardingKey, value)
+        .then((_) => notifyListeners());
+  }
+
+  final String _hasSeenStudentOnboardingKey = 'hasStudentSeenOnboarding';
+  bool get hasSeenStudentOnboarding {
+    _forceFailIfNotInitialized();
+    return _prefs!.getBool(_hasSeenStudentOnboardingKey) ?? false;
+  }
+
+  set hasSeenStudentOnboarding(bool value) {
+    _forceFailIfNotInitialized();
+    _prefs!
+        .setBool(_hasSeenStudentOnboardingKey, value)
         .then((_) => notifyListeners());
   }
 

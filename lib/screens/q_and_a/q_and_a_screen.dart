@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
+import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
@@ -13,6 +14,7 @@ import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_container.dart';
+import 'package:mon_stage_en_images/onboarding/widgets/quick_onboarding_overlay.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/question_and_answer_page.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/filter_answers_dialog.dart';
@@ -42,6 +44,10 @@ class QAndAScreenState extends State<QAndAScreen> {
   VoidCallback? _switchQuestionModeCallback;
 
   String? _currentToken;
+  bool get _showOnboardingOverlay =>
+      Provider.of<Database>(context, listen: false).userType ==
+          UserType.student &&
+      !SharedPreferencesController.instance.hasSeenStudentOnboarding;
 
   @override
   void initState() {
@@ -385,8 +391,11 @@ class QAndAScreenState extends State<QAndAScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    onboardingContexts['q_and_a_app_bar_title'] = null;
     super.dispose();
   }
+
+  // TODO Make sure all the TextEditingControllers are disposed of.
 
   void _onBackPressed() async {
     if (_currentPage == 0) {
@@ -461,11 +470,15 @@ class QAndAScreenState extends State<QAndAScreen> {
               const SizedBox(width: 15),
             ]
           : [
-              IconButton(
-                onPressed: _showConnectedToken,
-                icon: const Icon(Icons.qr_code_2),
-                iconSize: 35,
-                color: Colors.black,
+              OnboardingContainer(
+                onInitialize: (context) =>
+                    onboardingContexts['q_and_a_app_bar_qr_code'] = context,
+                child: IconButton(
+                  onPressed: _showConnectedToken,
+                  icon: const Icon(Icons.qr_code_2),
+                  iconSize: 35,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(width: 15),
             ],
@@ -494,107 +507,112 @@ class QAndAScreenState extends State<QAndAScreen> {
     final noCodeFoundText = 'Aucun code actif trouvé\n'
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 
-    return ResponsiveService.scaffoldOf(
-      context,
-      appBar: _setAppBar(),
-      body: _currentToken == null && database.userType == UserType.student
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12.0),
-                      child: IconButton(
-                          onPressed: () {
-                            final textReader = TextReader();
-                            textReader.readText(
-                              noCodeFoundText,
-                              hasFinishedCallback: () =>
-                                  textReader.stopReading(),
-                            );
-                          },
-                          icon: const Icon(Icons.volume_up)),
-                    ),
-                    Flexible(
-                      child: Text(
-                        noCodeFoundText,
-                        style: TextStyle(fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : Column(
-              children: [
-                MetierAppBar(
-                  selected: _currentPage - 1,
-                  onPageChanged: onPageChangedRequest,
-                  studentId: _student?.id,
-                ),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    onPageChanged: (value) => onPageChanged(context, value),
+    return QuickOnboardingOverlay(
+      widgetContext: _showOnboardingOverlay
+          ? onboardingContexts['q_and_a_app_bar_title']
+          : null,
+      child: ResponsiveService.scaffoldOf(
+        context,
+        appBar: _setAppBar(),
+        body: _currentToken == null && database.userType == UserType.student
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Row(
                     children: [
-                      MainMetierPage(
-                          student: _student,
-                          onPageChanged: onPageChangedRequest),
-                      QuestionAndAnswerPage(
-                        0,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: IconButton(
+                            onPressed: () {
+                              final textReader = TextReader();
+                              textReader.readText(
+                                noCodeFoundText,
+                                hasFinishedCallback: () =>
+                                    textReader.stopReading(),
+                              );
+                            },
+                            icon: const Icon(Icons.volume_up)),
                       ),
-                      QuestionAndAnswerPage(
-                        1,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        2,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        3,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        4,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        5,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
+                      Flexible(
+                        child: Text(
+                          noCodeFoundText,
+                          style: TextStyle(fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-      smallDrawer: MainDrawer.small(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      mediumDrawer: MainDrawer.medium(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      largeDrawer: MainDrawer.large(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+              )
+            : Column(
+                children: [
+                  MetierAppBar(
+                    selected: _currentPage - 1,
+                    onPageChanged: onPageChangedRequest,
+                    studentId: _student?.id,
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (value) => onPageChanged(context, value),
+                      children: [
+                        MainMetierPage(
+                            student: _student,
+                            onPageChanged: onPageChangedRequest),
+                        QuestionAndAnswerPage(
+                          0,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          1,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          2,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          3,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          4,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          5,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+        smallDrawer: MainDrawer.small(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+        mediumDrawer: MainDrawer.medium(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+        largeDrawer: MainDrawer.large(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      ),
     );
   }
 }

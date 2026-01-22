@@ -15,8 +15,6 @@ import '/firebase_options.dart';
 
 const String softwareVersion = '1.1.1';
 
-const showDebugOverlay = false;
-
 void main() async {
   // Set logging to INFO
   Logger.root.level = Level.INFO;
@@ -44,15 +42,12 @@ void main() async {
   final onboardingController = OnboardingController(
     steps: onboardingSteps,
     onOnboardingCompleted: () {
-      SharedPreferencesController.instance.hasSeenOnboarding = true;
+      SharedPreferencesController.instance.hasSeenTeacherOnboarding = true;
     },
   );
   SharedPreferencesController.instance.addListener(() {
-    final hasSeenOnboarding =
-        SharedPreferencesController.instance.hasSeenOnboarding;
     if (!onboardingController.isOnboarding &&
-        hasSeenOnboarding != null &&
-        !hasSeenOnboarding) {
+        !SharedPreferencesController.instance.hasSeenTeacherOnboarding) {
       onboardingController.requestOnboarding();
     }
   });
@@ -110,42 +105,10 @@ class MyApp extends StatelessWidget {
                     name: settings.name, arguments: settings.arguments));
           },
           builder: (context, child) {
-            final prefs = SharedPreferencesController.instance;
             return OnboardingOverlay(
               controller: onboardingController,
-              child: Stack(alignment: Alignment.bottomCenter, children: [
-                child!,
-                if (showDebugOverlay)
-                  Positioned(
-                    bottom: 150,
-                    child: Material(
-                      child: SizedBox(
-                        width: 250,
-                        child: Card(
-                          color: Theme.of(context)
-                              .secondaryHeaderColor
-                              .withAlpha(150),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text(prefs.hasSeenOnboarding ?? false
-                                  ? 'Onboarding vu'
-                                  : 'Onboarding non vu'),
-                              Switch(
-                                value: prefs.hasSeenOnboarding ?? false,
-                                onChanged: (_) {
-                                  prefs.hasSeenOnboarding =
-                                      !(prefs.hasSeenOnboarding ?? false);
-                                },
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-              ]),
+              child:
+                  Stack(alignment: Alignment.bottomCenter, children: [child!]),
             );
           },
         );

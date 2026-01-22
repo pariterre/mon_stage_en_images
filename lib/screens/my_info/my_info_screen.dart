@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
-import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';
 import 'package:provider/provider.dart';
@@ -20,24 +18,8 @@ class MyInfoScreen extends StatefulWidget {
   State<MyInfoScreen> createState() => MyInfoScreenState();
 }
 
-//StudentsScreenState is purposefully made public so onboarding can access its inner methods (like openDrawer)
 class MyInfoScreenState extends State<MyInfoScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  @override
-  void initState() {
-    super.initState();
-
-    final database = Provider.of<Database>(context, listen: false);
-    switch (database.userType) {
-      case UserType.none:
-      case UserType.student:
-        break;
-      case UserType.teacher:
-        // If this is the first time we come to this screen, we show the onboarding
-        SharedPreferencesController.instance.hasSeenOnboarding ??= false;
-    }
-  }
 
   PreferredSizeWidget _setAppBar() {
     return ResponsiveService.appBarOf(

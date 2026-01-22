@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/onboarding/helpers/helpers.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
+import 'package:mon_stage_en_images/onboarding/widgets/hole_clipper.dart';
 
 /// Main widget for displaying an onboarding dialog with a background clipped
 /// to highlight the targeted Widget. Performs some stabilty checks,
@@ -8,15 +10,11 @@ import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 class OnboardingDialog extends StatefulWidget {
   const OnboardingDialog({
     super.key,
-    this.manualHoleRect = Rect.zero,
     required this.onboardingStep,
     required this.onForward,
     required this.onBackward,
     required this.isLastStep,
   });
-
-  /// Optional holeRect for overriding the clip provided by the globalKey (onboardingStep property)
-  final Rect? manualHoleRect;
 
   final OnboardingStep onboardingStep;
 
@@ -37,29 +35,15 @@ class _OnboardingDialogState extends State<OnboardingDialog>
     super.didChangeMetrics();
   }
 
-  /// Get the RenderBox from the widgetKey getter, which is linked to the targeted Widget in the tree
-  /// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
-  Rect? _rectFromWidgetKey(BuildContext? targetContext) {
-    final widgetObject = targetContext?.findRenderObject() as RenderBox?;
-    if (targetContext?.mounted != true || widgetObject?.hasSize != true) {
-      return null;
-    }
-
-    final offset = widgetObject!.localToGlobal(
-        Offset(0, 0 - MediaQuery.of(targetContext!).padding.top));
-    final rect = EdgeInsets.all(12).inflateRect(offset & widgetObject.size);
-    return mounted ? rect : null;
-  }
-
   Rect? _previousRectToClip;
-
   @override
   Widget build(BuildContext context) {
     MediaQuery.of(context); // Force rebuild on MediaQuery changes
 
     final rectToClip = widget.onboardingStep.targetWidgetContext == null
         ? null
-        : _rectFromWidgetKey(widget.onboardingStep.targetWidgetContext!());
+        : Helpers.rectFromWidgetKey(
+            context, widget.onboardingStep.targetWidgetContext!());
 
     final isReady =
         widget.onboardingStep.targetWidgetContext == null || rectToClip != null;
@@ -82,9 +66,8 @@ class _OnboardingDialogState extends State<OnboardingDialog>
         // Clipping the area of the screen where the targeted widget is visible
         if (isReady)
           ClipPath(
-              clipper: rectToClip == null
-                  ? null
-                  : _HoleClipper(holeRect: rectToClip),
+              clipper:
+                  rectToClip == null ? null : HoleClipper(holeRect: rectToClip),
               child: Container(
                 decoration:
                     BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
@@ -157,40 +140,5 @@ class _OnboardingDialogState extends State<OnboardingDialog>
         )
       ],
     );
-  }
-}
-
-/// Takes the Rect drawn from the Render Box of the targeted onboarding Widget
-/// and substracts it to another path filling the whole view. Meant to be provided
-/// to the OnBoardingDialogClippedBackground widget as a background for the onboarding dialog.
-class _HoleClipper extends CustomClipper<Path> {
-  const _HoleClipper({required this.holeRect});
-
-  /// Whether the clipped zone should have rounded corners or not
-  final bool makeRRect = true;
-
-  /// Radius for the rounded corners clipped zone
-  final double radius = 12;
-
-  /// Rect drawn from the RenderBox of the targeted onboarding Widget.
-  final Rect holeRect;
-
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-
-    path.addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    final rrectFromHoleRect =
-        RRect.fromRectAndRadius(holeRect, Radius.circular(radius));
-
-    makeRRect ? path.addRRect(rrectFromHoleRect) : path.addRect(holeRect);
-    path.fillType = PathFillType.evenOdd;
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant _HoleClipper oldClipper) {
-    return true;
   }
 }

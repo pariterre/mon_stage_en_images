@@ -51,8 +51,10 @@ class StudentsScreenState extends State<StudentsScreen> {
       case UserType.student:
         break;
       case UserType.teacher:
-        // If this is the first time we come to this screen, we show the onboarding
-        SharedPreferencesController.instance.hasSeenOnboarding ??= false;
+        if (!SharedPreferencesController.instance.hasSeenTeacherOnboarding) {
+          // Trigger the onboarding by resetting the flag to false (again)
+          SharedPreferencesController.instance.hasSeenTeacherOnboarding = false;
+        }
     }
   }
 

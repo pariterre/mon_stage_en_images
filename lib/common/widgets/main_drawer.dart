@@ -145,7 +145,7 @@ class MainDrawer extends StatelessWidget {
                 title: 'Revoir le tutoriel',
                 icon: Icons.help,
                 onTap: () => SharedPreferencesController
-                    .instance.hasSeenOnboarding = false,
+                    .instance.hasSeenTeacherOnboarding = false,
                 iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher) const Divider(),
