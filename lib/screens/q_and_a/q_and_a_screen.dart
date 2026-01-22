@@ -45,11 +45,17 @@ class QAndAScreenState extends State<QAndAScreen> {
 
   String? _currentToken;
   BuildContext? _onboardingContexts;
-  bool get _showOnboardingOverlay =>
-      true ||
-      (Provider.of<Database>(context, listen: false).userType ==
-              UserType.student &&
-          !SharedPreferencesController.instance.hasSeenStudentOnboarding);
+  bool showOnboardingOverlay(BuildContext context) {
+    final database = Provider.of<Database>(context, listen: false);
+    final userType = database.userType;
+    final user = database.currentUser;
+    final isConnected = _currentToken != null;
+
+    return !SharedPreferencesController.instance.hasSeenStudentOnboarding &&
+        userType == UserType.student &&
+        user != null &&
+        !isConnected;
+  }
 
   @override
   void initState() {
@@ -122,6 +128,8 @@ class QAndAScreenState extends State<QAndAScreen> {
   }
 
   Future<void> _showConnectedToken() async {
+    SharedPreferencesController.instance.hasSeenStudentOnboarding = true;
+
     final studentId =
         Provider.of<Database>(context, listen: false).currentUser!.id;
 
@@ -166,18 +174,28 @@ class QAndAScreenState extends State<QAndAScreen> {
     );
   }
 
-  final _passwordFormKey = GlobalKey<FormState>();
-  StateSetter? _passwordDialogSetState;
+  final _newCodeFormKey = GlobalKey<FormState>();
+  StateSetter? _newCodeDialogSetState;
+  Future<void> _validateNewCodeDialogForm() async {
+    final isPasswordValid = await _validatePasswordDialogForm();
+    final isTokenValid = await _validateTokenDialogForm();
+
+    if (!mounted) return;
+    if (!isPasswordValid || !isTokenValid) {
+      // Trigger rebuild to show errors
+      if (_newCodeDialogSetState != null) _newCodeDialogSetState!(() {});
+    }
+
+    if (isPasswordValid && isTokenValid) Navigator.pop(context, true);
+  }
+
   String _password = '';
   String? _passwordError;
-  Future<void> _validatePasswordDialogForm() async {
+  Future<bool> _validatePasswordDialogForm() async {
+    _passwordError = null;
     if (_password.isEmpty) {
-      if (_passwordDialogSetState != null) {
-        _passwordDialogSetState!(() {
-          _passwordError = 'Veuillez entrer votre mot de passe';
-        });
-      }
-      return;
+      _passwordError = 'Veuillez entrer votre mot de passe';
+      return false;
     }
 
     // Check if the password is correct
@@ -187,155 +205,113 @@ class QAndAScreenState extends State<QAndAScreen> {
         password: _password,
         skipPostLogin: true);
     if (loginStatus != EzloginStatus.success) {
-      if (_passwordDialogSetState != null) {
-        _passwordDialogSetState!(() {
-          _passwordError = 'Le mot de passe entré est incorrect';
-        });
-      }
-      return;
+      _passwordError = 'Le mot de passe entré est incorrect';
+      return false;
     }
 
-    if (!mounted) return;
-    Navigator.pop(context, true);
+    return true;
   }
 
-  final _tokenFormKey = GlobalKey<FormState>();
-  StateSetter? _tokenDialogSetState;
   String _token = '';
   String? _tokenError;
-  Future<void> _validateTokenDialogForm() async {
+  Future<bool> _validateTokenDialogForm() async {
+    _tokenError = null;
     if (_token.isEmpty) {
-      if (_tokenDialogSetState != null) {
-        _tokenDialogSetState!(() {
-          _tokenError = 'Veuillez entrer un code d\'inscription';
-        });
-      }
-      return;
+      _tokenError = 'Veuillez entrer un code d\'inscription';
+      return false;
     }
 
     // Check if the password is correct
     final teacherId = await TeachingTokenHelpers.creatorIdOf(token: _token);
     if (teacherId == null) {
-      if (_tokenDialogSetState != null) {
-        _tokenDialogSetState!(() {
-          _tokenError = 'Le code d\'inscription entré est incorrect';
-        });
-      }
-      return;
+      _tokenError = 'Le code d\'inscription entré est incorrect';
+      return false;
     }
 
-    if (!mounted) return;
-    Navigator.pop(context, true);
+    return true;
   }
 
   bool _isConnectingToken = false;
   Future<void> _connectToToken({bool firstConnexion = false}) async {
-    final isPasswordSuccess = await showDialog<bool>(
+    final isSuccess = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            _passwordDialogSetState = setState;
+            _newCodeDialogSetState = setState;
             return AreYouSureDialog(
               title: firstConnexion
                   ? 'Connecter un code'
                   : 'Se connecter à un nouveau code ?',
               canReadAloud: true,
-              content:
-                  '${firstConnexion ? 'Pour commencer, connectez-vous au code d\'inscription fourni par votre enseignant·e.' : 'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code ?\n'
-                      'Ceci archivera vos discussions avec l\'enseignant·e actuelle.'}\n\n'
-                  'Entrez votre mot de passe pour confirmer :',
-              extraContent: Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Form(
-                  key: _passwordFormKey,
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Mot de passe',
-                      errorText: _passwordError,
+              content: firstConnexion
+                  ? 'Pour commencer, connectez-vous au code d\'inscription fourni par votre enseignant·e.'
+                  : 'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code ?\n'
+                      'Ceci archivera vos discussions avec l\'enseignant·e actuelle.',
+              extraContent: Form(
+                key: _newCodeFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20),
+                    Text(
+                        'Entrez ici le code d\'inscription fourni par votre enseignant·e'),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        hintText: 'Code d\'inscription',
+                        errorText: _tokenError,
+                      ),
+                      inputFormatters: [
+                        UpperCaseTextFormatter(),
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[A-Za-z0-9]')),
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                      onChanged: (value) {
+                        _token = value;
+                        _newCodeDialogSetState!(() {
+                          _tokenError = null;
+                        });
+                      },
+                      onFieldSubmitted: (_) => _validateNewCodeDialogForm(),
+                      validator: (value) => _tokenError,
                     ),
-                    obscureText: true,
-                    autofocus: true,
-                    onChanged: (value) {
-                      _password = value;
-                      _passwordDialogSetState!(() {
-                        _passwordError = null;
-                      });
-                    },
-                    onFieldSubmitted: (_) => _validatePasswordDialogForm(),
-                    validator: (value) => _passwordError,
-                  ),
+                    SizedBox(height: 12),
+                    Text('Entrez votre mot de passe pour confirmer'),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Mot de passe',
+                        errorText: _passwordError,
+                      ),
+                      obscureText: true,
+                      autofocus: true,
+                      onChanged: (value) {
+                        _password = value;
+                        _newCodeDialogSetState!(() {
+                          _passwordError = null;
+                        });
+                      },
+                      onFieldSubmitted: (_) => _validateNewCodeDialogForm(),
+                      validator: (value) => _passwordError,
+                    ),
+                  ],
                 ),
               ),
               onCancelled: () => Navigator.pop(context, false),
-              onConfirmed: _validatePasswordDialogForm,
+              onConfirmed: () => _validateNewCodeDialogForm(),
             );
           },
         );
       },
     );
-    _passwordDialogSetState = null;
-    if (!mounted) return;
-    if (isPasswordSuccess != true) {
-      final scaffold = ScaffoldMessenger.of(context);
-      _showSnackbar(
-          const Text('Connexion à un nouveau code annulée'), scaffold);
-      return;
-    }
-
-    if (!mounted) return;
-    final controller = TextEditingController();
-    final isTokenSuccess = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            _tokenDialogSetState = setState;
-            return AreYouSureDialog(
-              title: 'Entrer le code d\'inscription',
-              canReadAloud: true,
-              content:
-                  'Entrez ici le code d\'inscription fourni par votre enseignant·e',
-              extraContent: Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Form(
-                  key: _tokenFormKey,
-                  child: TextFormField(
-                    controller: controller,
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: InputDecoration(
-                      hintText: 'Code d\'inscription',
-                      errorText: _tokenError,
-                    ),
-                    inputFormatters: [
-                      UpperCaseTextFormatter(),
-                      FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-                      LengthLimitingTextInputFormatter(6),
-                    ],
-                    onChanged: (value) {
-                      _token = value;
-                      _tokenDialogSetState!(() {
-                        _tokenError = null;
-                      });
-                    },
-                    onFieldSubmitted: (_) => _validateTokenDialogForm(),
-                    validator: (value) => _tokenError,
-                  ),
-                ),
-              ),
-              onCancelled: () => Navigator.pop(context, false),
-              onConfirmed: _validateTokenDialogForm,
-            );
-          },
-        );
-      },
-    );
-    _tokenDialogSetState = null;
-
-    if (isTokenSuccess != true) {
+    _newCodeDialogSetState = null;
+    if (isSuccess != true) {
       if (mounted) {
         final scaffold = ScaffoldMessenger.of(context);
         _showSnackbar(
@@ -343,22 +319,11 @@ class QAndAScreenState extends State<QAndAScreen> {
       }
       return;
     }
-
-    final teacherId = await TeachingTokenHelpers.creatorIdOf(token: _token);
-    if (teacherId == null) {
-      if (mounted) {
-        final scaffold = ScaffoldMessenger.of(context);
-        _showSnackbar(
-            const Text('Aucun enseignant·e n\'est associé·e à ce code'),
-            scaffold);
-      }
-      return;
-    }
-
     if (!mounted) return;
-    setState(() {
-      _isConnectingToken = true;
-    });
+
+    setState(() => _isConnectingToken = true);
+    final teacherId = (await TeachingTokenHelpers.creatorIdOf(token: _token))!;
+    if (!mounted) return;
 
     final database = Provider.of<Database>(context, listen: false);
     _currentToken = _token;
@@ -510,112 +475,113 @@ class QAndAScreenState extends State<QAndAScreen> {
     final noCodeFoundText = 'Aucun code actif trouvé\n'
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 
-    return
-        // QuickOnboardingOverlay(
-        //   widgetContext: _showOnboardingOverlay ? _onboardingContexts : null,
-        //   child:
-        ResponsiveService.scaffoldOf(
-      context,
-      appBar: _setAppBar(),
-      body: _currentToken == null && database.userType == UserType.student
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12.0),
-                      child: IconButton(
-                          onPressed: () {
-                            final textReader = TextReader();
-                            textReader.readText(
-                              noCodeFoundText,
-                              hasFinishedCallback: () =>
-                                  textReader.stopReading(),
-                            );
-                          },
-                          icon: const Icon(Icons.volume_up)),
-                    ),
-                    Flexible(
-                      child: Text(
-                        noCodeFoundText,
-                        style: TextStyle(fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : Column(
-              children: [
-                MetierAppBar(
-                  selected: _currentPage - 1,
-                  onPageChanged: onPageChangedRequest,
-                  studentId: _student?.id,
-                ),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    onPageChanged: (value) => onPageChanged(context, value),
+    return QuickOnboardingOverlay(
+      widgetContext:
+          showOnboardingOverlay(context) ? _onboardingContexts : null,
+      onTap: () =>
+          SharedPreferencesController.instance.hasSeenStudentOnboarding = true,
+      child: ResponsiveService.scaffoldOf(
+        context,
+        appBar: _setAppBar(),
+        body: _currentToken == null && database.userType == UserType.student
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Row(
                     children: [
-                      MainMetierPage(
-                          student: _student,
-                          onPageChanged: onPageChangedRequest),
-                      QuestionAndAnswerPage(
-                        0,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: IconButton(
+                            onPressed: () {
+                              final textReader = TextReader();
+                              textReader.readText(
+                                noCodeFoundText,
+                                hasFinishedCallback: () =>
+                                    textReader.stopReading(),
+                              );
+                            },
+                            icon: const Icon(Icons.volume_up)),
                       ),
-                      QuestionAndAnswerPage(
-                        1,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        2,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        3,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        4,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
-                      ),
-                      QuestionAndAnswerPage(
-                        5,
-                        studentId: _student?.id,
-                        viewSpan: _viewSpan,
-                        pageMode: _pageMode,
-                        answerFilterMode: _answerFilter,
+                      Flexible(
+                        child: Text(
+                          noCodeFoundText,
+                          style: TextStyle(fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-      smallDrawer: MainDrawer.small(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      mediumDrawer: MainDrawer.medium(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      largeDrawer: MainDrawer.large(
-          navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      // ),
+              )
+            : Column(
+                children: [
+                  MetierAppBar(
+                    selected: _currentPage - 1,
+                    onPageChanged: onPageChangedRequest,
+                    studentId: _student?.id,
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (value) => onPageChanged(context, value),
+                      children: [
+                        MainMetierPage(
+                            student: _student,
+                            onPageChanged: onPageChangedRequest),
+                        QuestionAndAnswerPage(
+                          0,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          1,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          2,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          3,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          4,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                        QuestionAndAnswerPage(
+                          5,
+                          studentId: _student?.id,
+                          viewSpan: _viewSpan,
+                          pageMode: _pageMode,
+                          answerFilterMode: _answerFilter,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+        smallDrawer: MainDrawer.small(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+        mediumDrawer: MainDrawer.medium(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+        largeDrawer: MainDrawer.large(
+            navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      ),
     );
   }
 }
