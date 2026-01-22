@@ -436,20 +436,22 @@ class QAndAScreenState extends State<QAndAScreen> {
                 ),
               const SizedBox(width: 15),
             ]
-          : [
-              OnboardingContainer(
-                onInitialize: (context) => WidgetsBinding.instance
-                    .addPostFrameCallback(
-                        (_) => setState(() => _onboardingContexts = context)),
-                child: IconButton(
-                  onPressed: _showConnectedToken,
-                  icon: const Icon(Icons.qr_code_2),
-                  iconSize: 35,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(width: 15),
-            ],
+          : (_currentPage == 0
+              ? [
+                  OnboardingContainer(
+                    onInitialize: (context) => WidgetsBinding.instance
+                        .addPostFrameCallback((_) =>
+                            setState(() => _onboardingContexts = context)),
+                    child: IconButton(
+                      onPressed: _showConnectedToken,
+                      icon: const Icon(Icons.qr_code_2),
+                      iconSize: 35,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                ]
+              : []),
     );
   }
 

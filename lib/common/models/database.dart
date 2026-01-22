@@ -256,6 +256,13 @@ class Database extends EzloginFirebase with ChangeNotifier {
     answers.pathToData = '$_currentDatabaseVersion/answers/$token';
     await answers.initializeFetchingData();
 
+    await Future.delayed(const Duration(milliseconds: 2000));
+
+    // Check if answers already exist for that student (reconnected student)
+    final studentAnswers = answers.firstWhereOrNull((a) => a.id == studentId);
+    questions.removeWhere((q) =>
+        studentAnswers?.answers.any((a) => a.questionId == q.id) == true);
+
     // Send the answers to the database
     await answers.addAnswers(questions.map((e) => Answer(
           isActive: e.defaultTarget == Target.all,
