@@ -40,17 +40,13 @@ void main() async {
   await RouteManager.instance.initialize();
 
   final onboardingController = OnboardingController(
-    steps: onboardingSteps,
-    onOnboardingCompleted: () {
-      SharedPreferencesController.instance.hasSeenTeacherOnboarding = true;
+    steps: OnboardingContexts.instance.onboardingSteps,
+    onOnboardStarted: () async {
+      await OnboardingContexts.instance.prepareForOnboarding();
     },
+    onOnboardingCompleted: () async =>
+        SharedPreferencesController.instance.hasSeenTeacherOnboarding = true,
   );
-  SharedPreferencesController.instance.addListener(() {
-    if (!onboardingController.isOnboarding &&
-        !SharedPreferencesController.instance.hasSeenTeacherOnboarding) {
-      onboardingController.requestOnboarding();
-    }
-  });
 
   // Run the app
   runApp(MyApp(
@@ -105,6 +101,13 @@ class MyApp extends StatelessWidget {
                     name: settings.name, arguments: settings.arguments));
           },
           builder: (context, child) {
+            SharedPreferencesController.instance.addListener(() {
+              if (!onboardingController.isOnboarding &&
+                  OnboardingContexts.startingConditionAreMet(context)) {
+                onboardingController.requestOnboarding();
+              }
+            });
+
             return OnboardingOverlay(
               controller: onboardingController,
               child:

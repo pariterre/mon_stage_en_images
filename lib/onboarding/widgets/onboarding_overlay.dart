@@ -9,10 +9,12 @@ class OnboardingController {
 
   OnboardingController({
     required this.steps,
+    required this.onOnboardStarted,
     required this.onOnboardingCompleted,
   });
 
-  final VoidCallback onOnboardingCompleted;
+  final Future<void> Function() onOnboardStarted;
+  final Future<void> Function() onOnboardingCompleted;
 
   _OnboardingOverlayState? _overlayState;
   bool _isOnboarding = false;
@@ -20,6 +22,7 @@ class OnboardingController {
   Future<void> requestOnboarding() async {
     _isOnboarding = true;
     _currentIndex = 0;
+    await onOnboardStarted();
     await _overlayState?._navToStepAndRefresh();
   }
 
@@ -33,7 +36,7 @@ class OnboardingController {
 
     if (_currentIndex == steps.length) {
       _isOnboarding = false;
-      onOnboardingCompleted();
+      await onOnboardingCompleted();
     }
   }
 

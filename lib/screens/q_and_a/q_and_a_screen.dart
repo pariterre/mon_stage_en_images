@@ -44,10 +44,12 @@ class QAndAScreenState extends State<QAndAScreen> {
   VoidCallback? _switchQuestionModeCallback;
 
   String? _currentToken;
+  BuildContext? _onboardingContexts;
   bool get _showOnboardingOverlay =>
-      Provider.of<Database>(context, listen: false).userType ==
-          UserType.student &&
-      !SharedPreferencesController.instance.hasSeenStudentOnboarding;
+      true ||
+      (Provider.of<Database>(context, listen: false).userType ==
+              UserType.student &&
+          !SharedPreferencesController.instance.hasSeenStudentOnboarding);
 
   @override
   void initState() {
@@ -391,7 +393,7 @@ class QAndAScreenState extends State<QAndAScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    onboardingContexts['q_and_a_app_bar_title'] = null;
+    OnboardingContexts.instance['q_and_a_app_bar_title'] = null;
     super.dispose();
   }
 
@@ -430,7 +432,7 @@ class QAndAScreenState extends State<QAndAScreen> {
         children: [
           OnboardingContainer(
             onInitialize: (context) =>
-                onboardingContexts['q_and_a_app_bar_title'] = context,
+                OnboardingContexts.instance['q_and_a_app_bar_title'] = context,
             child: Text(_student?.toString() ??
                 (_pageMode == PageMode.fixView
                     ? 'Résumé des réponses'
@@ -471,8 +473,9 @@ class QAndAScreenState extends State<QAndAScreen> {
             ]
           : [
               OnboardingContainer(
-                onInitialize: (context) =>
-                    onboardingContexts['q_and_a_app_bar_qr_code'] = context,
+                onInitialize: (context) => WidgetsBinding.instance
+                    .addPostFrameCallback(
+                        (_) => setState(() => _onboardingContexts = context)),
                 child: IconButton(
                   onPressed: _showConnectedToken,
                   icon: const Icon(Icons.qr_code_2),
@@ -507,112 +510,112 @@ class QAndAScreenState extends State<QAndAScreen> {
     final noCodeFoundText = 'Aucun code actif trouvé\n'
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 
-    return QuickOnboardingOverlay(
-      widgetContext: _showOnboardingOverlay
-          ? onboardingContexts['q_and_a_app_bar_title']
-          : null,
-      child: ResponsiveService.scaffoldOf(
-        context,
-        appBar: _setAppBar(),
-        body: _currentToken == null && database.userType == UserType.student
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: IconButton(
-                            onPressed: () {
-                              final textReader = TextReader();
-                              textReader.readText(
-                                noCodeFoundText,
-                                hasFinishedCallback: () =>
-                                    textReader.stopReading(),
-                              );
-                            },
-                            icon: const Icon(Icons.volume_up)),
+    return
+        // QuickOnboardingOverlay(
+        //   widgetContext: _showOnboardingOverlay ? _onboardingContexts : null,
+        //   child:
+        ResponsiveService.scaffoldOf(
+      context,
+      appBar: _setAppBar(),
+      body: _currentToken == null && database.userType == UserType.student
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: IconButton(
+                          onPressed: () {
+                            final textReader = TextReader();
+                            textReader.readText(
+                              noCodeFoundText,
+                              hasFinishedCallback: () =>
+                                  textReader.stopReading(),
+                            );
+                          },
+                          icon: const Icon(Icons.volume_up)),
+                    ),
+                    Flexible(
+                      child: Text(
+                        noCodeFoundText,
+                        style: TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
                       ),
-                      Flexible(
-                        child: Text(
-                          noCodeFoundText,
-                          style: TextStyle(fontSize: 18),
-                          textAlign: TextAlign.center,
-                        ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : Column(
+              children: [
+                MetierAppBar(
+                  selected: _currentPage - 1,
+                  onPageChanged: onPageChangedRequest,
+                  studentId: _student?.id,
+                ),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (value) => onPageChanged(context, value),
+                    children: [
+                      MainMetierPage(
+                          student: _student,
+                          onPageChanged: onPageChangedRequest),
+                      QuestionAndAnswerPage(
+                        0,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
+                      ),
+                      QuestionAndAnswerPage(
+                        1,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
+                      ),
+                      QuestionAndAnswerPage(
+                        2,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
+                      ),
+                      QuestionAndAnswerPage(
+                        3,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
+                      ),
+                      QuestionAndAnswerPage(
+                        4,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
+                      ),
+                      QuestionAndAnswerPage(
+                        5,
+                        studentId: _student?.id,
+                        viewSpan: _viewSpan,
+                        pageMode: _pageMode,
+                        answerFilterMode: _answerFilter,
                       ),
                     ],
                   ),
                 ),
-              )
-            : Column(
-                children: [
-                  MetierAppBar(
-                    selected: _currentPage - 1,
-                    onPageChanged: onPageChangedRequest,
-                    studentId: _student?.id,
-                  ),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      onPageChanged: (value) => onPageChanged(context, value),
-                      children: [
-                        MainMetierPage(
-                            student: _student,
-                            onPageChanged: onPageChangedRequest),
-                        QuestionAndAnswerPage(
-                          0,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                        QuestionAndAnswerPage(
-                          1,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                        QuestionAndAnswerPage(
-                          2,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                        QuestionAndAnswerPage(
-                          3,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                        QuestionAndAnswerPage(
-                          4,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                        QuestionAndAnswerPage(
-                          5,
-                          studentId: _student?.id,
-                          viewSpan: _viewSpan,
-                          pageMode: _pageMode,
-                          answerFilterMode: _answerFilter,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-        smallDrawer: MainDrawer.small(
-            navigationBack: _currentPage == 0 ? null : _onBackPressed),
-        mediumDrawer: MainDrawer.medium(
-            navigationBack: _currentPage == 0 ? null : _onBackPressed),
-        largeDrawer: MainDrawer.large(
-            navigationBack: _currentPage == 0 ? null : _onBackPressed),
-      ),
+              ],
+            ),
+      smallDrawer: MainDrawer.small(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      mediumDrawer: MainDrawer.medium(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      largeDrawer: MainDrawer.large(
+          navigationBack: _currentPage == 0 ? null : _onBackPressed),
+      // ),
     );
   }
 }

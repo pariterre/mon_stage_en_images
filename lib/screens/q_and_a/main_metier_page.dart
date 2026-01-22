@@ -34,7 +34,7 @@ class MainMetierPage extends StatelessWidget {
           if (student != null) const SizedBox(height: 5),
           OnboardingContainer(
               onInitialize: (context) =>
-                  onboardingContexts['metier_tile_0'] = context,
+                  OnboardingContexts.instance['metier_tile_0'] = context,
               child:
                   MetierTile(0, studentId: student?.id, onTap: onPageChanged)),
           MetierTile(1, studentId: student?.id, onTap: onPageChanged),

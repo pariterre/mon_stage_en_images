@@ -271,7 +271,7 @@ class StudentsScreenState extends State<StudentsScreen> {
       actions: [
         OnboardingContainer(
           onInitialize: (context) =>
-              onboardingContexts['generate_code'] = context,
+              OnboardingContexts.instance['generate_code'] = context,
           child: IconButton(
             onPressed: _showCurrentToken,
             icon: const Icon(Icons.qr_code_2),
