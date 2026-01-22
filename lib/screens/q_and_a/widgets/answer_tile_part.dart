@@ -82,7 +82,7 @@ class _AnswerPartState extends State<AnswerPart> {
     final currentUser = database.currentUser!;
     final userType = database.userType;
 
-    final allAnswers = Provider.of<AllAnswers>(context, listen: false);
+    final allAnswers = AllAnswers.of(context, listen: false);
     final currentAnswer = allAnswers.filter(
         questionIds: [widget.question.id],
         studentIds: [widget.studentId!]).first;
@@ -132,7 +132,7 @@ class _AnswerPartState extends State<AnswerPart> {
             .students()
             .firstWhere((e) => e.id == widget.studentId);
 
-    final answers = Provider.of<AllAnswers>(context).filter(
+    final answers = AllAnswers.of(context, listen: false).filter(
         questionIds: [widget.question.id],
         studentIds:
             widget.studentId == null ? null : [widget.studentId!]).toList();

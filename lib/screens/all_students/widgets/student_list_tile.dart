@@ -26,8 +26,8 @@ class StudentListTile extends StatelessWidget {
     final student =
         database.students().firstWhereOrNull((e) => e.id == studentId);
 
-    final allAnswers = Provider.of<AllAnswers>(context, listen: false)
-        .filter(studentIds: [studentId]);
+    final allAnswers =
+        AllAnswers.of(context, listen: false).filter(studentIds: [studentId]);
     final numberOfActions =
         AllAnswers.numberNeedTeacherActionFrom(allAnswers, context);
 

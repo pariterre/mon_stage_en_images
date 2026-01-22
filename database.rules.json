@@ -35,11 +35,11 @@
         }
       },
       "answers": {
-        ".read": "  auth.uid !== null",
         "$token": {
+          ".read": "                         auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
           "$uid": {
-            ".read": "  auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('admin/ids').hasChild(auth.uid)",
-            ".write": " auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('admin/ids').hasChild(auth.uid)"
+            ".read": "  auth.uid === $uid || auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
+            ".write": " auth.uid === $uid || auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
           }
         }
       },
@@ -59,21 +59,21 @@
       },
       "tokens": {
         "existing" : {
-          ".read": "auth.uid !== null",
+          ".read": "   auth.uid !== null",
           "$token": {
             ".write": "auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
           }
         },
         "$token": {
-          ".write": "auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
+          ".write": "                         auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
           "connectedUsers": {
-            ".read": "auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
+            ".read": "                        auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)",
             "$uid": {
-              ".write": "auth.uid === $uid || root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) || root.child('admin/ids').hasChild(auth.uid)"
+              ".write": "auth.uid === $uid || auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
             }
           },
           "metadata": {
-            ".read": "auth.uid !== null",
+            ".read": " auth.uid !== null",
             ".write": "auth.uid === newData.child('createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
           }
         }

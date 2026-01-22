@@ -80,7 +80,7 @@ class MetierAppBar extends StatelessWidget {
     required bool isSelected,
     required Function() onPressed,
   }) {
-    final answers = Provider.of<AllAnswers>(context)
+    final answers = AllAnswers.of(context, listen: false)
         .filter(
             questionIds:
                 questions.fromSection(sectionIndex).toList().map((e) => e.id),

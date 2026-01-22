@@ -8,6 +8,7 @@ import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
+import 'package:mon_stage_en_images/common/providers/all_teacher_answers.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/answer_tile_part.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/new_question_alert_dialog.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/widgets/question_tile_part.dart';
@@ -45,7 +46,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
   Answer? get _answer {
     if (widget.question == null || widget.studentId == null) return null;
 
-    final answers = Provider.of<AllAnswers>(context, listen: false).filter(
+    final answers = AllAnswers.of(context, listen: false).filter(
         questionIds: [widget.question!.id], studentIds: [widget.studentId!]);
     return answers.isEmpty ? null : answers.first;
   }
@@ -78,7 +79,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
           widget.studentId != null &&
           (teacherMadeAction || studentMadeAction)) {
         // Flag the answer as being actionned
-        Provider.of<AllAnswers>(context, listen: false).modifyAnswer(
+        AllAnswers.of(context, listen: false).modifyAnswer(
             _answer!.copyWith(actionRequired: ActionRequired.none));
       }
     }
@@ -88,7 +89,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
   }
 
   Future<void> _addOrModifyQuestion() async {
-    final answers = Provider.of<AllAnswers>(context, listen: false);
+    final answers = AllAnswers.of(context, listen: false) as AllTeacherAnswers;
     final questions = Provider.of<AllQuestions>(context, listen: false);
     final db = Provider.of<Database>(context, listen: false);
     final arguments = ModalRoute.of(context)!.settings.arguments as List;
@@ -135,7 +136,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
 
   void _deleteQuestionCallback() {
     final questions = Provider.of<AllQuestions>(context, listen: false);
-    final answers = Provider.of<AllAnswers>(context, listen: false);
+    final answers = AllAnswers.of(context, listen: false) as AllTeacherAnswers;
 
     questions.removeToAll(widget.question!, answers: answers);
     setState(() {});

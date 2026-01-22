@@ -4,7 +4,7 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
-import 'package:mon_stage_en_images/common/providers/all_answers.dart';
+import 'package:mon_stage_en_images/common/providers/all_teacher_answers.dart';
 
 class AllQuestions extends FirebaseListProvided<Question> with Section {
   // Constructors and (de)serializer
@@ -14,6 +14,15 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
 
   @override
   Question deserializeItem(data) => Question.fromSerialized(data);
+
+  @override
+  Future<void> initializeFetchingData({String? pathToData}) async {
+    if (pathToData == null) {
+      throw 'You must set pathToData for initializing the Questions database';
+    }
+    this.pathToData = pathToData;
+    await super.initializeFetchingData();
+  }
 
   ///
   /// Returns the list of questions from a section
@@ -32,7 +41,7 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   /// [notify] is if the listeners should be notified
   void addToAll(
     Question question, {
-    required AllAnswers answers,
+    required AllTeacherAnswers answers,
     required User currentUser,
     Map<String, bool>? isActive,
     bool notify = true,
@@ -64,7 +73,7 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   /// [notify] is if the listeners should be notified
   void modifyToAll(
     Question question, {
-    required AllAnswers studentAnswers,
+    required AllTeacherAnswers studentAnswers,
     required User currentUser,
     Map<String, bool>? isActive,
     bool notify = true,
@@ -103,7 +112,7 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   /// [notify] is if the listeners should be notified
   void removeToAll(
     Question question, {
-    required AllAnswers answers,
+    required AllTeacherAnswers answers,
     bool notify = true,
   }) {
     remove(question, notify: notify);

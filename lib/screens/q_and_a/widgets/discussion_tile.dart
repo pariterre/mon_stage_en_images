@@ -20,7 +20,7 @@ class DiscussionTile extends StatelessWidget {
 
   final Message discussion;
   final bool isLast;
-  final Function() onDeleted;
+  final Function()? onDeleted;
 
   void _showImageFullScreen(BuildContext context,
       {required Uint8List imageData}) {
@@ -34,7 +34,7 @@ class DiscussionTile extends StatelessWidget {
   }
 
   Future<void> _deleteMessage(BuildContext context) async {
-    onDeleted();
+    onDeleted!();
   }
 
   @override
@@ -70,7 +70,7 @@ class DiscussionTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _showNameOfSender(),
-                  if (!discussion.isDeleted)
+                  if (onDeleted != null && !discussion.isDeleted)
                     _DeleteButton(
                         messageAuthorId: discussion.creatorId,
                         onTap: () => _deleteMessage(context)),
@@ -120,7 +120,7 @@ class DiscussionTile extends StatelessWidget {
                       style: const TextStyle(fontSize: 16),
                     ),
                   )),
-                  if (!discussion.isDeleted)
+                  if (onDeleted != null && !discussion.isDeleted)
                     _DeleteButton(
                         messageAuthorId: discussion.creatorId,
                         onTap: () => _deleteMessage(context)),

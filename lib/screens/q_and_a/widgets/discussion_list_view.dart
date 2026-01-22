@@ -207,7 +207,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
     final answer = widget.student == null
         ? null
-        : Provider.of<AllAnswers>(context, listen: false).filter(
+        : AllAnswers.of(context, listen: false).filter(
             questionIds: [widget.question.id],
             studentIds: [widget.student!.id]).first;
 
@@ -215,9 +215,10 @@ class _DiscussionListViewState extends State<DiscussionListView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _MessageListView(
+          studentId: widget.student?.id,
           discussion: widget.messages,
-          onDeleteMessage: (id) {
-            _manageAnswer(markAnswerAsDeleted: id);
+          onDeleteMessage: ({required String answerId}) {
+            _manageAnswer(markAnswerAsDeleted: answerId);
           },
         ),
         SizedBox(
@@ -355,10 +356,13 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
 class _MessageListView extends StatelessWidget {
   const _MessageListView(
-      {required this.discussion, required this.onDeleteMessage});
+      {required this.studentId,
+      required this.discussion,
+      required this.onDeleteMessage});
 
+  final String? studentId;
   final List<Message> discussion;
-  final Function(String id) onDeleteMessage;
+  final Function({required String answerId}) onDeleteMessage;
 
   void _scrollDown(ScrollController scroller) {
     // Scolling "min" brings us to the end. See comment below.
@@ -403,7 +407,10 @@ class _MessageListView extends StatelessWidget {
                   DiscussionTile(
                     discussion: reversedList[index],
                     isLast: index == 0,
-                    onDeleted: () => onDeleteMessage(reversedList[index].id),
+                    onDeleted: studentId == null
+                        ? null
+                        : () =>
+                            onDeleteMessage(answerId: reversedList[index].id),
                   ),
                   const SizedBox(height: 10),
                 ],

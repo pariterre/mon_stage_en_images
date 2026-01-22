@@ -69,7 +69,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => userDatabase),
-        ChangeNotifierProvider(create: (context) => userDatabase.answers),
+        ChangeNotifierProvider(
+            create: (context) => userDatabase.teacherAnswers),
+        ChangeNotifierProvider(
+            create: (context) => userDatabase.studentAnswers),
         ChangeNotifierProvider(create: (context) => userDatabase.questions),
         ChangeNotifierProvider(create: (context) => speecher),
       ],

@@ -31,7 +31,7 @@ class MetierTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allAnswers = Provider.of<AllAnswers>(context, listen: false);
+    final allAnswers = AllAnswers.of(context, listen: false);
     final questions = Provider.of<AllQuestions>(context, listen: false)
         .fromSection(sectionIndex);
     final userType = Provider.of<Database>(context, listen: false).userType;

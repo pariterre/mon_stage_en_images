@@ -5,6 +5,7 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
+import 'package:mon_stage_en_images/common/providers/all_teacher_answers.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:mon_stage_en_images/common/widgets/taking_action_notifier.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,8 @@ class QuestionPart extends StatelessWidget {
 
   TextStyle _pickTextStyle(BuildContext context, Answer? answer) {
     if (answer == null) {
-      final answers = Provider.of<AllAnswers>(context, listen: false);
+      final answers =
+          AllAnswers.of(context, listen: false) as AllTeacherAnswers;
 
       return TextStyle(
         color: question != null && answers.isQuestionInactiveForAll(question!)
@@ -113,7 +115,7 @@ class _QuestionPartTrailing extends StatelessWidget {
   final VoidCallback stopReadingCallback;
 
   bool _isQuestionActive(BuildContext context) {
-    final answers = Provider.of<AllAnswers>(context, listen: false)
+    final answers = AllAnswers.of(context, listen: false)
         .filter(questionIds: [question!.id], studentIds: [studentId!]);
 
     if (answers.isEmpty) return question!.defaultTarget == Target.all;
@@ -127,7 +129,7 @@ class _QuestionPartTrailing extends StatelessWidget {
 
     final List<Answer> allAnswers = question == null
         ? []
-        : Provider.of<AllAnswers>(context, listen: true).filter(
+        : AllAnswers.of(context, listen: false).filter(
             questionIds: [question!.id],
             studentIds: studentId == null ? null : [studentId!]).toList();
 
@@ -210,7 +212,7 @@ class _QuestionActivatedState extends StatelessWidget {
 
   Future<void> _toggleQuestionActiveState(BuildContext context, value) async {
     final questions = Provider.of<AllQuestions>(context, listen: false);
-    final answers = Provider.of<AllAnswers>(context, listen: false);
+    final answers = AllAnswers.of(context, listen: false);
 
     final sure = pageMode == PageMode.edit && viewSpan == Target.all
         ? await showDialog<bool>(

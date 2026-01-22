@@ -33,7 +33,7 @@ class QuestionAndAnswerPage extends StatelessWidget {
     final database = Provider.of<Database>(context, listen: false);
     final userType = database.userType;
 
-    final allAnswers = Provider.of<AllAnswers>(context, listen: false);
+    final allAnswers = AllAnswers.of(context, listen: false);
     var questions = Provider.of<AllQuestions>(context, listen: true)
         .fromSection(sectionIndex)
         .toList();

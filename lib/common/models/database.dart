@@ -11,8 +11,9 @@ import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
-import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
+import 'package:mon_stage_en_images/common/providers/all_student_answers.dart';
+import 'package:mon_stage_en_images/common/providers/all_teacher_answers.dart';
 
 export 'package:ezlogin/ezlogin.dart';
 
@@ -28,7 +29,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
   // Rerefence to the database providers
   final questions = AllQuestions();
-  final answers = AllAnswers();
+  final teacherAnswers = AllTeacherAnswers();
+  final studentAnswers = AllStudentAnswers();
 
   static const _currentDatabaseVersion = 'v0_1_0';
   static DatabaseReference get root =>
@@ -104,9 +106,11 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<void> _startFetchingData() async {
     // this should be call only after user has successfully logged in
 
-    bool startFetching = false;
     questions.pathToData = '';
-    answers.pathToData = '';
+    teacherAnswers.pathToData = '';
+    teacherAnswers.connectedStudents = null;
+    studentAnswers.pathToData = '';
+    studentAnswers.studentUser = null;
     switch (userType) {
       case UserType.none:
         break;
@@ -118,11 +122,12 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
           final teacherId =
               await TeachingTokenHelpers.creatorIdOf(token: token);
-          questions.pathToData =
-              '$_currentDatabaseVersion/questions/$teacherId';
-          answers.pathToData = '$_currentDatabaseVersion/answers/$token';
-          answers.students = null;
-          startFetching = true;
+          await studentAnswers.initializeFetchingData(
+              pathToData:
+                  '$_currentDatabaseVersion/answers/$token/${_currentUser!.id}',
+              studentUser: _currentUser!);
+          await questions.initializeFetchingData(
+              pathToData: '$_currentDatabaseVersion/questions/$teacherId');
           break;
         }
       case UserType.teacher:
@@ -130,22 +135,20 @@ class Database extends EzloginFirebase with ChangeNotifier {
           final token = await TeachingTokenHelpers.createdActiveToken(
               userId: _currentUser!.id);
           if (token == null) break;
-
-          questions.pathToData =
-              '$_currentDatabaseVersion/questions/${_currentUser!.id}';
-          answers.pathToData = '$_currentDatabaseVersion/answers/$token';
-          answers.students = _students;
-          startFetching = true;
+          await teacherAnswers.initializeFetchingData(
+            pathToData: '$_currentDatabaseVersion/answers/$token',
+            connectedStudents: _students,
+          );
+          await questions.initializeFetchingData(
+              pathToData:
+                  '$_currentDatabaseVersion/questions/${_currentUser!.id}');
         }
     }
-
-    if (!startFetching) return;
-    await answers.initializeFetchingData();
-    await questions.initializeFetchingData();
   }
 
   Future<void> _stopFetchingData() async {
-    await answers.stopFetchingData();
+    await teacherAnswers.stopFetchingData();
+    await studentAnswers.stopFetchingData();
     await questions.stopFetchingData();
   }
 
@@ -240,8 +243,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   }
 
   ///
-  /// This method should only be called when a student connects to a teacher for the first time.
-  /// Otherwise, this will overwrite existing answers.
+  /// This method should be called when a student connects to a teacher.
   Future<void> initializeAnswersDatabase(
       {required String studentId, required String token}) async {
     // Make sure we have everything set up to fetch questions and send answers before proceeding
@@ -262,20 +264,20 @@ class Database extends EzloginFirebase with ChangeNotifier {
         .toList();
 
     // Reconfigure answers database provider
-    await answers.stopFetchingData();
-    answers.pathToData = '$_currentDatabaseVersion/answers/$token';
-    await answers.initializeFetchingData();
+    await studentAnswers.stopFetchingData();
+    await studentAnswers.initializeFetchingData(
+        pathToData: '$_currentDatabaseVersion/answers/$token/$studentId',
+        studentUser: _currentUser!);
 
     // Wait while answers are fetched
     await Future.delayed(const Duration(milliseconds: 2000));
 
     // Check if answers already exist for that student (reconnected student)
-    final studentAnswers = answers.firstWhereOrNull((a) => a.id == studentId);
-    questions.removeWhere((q) =>
-        studentAnswers?.answers.any((a) => a.questionId == q.id) == true);
+    questions.removeWhere(
+        (q) => studentAnswers.any((a) => a.questionId == q.id) == true);
 
     // Send the answers to the database
-    await answers.addAnswers(questions.map((e) => Answer(
+    await studentAnswers.addAnswers(questions.map((e) => Answer(
           isActive: e.defaultTarget == Target.all,
           actionRequired: ActionRequired.fromStudent,
           createdById: teacherId,
