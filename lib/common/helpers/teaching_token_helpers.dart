@@ -12,6 +12,11 @@ class TeachingTokenHelpers {
         .child(token)
         .child('metadata')
         .set({'createdBy': teacherId});
+    await Database.root
+        .child('tokens')
+        .child('existing')
+        .child(token)
+        .set(true);
 
     await Database.root
         .child('users')
@@ -31,6 +36,7 @@ class TeachingTokenHelpers {
       await disconnectFromToken(studentId, token);
     }
 
+    await Database.root.child('tokens').child('existing').child(token).remove();
     await Database.root.child('tokens').child(token).remove();
 
     await Database.root
@@ -113,7 +119,8 @@ class TeachingTokenHelpers {
   }
 
   static Future<Set<String>> _existingTokens() async {
-    final data = await Database.root.child('tokens').get();
+    // TODO Add exisiting from migration
+    final data = await Database.root.child('tokens').child('existing').get();
     return (data.value as Map?)?.keys.cast<String>().toSet() ?? {};
   }
 

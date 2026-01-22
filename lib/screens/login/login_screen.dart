@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _userType = SharedPreferencesController.instance.userType;
 
     // Try automatic connexion
-    _processConnexion(automaticConnexion: true, isUserNew: false);
+    _processConnexion(automaticConnexion: true);
   }
 
   void _showSnackbar() {
@@ -82,10 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _userType != UserType.none;
   }
 
-  Future<void> _processConnexion(
-      {required bool automaticConnexion, required bool isUserNew}) async {
+  Future<void> _processConnexion({required bool automaticConnexion}) async {
     setState(() => _status = EzloginStatus.waitingForLogin);
     final database = Provider.of<Database>(context, listen: false);
+    bool isANewTeacher = false;
 
     if (automaticConnexion) {
       if (database.currentUser == null) {
@@ -100,17 +100,13 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       _formKey.currentState!.save();
 
-      _status = await database
-          .login(
-              username: _emailController.text,
-              password: _passwordController.text,
-              userType: _userType)
-          .then(
-        (value) {
-          _logger.info("$value login is complete");
-          return value;
-        },
+      _status = await database.login(
+        username: _emailController.text,
+        password: _passwordController.text,
+        userType: _userType,
+        onNewTeacherConnected: () => isANewTeacher = true,
       );
+      _logger.info("$_status login is complete");
       if (_status != EzloginStatus.success) {
         _showSnackbar();
         setState(() {});
@@ -119,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
     }
 
-    if (isUserNew && _userType == UserType.teacher) {
+    if (isANewTeacher && _userType == UserType.teacher) {
       final questions = Provider.of<AllQuestions>(context, listen: false);
       for (final question in DefaultQuestion.questions) {
         questions.add(question);
@@ -195,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
 
-          await _processConnexion(automaticConnexion: false, isUserNew: true);
+          await _processConnexion(automaticConnexion: false);
           if (!context.mounted) return;
           Navigator.pop(context, true);
         }
@@ -444,8 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           autocorrect: false,
                           keyboardType: TextInputType.visiblePassword,
                           onFieldSubmitted: (_) => _canConnect
-                              ? _processConnexion(
-                                  automaticConnexion: false, isUserNew: false)
+                              ? _processConnexion(automaticConnexion: false)
                               : null,
                         ),
                         Align(
@@ -476,8 +471,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _canConnect
-                            ? () => _processConnexion(
-                                automaticConnexion: false, isUserNew: false)
+                            ? () => _processConnexion(automaticConnexion: false)
                             : null,
                         style: ElevatedButton.styleFrom(
                             backgroundColor:

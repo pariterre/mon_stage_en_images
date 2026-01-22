@@ -69,9 +69,7 @@ class StudentsScreenState extends State<StudentsScreen> {
         await TeachingTokenHelpers.createdActiveToken(userId: teacherId);
     if (!mounted) return;
     if (token == null) {
-      _showSnackbar(
-          const Text('Aucun code actif n\'a été trouvé pour ce compte'),
-          ScaffoldMessenger.of(context));
+      _generateNewToken();
       return;
     }
 

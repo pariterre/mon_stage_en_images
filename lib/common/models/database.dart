@@ -64,6 +64,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     Future<String?> Function()? getNewPassword,
     UserType userType = UserType.none,
     bool skipPostLogin = false,
+    Function()? onNewTeacherConnected,
   }) async {
     final status = await super.login(
         username: username,
@@ -72,23 +73,26 @@ class Database extends EzloginFirebase with ChangeNotifier {
         getNewPassword: getNewPassword);
     if (skipPostLogin || status != EzloginStatus.success) return status;
     _fromAutomaticLogin = false;
-    await _postLogin(userType: userType);
+    await _postLogin(
+        userType: userType, onNewTeacherConnected: onNewTeacherConnected);
     return status;
   }
 
-  Future<void> _postLogin({UserType? userType}) async {
+  Future<void> _postLogin(
+      {UserType? userType, Function()? onNewTeacherConnected}) async {
     _currentUser = await user(fireauth.FirebaseAuth.instance.currentUser!.uid);
 
     SharedPreferencesController.instance.userType =
         userType ?? SharedPreferencesController.instance.userType;
 
-    // For teachers, ensure they have an active token, otherwise create one
+    // For teachers, ensure they have an active token (i.e. they are new), otherwise create one
     if (userType == UserType.teacher &&
         await TeachingTokenHelpers.createdActiveToken(
                 userId: _currentUser!.id) ==
             null) {
       final token = await TeachingTokenHelpers.generateUniqueToken();
       await TeachingTokenHelpers.registerToken(_currentUser!.id, token);
+      if (onNewTeacherConnected != null) await onNewTeacherConnected();
     }
 
     await _fetchStudents();
@@ -189,8 +193,14 @@ class Database extends EzloginFirebase with ChangeNotifier {
         try {
           // Try writing a value to ensure we have access to the new database
           try {
-            await FirebaseDatabase.instance.ref('adminTester').set(true);
-            await FirebaseDatabase.instance.ref('adminTester').remove();
+            await FirebaseDatabase.instance
+                .ref('admin')
+                .child('tester')
+                .set(true);
+            await FirebaseDatabase.instance
+                .ref('admin')
+                .child('tester')
+                .remove();
             await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
             return null; // Migration is done, force reset
           } on Exception {
@@ -256,6 +266,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     answers.pathToData = '$_currentDatabaseVersion/answers/$token';
     await answers.initializeFetchingData();
 
+    // Wait while answers are fetched
     await Future.delayed(const Duration(milliseconds: 2000));
 
     // Check if answers already exist for that student (reconnected student)
@@ -289,8 +300,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
           final token = await TeachingTokenHelpers.createdActiveToken(
               userId: _currentUser!.id);
 
-          final connectedStudentIds =
-              await TeachingTokenHelpers.userIdsConnectedTo(token: token!);
+          final connectedStudentIds = token == null
+              ? <String>[]
+              : await TeachingTokenHelpers.userIdsConnectedTo(token: token);
           for (final id in connectedStudentIds) {
             final student = await user(id);
             if (student != null) _students.add(student);
