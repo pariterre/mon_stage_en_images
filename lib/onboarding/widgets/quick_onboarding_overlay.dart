@@ -10,10 +10,12 @@ class QuickOnboardingOverlay extends StatefulWidget {
   const QuickOnboardingOverlay({
     super.key,
     this.widgetContext,
+    this.onTap,
     required this.child,
   });
 
   final BuildContext? widgetContext;
+  final Function()? onTap;
   final Widget child;
 
   @override
@@ -49,19 +51,22 @@ class _QuickOnboardingOverlayState extends State<QuickOnboardingOverlay>
       }
     }
 
-    return Stack(
-      children: [
-        widget.child,
-        if (isReady)
-          ClipPath(
-              clipper: HoleClipper(holeRect: rectToClip),
-              child: Container(
-                decoration:
-                    BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
-                height: double.infinity,
-                width: double.infinity,
-              )),
-      ],
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Stack(
+        children: [
+          widget.child,
+          if (isReady)
+            ClipPath(
+                clipper: HoleClipper(holeRect: rectToClip),
+                child: Container(
+                  decoration:
+                      BoxDecoration(color: Colors.black.withValues(alpha: 0.6)),
+                  height: double.infinity,
+                  width: double.infinity,
+                )),
+        ],
+      ),
     );
   }
 }
