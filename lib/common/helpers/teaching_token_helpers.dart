@@ -119,7 +119,6 @@ class TeachingTokenHelpers {
   }
 
   static Future<Set<String>> _existingTokens() async {
-    // TODO Add exisiting from migration
     final data = await Database.root.child('tokens').child('existing').get();
     return (data.value as Map?)?.keys.cast<String>().toSet() ?? {};
   }
