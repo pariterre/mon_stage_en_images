@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
@@ -27,8 +28,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
   static const String _userPathInternal = 'users';
   Database() : super(usersPath: '$_currentDatabaseVersion/$_userPathInternal');
 
-  // Rerefence to the database providers
-  final questions = AllQuestions();
+  // Rerefence to the database provider
+  late final questions =
+      AllQuestions(onConnectionStateChanged: _onConnectionStateChanged);
   final teacherAnswers = AllTeacherAnswers();
   final studentAnswers = AllStudentAnswers();
 
@@ -101,6 +103,19 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await _startFetchingData();
 
     notifyListeners();
+  }
+
+  Future<void> _onConnectionStateChanged(bool isActive) async {
+    //
+    if (isActive) return;
+
+    _logger.warning('Lost connection to the database, logging out user.');
+    await logout();
+
+    if (RouteManager.instance.navigatorKey.currentContext == null) return;
+    RouteManager.instance
+        .gotoLoginPage(RouteManager.instance.navigatorKey.currentContext!);
+    return;
   }
 
   Future<void> _startFetchingData() async {

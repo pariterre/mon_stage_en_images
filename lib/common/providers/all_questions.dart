@@ -10,7 +10,8 @@ class AllQuestions extends FirebaseListProvided<Question> with Section {
   // Constructors and (de)serializer
   static const String dataName = 'questions';
 
-  AllQuestions() : super(pathToData: dataName);
+  AllQuestions({required super.onConnectionStateChanged})
+      : super(pathToData: dataName);
 
   @override
   Question deserializeItem(data) => Question.fromSerialized(data);

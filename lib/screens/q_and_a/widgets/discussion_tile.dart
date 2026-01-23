@@ -131,13 +131,14 @@ class DiscussionTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(discussion.creationTimeStamp.toFullDateFromEpoch()),
+                const SizedBox(width: 8),
                 if (discussion.creatorId == currentUser.id && isLast) ...[
                   Icon(
                     Icons.check,
                     color: Colors.blueGrey.withAlpha(150),
                     size: 12,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 2),
                   Text(
                     'envoyé',
                     style: TextStyle(color: Colors.blueGrey.withAlpha(150)),

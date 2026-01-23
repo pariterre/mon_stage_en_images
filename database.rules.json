@@ -1,5 +1,9 @@
 {
   "rules": {
+    "isConnected": {
+      ".read": true,
+      ".write": false
+    },
     "appInfo": {
       ".read": true,
       ".write": false
@@ -8,8 +12,8 @@
       "ids": {
         ".read": false,
         ".write": false
-      }, 
-      "tester":{
+      },
+      "tester": {
         ".read": " root.child('admin/ids').hasChild(auth.uid)",
         ".write": " root.child('admin/ids').hasChild(auth.uid)"
       }
@@ -58,7 +62,7 @@
         }
       },
       "tokens": {
-        "existing" : {
+        "existing": {
           ".read": "   auth.uid !== null",
           "$token": {
             ".write": "auth.uid === root.child('v0_1_0/tokens/' + $token + '/metadata/createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
