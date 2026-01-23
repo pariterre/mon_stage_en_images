@@ -29,7 +29,8 @@ class DiscussionTile extends StatelessWidget {
         builder: (context) => GestureDetector(
               onTap: () => Navigator.pop(context),
               child: AlertDialog(
-                  content: Image.memory(imageData, fit: BoxFit.contain)),
+                  content: InteractiveViewer(
+                      child: Image.memory(imageData, fit: BoxFit.contain))),
             ));
   }
 
