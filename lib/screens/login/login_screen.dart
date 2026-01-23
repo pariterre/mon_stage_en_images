@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
@@ -154,6 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String lastName = '';
     String email = _emailController.text;
     String password = _passwordController.text;
+    String avatar = User.randomEmoji;
     String? errorEmail;
     final focusNodes = FocusNodes()
       ..add('firstName')
@@ -183,6 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 firstName: firstName,
                 lastName: lastName,
                 email: _emailController.text,
+                avatar: avatar,
                 studentNotes: {},
                 termsAndServicesAccepted: false,
                 creationDate: DateTime.now(),
@@ -213,110 +216,135 @@ class _LoginScreenState extends State<LoginScreen> {
               child: StatefulBuilder(
                 builder: (context, setState) {
                   setStateForm = setState;
-                  return SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: 12),
-                        TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: 'Prénom'),
-                          focusNode: focusNodes['firstName'],
-                          onChanged: (value) => firstName = value,
-                          validator: (value) => value == null || value.isEmpty
-                              ? 'Inscrire un prénom'
-                              : null,
-                          onEditingComplete: () => focusNodes.next(),
-                        ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                              labelText: 'Nom de famille'),
-                          focusNode: focusNodes['lastName'],
-                          onChanged: (value) => lastName = value,
-                          validator: (value) {
-                            return value == null || value.isEmpty
-                                ? 'Inscrire un nom de famille'
-                                : null;
-                          },
-                          onEditingComplete: () => focusNodes.next(),
-                        ),
-                        SizedBox(height: 8),
-                        Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Je suis un(e) :',
-                                style: TextStyle(fontSize: 16))),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Prénom'),
+                        focusNode: focusNodes['firstName'],
+                        onChanged: (value) => firstName = value,
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Inscrire un prénom'
+                            : null,
+                        onEditingComplete: () => focusNodes.next(),
+                      ),
+                      SizedBox(height: 12),
+                      TextFormField(
+                        decoration:
+                            const InputDecoration(labelText: 'Nom de famille'),
+                        focusNode: focusNodes['lastName'],
+                        onChanged: (value) => lastName = value,
+                        validator: (value) {
+                          return value == null || value.isEmpty
+                              ? 'Inscrire un nom de famille'
+                              : null;
+                        },
+                        onEditingComplete: () => focusNodes.next(),
+                      ),
+                      SizedBox(height: 8),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Je suis un(e) :',
+                              style: TextStyle(fontSize: 16))),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _RadioTile(
+                            value: UserType.student,
+                            groupValue: _userType,
+                            label: 'Élève',
+                            onChanged: (value) {
+                              _changeTypeSelection(value);
+                              if (setStateForm != null) setStateForm!(() {});
+                            },
+                            selectedColor: studentTheme().colorScheme.primary,
+                          ),
+                          _RadioTile(
+                            value: UserType.teacher,
+                            groupValue: _userType,
+                            label: 'Enseignant(e)',
+                            onChanged: (value) {
+                              _changeTypeSelection(value);
+                              if (setStateForm != null) setStateForm!(() {});
+                            },
+                            selectedColor: teacherTheme().colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
                           children: [
-                            _RadioTile(
-                              value: UserType.student,
-                              groupValue: _userType,
-                              label: 'Élève',
-                              onChanged: (value) {
-                                _changeTypeSelection(value);
-                                if (setStateForm != null) setStateForm!(() {});
-                              },
-                              selectedColor: studentTheme().colorScheme.primary,
-                            ),
-                            _RadioTile(
-                              value: UserType.teacher,
-                              groupValue: _userType,
-                              label: 'Enseignant(e)',
-                              onChanged: (value) {
-                                _changeTypeSelection(value);
-                                if (setStateForm != null) setStateForm!(() {});
-                              },
-                              selectedColor: teacherTheme().colorScheme.primary,
-                            ),
+                            Text('Mon avatar actuel : ',
+                                style: TextStyle(fontSize: 16)),
+                            Text(avatar, style: TextStyle(fontSize: 24)),
                           ],
                         ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          decoration: InputDecoration(
-                              labelText: 'Courriel', errorText: errorEmail),
-                          initialValue: email,
-                          focusNode: focusNodes['email'],
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          onChanged: (value) => email = value,
-                          validator: (value) {
-                            errorEmail = Helpers.emailValidator(value);
-                            return errorEmail;
-                          },
-                          onEditingComplete: () => focusNodes.next(),
-                        ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: 'Mot de passe'),
-                          initialValue: password,
-                          focusNode: focusNodes['password'],
-                          obscureText: true,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          keyboardType: TextInputType.visiblePassword,
-                          onChanged: (value) => password = value,
-                          validator: Helpers.passwordValidator,
-                          onEditingComplete: () => focusNodes.next(),
-                        ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                              labelText: 'Confirmer le mot de passe'),
-                          focusNode: focusNodes['passwordConfirmation'],
-                          obscureText: true,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          keyboardType: TextInputType.visiblePassword,
-                          validator: (value) =>
-                              Helpers.passwordConfirmationValidator(
-                                  password, value),
-                          onFieldSubmitted: (_) async => await confirm(),
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: 8),
+                      SizedBox(
+                          height: 200,
+                          width: 300,
+                          child: EmojiPicker(
+                            onEmojiSelected: (category, emoji) {
+                              avatar = emoji.emoji;
+                              if (setStateForm != null) setStateForm!(() {});
+                            },
+                            config: Config(
+                                bottomActionBarConfig: BottomActionBarConfig(
+                                    showBackspaceButton: false,
+                                    buttonColor:
+                                        studentTheme().colorScheme.primary,
+                                    backgroundColor:
+                                        studentTheme().colorScheme.primary)),
+                          )),
+                      SizedBox(height: 12),
+                      TextFormField(
+                        decoration: InputDecoration(
+                            labelText: 'Courriel', errorText: errorEmail),
+                        initialValue: email,
+                        focusNode: focusNodes['email'],
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        onChanged: (value) => email = value,
+                        validator: (value) {
+                          errorEmail = Helpers.emailValidator(value);
+                          return errorEmail;
+                        },
+                        onEditingComplete: () => focusNodes.next(),
+                      ),
+                      SizedBox(height: 12),
+                      TextFormField(
+                        decoration:
+                            const InputDecoration(labelText: 'Mot de passe'),
+                        initialValue: password,
+                        focusNode: focusNodes['password'],
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        keyboardType: TextInputType.visiblePassword,
+                        onChanged: (value) => password = value,
+                        validator: Helpers.passwordValidator,
+                        onEditingComplete: () => focusNodes.next(),
+                      ),
+                      SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                            labelText: 'Confirmer le mot de passe'),
+                        focusNode: focusNodes['passwordConfirmation'],
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        keyboardType: TextInputType.visiblePassword,
+                        validator: (value) =>
+                            Helpers.passwordConfirmationValidator(
+                                password, value),
+                        onFieldSubmitted: (_) async => await confirm(),
+                      ),
+                    ],
                   );
                 },
               ),

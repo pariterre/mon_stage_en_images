@@ -3,6 +3,7 @@ import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,17 @@ class MyInfoScreenState extends State<MyInfoScreen> {
   PreferredSizeWidget _setAppBar() {
     return ResponsiveService.appBarOf(
       context,
-      title: const Text('Mes informations'),
+      title: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: AvatarTab(
+                user:
+                    Provider.of<Database>(context, listen: false).currentUser!),
+          ),
+          const Text('Mes informations'),
+        ],
+      ),
       leading: IconButton(
         icon: Icon(Icons.menu),
         onPressed: () {
@@ -78,6 +89,15 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                   Text(user.email, style: TextStyle(fontSize: fontSize)),
                 ],
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text('Mon avatar : ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: fontSize)),
+                  Text(user.avatar, style: TextStyle(fontSize: fontSize)),
+                ],
+              ),
               const SizedBox(height: 12),
               Center(
                 child: Wrap(
@@ -95,7 +115,6 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                                     user: user,
                                   ));
                         },
-                        // TODO Give a shot to using text based avatars
                         child: Text('Modifier mes informations')),
                     ElevatedButton(
                         onPressed: () async {

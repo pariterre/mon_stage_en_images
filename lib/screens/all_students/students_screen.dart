@@ -8,6 +8,7 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
+import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
@@ -250,7 +251,17 @@ class StudentsScreenState extends State<StudentsScreen> {
   PreferredSizeWidget _setAppBar() {
     return ResponsiveService.appBarOf(
       context,
-      title: const Text('Mes élèves'),
+      title: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: AvatarTab(
+                user:
+                    Provider.of<Database>(context, listen: false).currentUser!),
+          ),
+          const Text('Mes élèves'),
+        ],
+      ),
       leading: IconButton(
         icon: Icon(Icons.menu),
         onPressed: () {

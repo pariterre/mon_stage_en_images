@@ -5,6 +5,7 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
+import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/taking_action_notifier.dart';
 import 'package:provider/provider.dart';
 
@@ -34,8 +35,17 @@ class StudentListTile extends StatelessWidget {
     return Card(
       elevation: 5,
       child: ListTile(
-        title: Text(student?.toString() ?? '',
-            style: const TextStyle(fontSize: 20)),
+        title: Row(
+          children: [
+            if (student != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: AvatarTab(user: student),
+              ),
+            Text(student?.toString() ?? '',
+                style: const TextStyle(fontSize: 20)),
+          ],
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

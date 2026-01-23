@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
@@ -32,18 +33,22 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
       TextEditingController(text: widget.user.firstName);
   late final _lastNameController =
       TextEditingController(text: widget.user.lastName);
+  late final _avatarController =
+      TextEditingController(text: widget.user.avatar);
   late final _emailController = TextEditingController(text: widget.user.email);
 
-  late final _noteController = TextEditingController(
-      text: Provider.of<Database>(context, listen: false)
-          .currentUser
-          ?.studentNotes[widget.user.id]);
+  late final TextEditingController _noteController;
 
   final _focusNodes = FocusNodes();
 
   @override
   void initState() {
     super.initState();
+
+    _noteController = TextEditingController(
+        text: Provider.of<Database>(context, listen: false)
+            .currentUser
+            ?.studentNotes[widget.user.id]);
 
     if (widget.editInformation) {
       _focusNodes.add('firstName');
@@ -59,11 +64,11 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _avatarController.dispose();
     _emailController.dispose();
     _noteController.dispose();
 
     _focusNodes.dispose();
-
     super.dispose();
   }
 
@@ -112,6 +117,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
           widget.editInformation ? _firstNameController.text : user.firstName,
       lastName:
           widget.editInformation ? _lastNameController.text : user.lastName,
+      avatar: widget.editInformation ? _avatarController.text : user.avatar,
       email: widget.editInformation ? _emailController.text : user.email,
       studentNotes: {
         ...user.studentNotes,
@@ -173,6 +179,44 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                               ),
                             ),
                           ],
+                        ),
+                        StatefulBuilder(
+                          builder: (context, setStateEmoji) => Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Row(
+                                  children: [
+                                    Text('Mon avatar actuel : ',
+                                        style: TextStyle(fontSize: 16)),
+                                    Text(_avatarController.text,
+                                        style: TextStyle(fontSize: 24)),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              SizedBox(
+                                  height: 200,
+                                  width: 300,
+                                  child: EmojiPicker(
+                                    onEmojiSelected: (category, emoji) {
+                                      _avatarController.text = emoji.emoji;
+                                      if (mounted) setStateEmoji(() {});
+                                    },
+                                    config: Config(
+                                        bottomActionBarConfig:
+                                            BottomActionBarConfig(
+                                                showBackspaceButton: false,
+                                                buttonColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary)),
+                                  )),
+                            ],
+                          ),
                         ),
                       ],
                     )
@@ -265,7 +309,9 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                               ),
                             ),
                           ),
-                          onCancelled: () => Navigator.pop(context, false),
+                          onCancelled: () {
+                            if (mounted) Navigator.pop(context, false);
+                          },
                           onConfirmed: _validatePasswordDialogForm,
                         );
                       },

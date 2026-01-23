@@ -12,6 +12,7 @@ import 'package:mon_stage_en_images/common/models/section.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
+import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_container.dart';
@@ -389,29 +390,38 @@ class QAndAScreenState extends State<QAndAScreen> {
 
     return ResponsiveService.appBarOf(
       context,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: Row(
         children: [
-          OnboardingContainer(
-            onInitialize: (context) =>
-                OnboardingContexts.instance['q_and_a_app_bar_title'] = context,
-            child: Text(_student?.toString() ??
-                (_pageMode == PageMode.fixView
-                    ? 'Résumé des réponses'
-                    : 'Gestion des questions')),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: AvatarTab(user: currentUser!),
           ),
-          if (userType == UserType.student)
-            Text(
-                _currentPage == 0
-                    ? "Mon stage en images"
-                    : Section.name(_currentPage - 1),
-                style:
-                    currentTheme.copyWith(fontSize: 15, color: onPrimaryColor)),
-          if (userType == UserType.teacher && _student != null)
-            Text(
-              currentUser?.studentNotes[_student!.id] ?? '',
-              style: currentTheme.copyWith(fontSize: 15, color: onPrimaryColor),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              OnboardingContainer(
+                onInitialize: (context) => OnboardingContexts
+                    .instance['q_and_a_app_bar_title'] = context,
+                child: Text(_student?.toString() ??
+                    (_pageMode == PageMode.fixView
+                        ? 'Résumé des réponses'
+                        : 'Gestion des questions')),
+              ),
+              if (userType == UserType.student)
+                Text(
+                    _currentPage == 0
+                        ? 'Mon stage en images'
+                        : Section.name(_currentPage - 1),
+                    style: currentTheme.copyWith(
+                        fontSize: 15, color: onPrimaryColor)),
+              if (userType == UserType.teacher && _student != null)
+                Text(
+                  currentUser.studentNotes[_student!.id] ?? '',
+                  style: currentTheme.copyWith(
+                      fontSize: 15, color: onPrimaryColor),
+                ),
+            ],
+          ),
         ],
       ),
       leading: _currentPage != 0 ? BackButton(onPressed: _onBackPressed) : null,
