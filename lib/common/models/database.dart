@@ -281,7 +281,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
 
     // Send the answers to the database
     await studentAnswers.addAnswers(questions.map((e) => Answer(
-          isActive: e.defaultTarget == Target.all,
+          isActive: false,
           actionRequired: ActionRequired.fromStudent,
           createdById: teacherId,
           studentId: studentId,
