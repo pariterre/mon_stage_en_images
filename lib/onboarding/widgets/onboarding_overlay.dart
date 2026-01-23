@@ -46,6 +46,12 @@ class OnboardingController {
     _currentIndex--;
     await _overlayState!._navToStepAndRefresh();
   }
+
+  Future<void> _terminateOnboarding() async {
+    // TODO Fix onboarding termination flow
+    _currentIndex = steps.length;
+    await _showNextStep();
+  }
 }
 
 /// Main orchestrator for the Onboarding feature. Listens to conditions for showing the onboarding sequence
@@ -55,12 +61,10 @@ class OnboardingOverlay extends StatefulWidget {
     super.key,
     required this.child,
     required this.controller,
-    this.showDebugOptions = false,
   });
 
   final Widget child;
   final OnboardingController controller;
-  final bool showDebugOptions;
 
   @override
   State<OnboardingOverlay> createState() => _OnboardingOverlayState();
@@ -126,16 +130,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
           onBackward: widget.controller._currentIndex > 0
               ? () async => await widget.controller._showPreviousStep()
               : null,
+          onboardingTerminationRequest: () async => await widget.controller
+              ._terminateOnboarding(), // Allowing the user to quit the onboarding
           isLastStep: widget.controller._currentIndex ==
               widget.controller.steps.length - 1,
-        ),
-      // Shortcut to complete the onboarding
-      if (widget.showDebugOptions)
-        Center(
-          child: FloatingActionButton(
-            onPressed: widget.controller.onOnboardingCompleted,
-            child: Icon(Icons.check),
-          ),
         ),
     ]);
   }

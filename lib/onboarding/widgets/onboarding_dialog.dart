@@ -13,6 +13,7 @@ class OnboardingDialog extends StatefulWidget {
     required this.onboardingStep,
     required this.onForward,
     required this.onBackward,
+    required this.onboardingTerminationRequest,
     required this.isLastStep,
   });
 
@@ -20,6 +21,7 @@ class OnboardingDialog extends StatefulWidget {
 
   final void Function() onForward;
   final void Function()? onBackward;
+  final void Function() onboardingTerminationRequest;
 
   final bool isLastStep;
 
@@ -84,57 +86,76 @@ class _OnboardingDialogState extends State<OnboardingDialog>
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                     width: 4, color: Theme.of(context).primaryColor)),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                spacing: 12,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.onboardingStep.message,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall!
-                          .copyWith(color: Theme.of(context).cardColor)),
-                  SizedBox(height: 4),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Wrap(
-                      spacing: 12,
-                      runAlignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.spaceEvenly,
-                      children: [
-                        if (widget.onBackward != null)
-                          OutlinedButton.icon(
-                              onPressed: () => widget.onBackward!(),
-                              iconAlignment: IconAlignment.start,
-                              icon: Icon(Icons.keyboard_arrow_left_sharp),
-                              label: Text(
-                                'Précédent',
-                                style: TextStyle(
-                                    fontSize: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .fontSize),
-                              )),
-                        FilledButton.icon(
-                          onPressed: () => widget.onForward(),
-                          label: Text(
-                              widget.isLastStep ? 'Terminer' : 'Suivant',
+            child: Column(
+              spacing: 12,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                        child: Text(widget.onboardingStep.message,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(color: Theme.of(context).cardColor)),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextButton(
+                          onPressed: () =>
+                              widget.onboardingTerminationRequest(),
+                          child: Text('X',
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.right)),
+                    )
+                  ],
+                ),
+                SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    spacing: 12,
+                    runAlignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.spaceEvenly,
+                    children: [
+                      if (widget.onBackward != null)
+                        OutlinedButton.icon(
+                            onPressed: () => widget.onBackward!(),
+                            iconAlignment: IconAlignment.start,
+                            icon: Icon(Icons.keyboard_arrow_left_sharp),
+                            label: Text(
+                              'Précédent',
                               style: TextStyle(
                                   fontSize: Theme.of(context)
                                       .textTheme
                                       .bodyLarge!
-                                      .fontSize)),
-                          icon: Icon(Icons.keyboard_arrow_right_sharp),
-                          iconAlignment: IconAlignment.end,
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                                      .fontSize),
+                            )),
+                      FilledButton.icon(
+                        onPressed: () => widget.onForward(),
+                        label: Text(widget.isLastStep ? 'Terminer' : 'Suivant',
+                            style: TextStyle(
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .fontSize)),
+                        icon: Icon(Icons.keyboard_arrow_right_sharp),
+                        iconAlignment: IconAlignment.end,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 12.0),
+              ],
             ),
           ),
         )
