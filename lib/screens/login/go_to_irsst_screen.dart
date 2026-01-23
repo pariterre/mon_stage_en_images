@@ -10,11 +10,11 @@ class GoToIrsstScreen extends StatelessWidget {
 
   static const routeName = '/go-to-irsst-screen';
 
-  static final url = Uri(
+  // TODO Confirm the link
+  static final learnAboutSstUri = Uri(
     scheme: 'https',
-    host: 'www.irsst.qc.ca',
-    path:
-        'publications-et-outils/publication/i/101076/n/sst-supervision-de-stages-',
+    host: 'monstageenimages.adoprevit.org',
+    path: 'resources/ApprendreSST.pdf',
   );
 
   @override
@@ -37,9 +37,9 @@ class GoToIrsstScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () async => await launchUrl(url),
+                  onPressed: () async => await launchUrl(learnAboutSstUri),
                   style: studentTheme().elevatedButtonTheme.style,
-                  child: const Text('Visiter le site web'),
+                  child: const Text('Accéder au PDF'),
                 ),
                 ElevatedButton(
                     onPressed: () {

@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
+import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -129,13 +130,39 @@ class MainDrawer extends StatelessWidget {
                 onInitialize: (context) =>
                     OnboardingContexts.instance['drawer_info_button'] = context,
                 child: MenuItem(
-                  title: 'Apprendre sur la SST',
+                  title: 'Idées de questions',
                   icon: Icons.web,
                   onTap: () async {
-                    await launchUrl(GoToIrsstScreen.url);
+                    await launchUrl(MainMetierPage.questionIdeasUri);
                     if (!context.mounted) return;
                     if (canPop) Navigator.of(context).pop();
                   },
+                  iconOnly: iconOnly,
+                ),
+              ),
+            if (userType == UserType.teacher)
+              OnboardingContainer(
+                onInitialize: (context) =>
+                    OnboardingContexts.instance['drawer_info_button'] = context,
+                child: MenuItem(
+                  title: 'Apprendre sur la SST',
+                  icon: Icons.web,
+                  onTap: () async {
+                    await launchUrl(GoToIrsstScreen.learnAboutSstUri);
+                    if (!context.mounted) return;
+                    if (canPop) Navigator.of(context).pop();
+                  },
+                  iconOnly: iconOnly,
+                ),
+              ),
+            if (userType == UserType.teacher)
+              OnboardingContainer(
+                onInitialize: (context) =>
+                    OnboardingContexts.instance['drawer_info_button'] = context,
+                child: MenuItem(
+                  title: 'Apprendre sur METIER',
+                  icon: Icons.web,
+                  onTap: null, // TODO Ask for this pdf
                   iconOnly: iconOnly,
                 ),
               ),

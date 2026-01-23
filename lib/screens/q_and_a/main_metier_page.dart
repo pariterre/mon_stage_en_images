@@ -17,6 +17,12 @@ class MainMetierPage extends StatelessWidget {
   });
 
   static const routeName = '/main-metier-page';
+  static final questionIdeasUri = Uri(
+    scheme: 'https',
+    host: 'monstageenimages.adoprevit.org',
+    path: 'resources/QuestionsSupplementaires.pdf',
+  );
+
   final User? student;
   final Function(int) onPageChanged;
 
@@ -60,11 +66,7 @@ class MainMetierPage extends StatelessWidget {
                           color: Colors.black,
                           decoration: TextDecoration.underline),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(Uri(
-                              scheme: 'http',
-                              host: 'adoprevit.org',
-                              path: 'ressources',
-                            )),
+                        ..onTap = () => launchUrl(questionIdeasUri),
                       text: 'cliquant ici',
                     ),
                     const TextSpan(
