@@ -95,6 +95,7 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                                     user: user,
                                   ));
                         },
+                        // TODO Give a shot to using text based avatars
                         child: Text('Modifier mes informations')),
                     ElevatedButton(
                         onPressed: () async {

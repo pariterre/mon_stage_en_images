@@ -95,9 +95,9 @@ class _ForgotPasswordAlertDialogState extends State<ForgotPasswordAlertDialog> {
                     decoration: InputDecoration(
                         labelText: 'Adresse courriel', errorMaxLines: 3),
                     initialValue: widget.email,
-                    validator: (value) {
-                      return _validationError;
-                    },
+                    validator: (value) => _validationError,
+                    autocorrect: false,
+                    keyboardType: TextInputType.emailAddress,
                     onSaved: (value) async {
                       _email = value;
                       _validationError = Helpers.emailValidator(value);

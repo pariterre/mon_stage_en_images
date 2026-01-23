@@ -14,8 +14,9 @@
         {
             "name": "Mon stage en images",
             "request": "launch",
+            "program": "lib/main.dart",
             "type": "dart",
-             "args": [
+            "args": [
                 "--dart-define=MSEI_USE_EMULATOR=true"
             ],
         },
@@ -23,6 +24,7 @@
             "name": "Mon stage en images (with emulator)",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
             "preLaunchTask": "Open Firebase Emulator Console",
             "args": [
                 "--dart-define=MSEI_USE_EMULATOR=true"

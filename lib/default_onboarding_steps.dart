@@ -9,6 +9,7 @@ import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 
 // TODO Add a quit button to the onboarding steps
+// TODO Navigate to My students when done
 class OnboardingContexts {
   // Singleton pattern
   OnboardingContexts._();

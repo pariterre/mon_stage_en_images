@@ -279,6 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           initialValue: email,
                           focusNode: focusNodes['email'],
                           keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
                           onChanged: (value) => email = value,
                           validator: (value) {
                             errorEmail = Helpers.emailValidator(value);
@@ -408,9 +409,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration:
                               const InputDecoration(labelText: 'Courriel'),
                           focusNode: _focusNodes['email'],
-                          validator: (value) => value == null || value.isEmpty
-                              ? 'Inscrire un courriel'
-                              : null,
+                          autocorrect: false,
+                          validator: Helpers.emailValidator,
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           onFieldSubmitted: (_) => _focusNodes.next(),
