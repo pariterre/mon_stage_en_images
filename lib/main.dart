@@ -31,7 +31,8 @@ void main() async {
   const useEmulator =
       bool.fromEnvironment('MSEI_USE_EMULATOR', defaultValue: false);
   await SharedPreferencesController.instance.initialize();
-  final userDatabase = Database();
+  final userDatabase =
+      Database(onConnectionStateChanged: _onConnectionStateChanged);
   await userDatabase.initialize(
       useEmulator: useEmulator,
       currentPlatform: DefaultFirebaseOptions.currentPlatform);
@@ -120,5 +121,35 @@ class MyApp extends StatelessWidget {
         );
       }),
     );
+  }
+}
+
+bool _isShowingNotConnectedDialog = false;
+Future<void> _onConnectionStateChanged(bool isActive) async {
+  // If we are not on any page, do nothing more
+  if (RouteManager.instance.navigatorKey.currentContext == null) return;
+  final context = RouteManager.instance.navigatorKey.currentContext!;
+
+  // Show a blocking dialog if the connection is lost
+  if (isActive) {
+    if (_isShowingNotConnectedDialog) {
+      _isShowingNotConnectedDialog = false;
+      Navigator.of(context).pop();
+    }
+  } else {
+    _isShowingNotConnectedDialog = true;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Connexion perdue'),
+          content: const Text(
+              'La connexion au serveur a été perdue. Veuillez vérifier votre connexion internet.'),
+        );
+      },
+    );
+
+    return;
   }
 }
