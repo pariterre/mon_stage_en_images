@@ -83,9 +83,16 @@ abstract class AllAnswers {
   /// [answers] is the list of answers to check
   /// [context] is required to get the current user
   static int numberNeedStudentActionFrom(
-          Iterable<Answer> answers, BuildContext context) =>
-      answers.fold(
-          0,
-          (int prev, e) =>
-              prev + (e.action(context) == ActionRequired.fromStudent ? 1 : 0));
+      Iterable<Answer> answers, BuildContext context) {
+    final from =
+        switch (Provider.of<Database>(context, listen: false).userType) {
+      UserType.student => ActionRequired.fromStudent,
+      UserType.teacher => ActionRequired.fromTeacher,
+      UserType.none =>
+        throw 'numberNeedStudentActionFrom can only be called for UserType.student or UserType.teacher'
+    };
+
+    return answers.fold(
+        0, (int prev, e) => prev + (e.action(context) == from ? 1 : 0));
+  }
 }
