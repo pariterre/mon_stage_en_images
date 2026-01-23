@@ -126,19 +126,15 @@ class MainDrawer extends StatelessWidget {
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) =>
-                    OnboardingContexts.instance['drawer_info_button'] = context,
-                child: MenuItem(
-                  title: 'Idées de questions',
-                  icon: Icons.web,
-                  onTap: () async {
-                    await launchUrl(MainMetierPage.questionIdeasUri);
-                    if (!context.mounted) return;
-                    if (canPop) Navigator.of(context).pop();
-                  },
-                  iconOnly: iconOnly,
-                ),
+              MenuItem(
+                title: 'Idées de questions',
+                icon: Icons.web,
+                onTap: () async {
+                  await launchUrl(MainMetierPage.questionIdeasUri);
+                  if (!context.mounted) return;
+                  if (canPop) Navigator.of(context).pop();
+                },
+                iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher)
               OnboardingContainer(
@@ -156,15 +152,11 @@ class MainDrawer extends StatelessWidget {
                 ),
               ),
             if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) =>
-                    OnboardingContexts.instance['drawer_info_button'] = context,
-                child: MenuItem(
-                  title: 'Apprendre sur METIER',
-                  icon: Icons.web,
-                  onTap: null, // TODO Ask for this pdf
-                  iconOnly: iconOnly,
-                ),
+              MenuItem(
+                title: 'Apprendre sur METIER',
+                icon: Icons.web,
+                onTap: null, // TODO Ask for this pdf
+                iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)

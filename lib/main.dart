@@ -46,7 +46,7 @@ void main() async {
       await OnboardingContexts.instance.prepareForOnboarding();
     },
     onOnboardingCompleted: () async =>
-        SharedPreferencesController.instance.hasSeenTeacherOnboarding = true,
+        await OnboardingContexts.instance.finilizeOnboarding(),
   );
 
   // Run the app

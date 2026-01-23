@@ -9,7 +9,6 @@ import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 
 // TODO Add a quit button to the onboarding steps
-// TODO Navigate to My students when done
 class OnboardingContexts {
   // Singleton pattern
   OnboardingContexts._();
@@ -62,6 +61,22 @@ class OnboardingContexts {
   Future<void> prepareForOnboarding() async {
     OnboardingContexts.instance._isNavigating = true;
     await _navigateToPage(StudentsScreen.routeName);
+    OnboardingContexts.instance._isNavigating = false;
+  }
+
+  Future<void> finilizeOnboarding() async {
+    OnboardingContexts.instance._isNavigating = true;
+    SharedPreferencesController.instance.hasSeenTeacherOnboarding = true;
+    await _navigateToPage(StudentsScreen.routeName);
+
+    while (OnboardingContexts.instance['generate_code'] == null) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    OnboardingContexts.instance['generate_code']
+        ?.findAncestorStateOfType<StudentsScreenState>()
+        ?.closeDrawer();
+
     OnboardingContexts.instance._isNavigating = false;
   }
 

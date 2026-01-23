@@ -48,6 +48,11 @@ class StudentsScreenState extends State<StudentsScreen> {
   }
 
   void openDrawer() => scaffoldKey.currentState?.openDrawer();
+  void closeDrawer() {
+    if (isDrawerOpen != true) return;
+    Navigator.of(context).pop();
+  }
+
   bool? get isDrawerOpen => scaffoldKey.currentState?.isDrawerOpen;
 
   Future<void> _showCurrentToken() async {
