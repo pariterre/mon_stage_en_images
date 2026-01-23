@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
@@ -313,9 +314,7 @@ class QAndAScreenState extends State<QAndAScreen> {
     _newCodeDialogSetState = null;
     if (isSuccess != true) {
       if (mounted) {
-        final scaffold = ScaffoldMessenger.of(context);
-        _showSnackbar(
-            const Text('Connexion à un nouveau code annulée'), scaffold);
+        Helpers.showSnackbar(context, 'Connexion à un nouveau code annulée');
       }
       return;
     }
@@ -583,19 +582,6 @@ class QAndAScreenState extends State<QAndAScreen> {
       ),
     );
   }
-}
-
-void _showSnackbar(Widget content, ScaffoldMessengerState scaffold) {
-  scaffold.showSnackBar(
-    SnackBar(
-        content: content,
-        duration: const Duration(seconds: 10),
-        action: SnackBarAction(
-          label: 'Fermer',
-          textColor: Colors.white,
-          onPressed: scaffold.hideCurrentSnackBar,
-        )),
-  );
 }
 
 class UpperCaseTextFormatter extends TextInputFormatter {

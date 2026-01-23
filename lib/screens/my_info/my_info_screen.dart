@@ -104,10 +104,8 @@ class MyInfoScreenState extends State<MyInfoScreen> {
                                   const _ChangePasswordAlertDialog());
                           if (isSuccess != true) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          'Changement de mot de passe annulé')));
+                              Helpers.showSnackbar(
+                                  context, 'Changement de mot de passe annulé');
                             }
                           }
                         },
@@ -166,8 +164,7 @@ class _ChangePasswordAlertDialogState
     if (status == EzloginStatus.success) {
       if (!mounted) return;
       Navigator.of(context).pop(true);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mot de passe changé avec succès')));
+      Helpers.showSnackbar(context, 'Mot de passe changé avec succès');
       return;
     }
 

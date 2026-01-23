@@ -60,28 +60,26 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _showSnackbar() {
-    late final String message;
-    if (_status == EzloginStatus.waitingForLogin) {
-      message = '';
-    } else if (_status == EzloginStatus.cancelled) {
-      message = 'La connexion a été annulée';
-    } else if (_status == EzloginStatus.success) {
-      message = '';
-    } else if (_status == EzloginStatus.wrongUsername) {
-      message = 'Utilisateur non enregistré';
-    } else if (_status == EzloginStatus.wrongPassword) {
-      message = 'Mot de passe non reconnu';
-    } else {
-      message = 'Erreur de connexion inconnue';
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  void _showEzloginStatusSnackbar(EzloginStatus status) {
+    Helpers.showSnackbar(
+        context,
+        switch (status) {
+          EzloginStatus.none => '',
+          EzloginStatus.alreadyCreated => 'Compte déjà créé',
+          EzloginStatus.newUser => 'Nouveau compte créé avec succès',
+          EzloginStatus.wrongInfoWhileCreating =>
+            'Informations invalides pour la création du compte',
+          EzloginStatus.couldNotCreateUser => 'Impossible de créer le compte',
+          EzloginStatus.needAuthentication => 'Authentification requise',
+          EzloginStatus.userNotFound => "Utilisateur non trouvé",
+          EzloginStatus.wrongUsername => 'Nom d\'utilisateur incorrect',
+          EzloginStatus.wrongPassword => 'Mot de passe incorrect',
+          EzloginStatus.waitingForLogin => 'En attente de connexion...',
+          EzloginStatus.cancelled => 'Connexion annulée',
+          EzloginStatus.success => 'Connexion réussie',
+          EzloginStatus.unrecognizedError =>
+            'Erreur inconnue lors de la connexion',
+        });
   }
 
   bool get _canConnect {
@@ -116,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       _logger.info("$_status login is complete");
       if (_status != EzloginStatus.success) {
-        _showSnackbar();
+        _showEzloginStatusSnackbar(_status);
         setState(() {});
         return;
       }
@@ -142,13 +140,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ForgotPasswordAlertDialog(email: _emailController.text),
     ).then((response) {
       if (response != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(response
+        Helpers.showSnackbar(
+            context,
+            response
                 ? "Un courriel de réinitialisation a été envoyé à l'adresse fournie, si elle correspond à un compte utilisateur"
-                : "Une erreur est survenue, le courriel de réinitialisation n'a pas pu être envoyé."),
-            backgroundColor: response
-                ? Theme.of(context).snackBarTheme.backgroundColor
-                : Theme.of(context).colorScheme.error));
+                : "Une erreur est survenue, le courriel de réinitialisation n'a pas pu être envoyé.");
       }
     });
   }
@@ -329,10 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (isSuccess != true) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('L\'inscription a été annulée'),
-          duration: Duration(seconds: 5),
-        ));
+        Helpers.showSnackbar(context, 'L\'inscription a été annulée');
       }
       return;
     }

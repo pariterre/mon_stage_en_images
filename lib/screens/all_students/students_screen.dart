@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
@@ -23,19 +24,6 @@ class StudentsScreen extends StatefulWidget {
 
   @override
   State<StudentsScreen> createState() => StudentsScreenState();
-}
-
-void _showSnackbar(Widget content, ScaffoldMessengerState scaffold) {
-  scaffold.showSnackBar(
-    SnackBar(
-        content: content,
-        duration: const Duration(seconds: 10),
-        action: SnackBarAction(
-          label: 'Fermer',
-          textColor: Colors.white,
-          onPressed: scaffold.hideCurrentSnackBar,
-        )),
-  );
 }
 
 //StudentsScreenState is purposefully made public so onboarding can access its inner methods (like openDrawer)
@@ -82,14 +70,17 @@ class StudentsScreenState extends State<StudentsScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Text(
+                  'Communiquez le code suivant à vos élèves pour qu\'ils vous\n'
+                  'enregistrent comme enseignant(e).'),
+              const SizedBox(height: 20),
               Center(
                 child: SelectableText(
                   token,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
-              Text(
-                  'Les élèves peuvent utiliser ce code pour s\'inscrire à votre tableau.'),
             ],
           ),
           actions: <Widget>[
@@ -159,7 +150,8 @@ class StudentsScreenState extends State<StudentsScreen> {
               title: 'Générer un nouveau code ?',
               content:
                   'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
-                  'Ceci archivera les données des élèves ayant utilisé l\'ancien code.\n\n'
+                  'Réinitialiser votre code interrompt et archive la communication\n'
+                  'avec vos élèves enregistrés.\n\n'
                   'Entrez votre mot de passe pour confirmer :',
               extraContent: Padding(
                 padding: const EdgeInsets.only(top: 12.0),
@@ -193,8 +185,7 @@ class StudentsScreenState extends State<StudentsScreen> {
     _passwordDialogSetState = null;
     if (!mounted) return;
     if (isSuccess != true) {
-      final scaffold = ScaffoldMessenger.of(context);
-      _showSnackbar(const Text('Génération du nouveau code annulée'), scaffold);
+      Helpers.showSnackbar(context, 'Génération du nouveau code annulée');
       return;
     }
 
