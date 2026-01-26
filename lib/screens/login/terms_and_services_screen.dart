@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
@@ -36,40 +37,44 @@ class TermsAndServicesScreen extends StatelessWidget {
       body: Center(
         child: MainTitleBackground(
             child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Conditions d\'utilisation',
-                      style: TextStyle(fontSize: 24)),
-                  IconButton(
-                      onPressed: () {
-                        final textReader = TextReader();
-                        textReader.readText(
-                          'Conditions d\'utilisation.\n$termsAndServicesText\n'
-                          'Cliquez sur « Accepter les conditions » si vous acceptez.',
-                          hasFinishedCallback: () => textReader.stopReading(),
-                        );
-                      },
-                      icon: const Icon(Icons.volume_up))
-                ],
-              ),
-              const Text(termsAndServicesText),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                      onPressed: () => _acceptTermsAndServices(context),
-                      style: studentTheme().elevatedButtonTheme.style,
-                      child: const Text('Accepter les conditions')),
-                ],
-              )
-            ],
+          child: ConstrainedBox(
+            constraints:
+                BoxConstraints(maxWidth: ResponsiveService.smallScreenWidth),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Conditions d\'utilisation',
+                        style: TextStyle(fontSize: 24)),
+                    IconButton(
+                        onPressed: () {
+                          final textReader = TextReader();
+                          textReader.readText(
+                            'Conditions d\'utilisation.\n$termsAndServicesText\n'
+                            'Cliquez sur « Accepter les conditions » si vous acceptez.',
+                            hasFinishedCallback: () => textReader.stopReading(),
+                          );
+                        },
+                        icon: const Icon(Icons.volume_up))
+                  ],
+                ),
+                const Text(termsAndServicesText),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () => _acceptTermsAndServices(context),
+                        style: studentTheme().elevatedButtonTheme.style,
+                        child: const Text('Accepter les conditions')),
+                  ],
+                )
+              ],
+            ),
           ),
         )),
       ),

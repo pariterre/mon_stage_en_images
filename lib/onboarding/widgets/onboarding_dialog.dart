@@ -92,6 +92,7 @@ class _OnboardingDialogState extends State<OnboardingDialog>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
