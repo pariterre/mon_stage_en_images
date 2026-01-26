@@ -154,7 +154,11 @@ class MainDrawer extends StatelessWidget {
               MenuItem(
                 title: 'Apprendre sur METIER',
                 icon: Icons.web,
-                onTap: null, // TODO Ask for this pdf
+                onTap: () async {
+                  await launchUrl(GoToIrsstScreen.learnAboutMetierUri);
+                  if (!context.mounted) return;
+                  if (canPop) Navigator.of(context).pop();
+                },
                 iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher) const Divider(),

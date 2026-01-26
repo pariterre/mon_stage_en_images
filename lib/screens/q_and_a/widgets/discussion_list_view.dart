@@ -256,6 +256,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                   child: const Row(
                     children: [
                       Icon(Icons.image),
+                      // TODO Check button color
                       Padding(
                         padding: EdgeInsets.only(left: 15.0, right: 15.0),
                         child: Text('Galerie', style: TextStyle(fontSize: 16)),

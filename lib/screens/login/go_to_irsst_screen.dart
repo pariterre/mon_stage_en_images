@@ -11,11 +11,16 @@ class GoToIrsstScreen extends StatelessWidget {
 
   static const routeName = '/go-to-irsst-screen';
 
-  // TODO Confirm the link
   static final learnAboutSstUri = Uri(
     scheme: 'https',
     host: 'monstageenimages.adoprevit.org',
     path: 'resources/ApprendreSST.pdf',
+  );
+
+  static final learnAboutMetierUri = Uri(
+    scheme: 'https',
+    host: 'monstageenimages.adoprevit.org',
+    path: 'resources/ApprendreMETIER.pdf',
   );
 
   @override

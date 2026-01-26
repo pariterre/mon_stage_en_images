@@ -84,6 +84,7 @@ class OnboardingContexts {
           'OnboardingContexts must be initialized before preparing for onboarding.');
     }
 
+    OnboardingContexts.instance._currentPage = null;
     OnboardingContexts.instance._isNavigating = true;
     await _navigateToPage(StudentsScreen.routeName);
     OnboardingContexts.instance._isNavigating = false;

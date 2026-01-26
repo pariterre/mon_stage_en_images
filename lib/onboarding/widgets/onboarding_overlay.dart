@@ -34,10 +34,7 @@ class OnboardingController {
     _currentIndex++;
     await _overlayState!._navToStepAndRefresh();
 
-    if (_currentIndex == steps.length) {
-      _isOnboarding = false;
-      await onOnboardingCompleted();
-    }
+    if (_currentIndex >= steps.length) _terminateOnboarding();
   }
 
   Future<void> _showPreviousStep() async {
@@ -48,9 +45,10 @@ class OnboardingController {
   }
 
   Future<void> _terminateOnboarding() async {
-    // TODO Fix onboarding termination flow
+    _isOnboarding = false;
     _currentIndex = steps.length;
-    await _showNextStep();
+    await onOnboardingCompleted();
+    await _overlayState!._navToStepAndRefresh();
   }
 }
 
