@@ -12,6 +12,7 @@ import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
+import 'package:mon_stage_en_images/common/models/suggestion.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_questions.dart';
 import 'package:mon_stage_en_images/common/providers/all_student_answers.dart';
@@ -279,6 +280,15 @@ class Database extends EzloginFirebase with ChangeNotifier {
         _users.firstWhereOrNull((e) => e.id != _currentUser!.id),
       UserType.teacher => _currentUser,
     };
+  }
+
+  Future<void> sendSuggestion({required Suggestion suggestion}) async {
+    if (_currentUser == null) return;
+    await Database.root
+        .child('suggestions')
+        .child(currentUser!.id)
+        .child(suggestion.id)
+        .set(suggestion.serialize());
   }
 
   ///

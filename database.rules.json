@@ -88,6 +88,12 @@
             ".write": "auth.uid === newData.child('createdBy').val() || root.child('admin/ids').hasChild(auth.uid)"
           }
         }
+      }, 
+      "suggestions": {
+        ".read": "root.child('admin/ids').hasChild(auth.uid)",
+        "$uid": {
+          ".write": "auth.uid === $uid || root.child('admin/ids').hasChild(auth.uid)"
+        }
       }
     }
   }

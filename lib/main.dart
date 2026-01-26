@@ -63,7 +63,6 @@ void main() async {
       userDatabase: userDatabase, onboardingController: onboardingController));
 }
 
-// TODO Add Suggestion page
 class MyApp extends StatelessWidget {
   const MyApp(
       {super.key,

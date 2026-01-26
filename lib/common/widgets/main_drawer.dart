@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
+import 'package:mon_stage_en_images/screens/suggestions/suggestions_page.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -173,6 +174,13 @@ class MainDrawer extends StatelessWidget {
                 iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher) const Divider(),
+            if (userType == UserType.teacher)
+              MenuItem(
+                title: 'Suggestions',
+                icon: Icons.feedback,
+                onTap: () => SuggestionsPage.showSuggestionPage(context),
+                iconOnly: iconOnly,
+              ),
             MenuItem(
               title: 'Mes informations',
               icon: Icons.home,
