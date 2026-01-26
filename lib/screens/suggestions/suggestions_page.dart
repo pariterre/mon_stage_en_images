@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/models/suggestion.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
@@ -10,7 +11,9 @@ class SuggestionsPage extends StatefulWidget {
 
   static Future<void> showSuggestionPage(BuildContext context) async {
     final suggestions = await showDialog<String>(
-        context: context, builder: (context) => const SuggestionsPage());
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => const SuggestionsPage());
     if (suggestions == null) return;
 
     if (!context.mounted) return;
@@ -20,6 +23,9 @@ class SuggestionsPage extends StatefulWidget {
             userId: database.currentUser!.id,
             content: suggestions,
             submittedAt: DateTime.now()));
+
+    if (!context.mounted) return;
+    Helpers.showSnackbar(context, 'Suggestion envoyée avec succès');
   }
 
   @override
