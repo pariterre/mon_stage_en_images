@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_overlay.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';

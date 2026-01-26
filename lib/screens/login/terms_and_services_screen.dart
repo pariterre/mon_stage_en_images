@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/main_title_background.dart';
 import 'package:provider/provider.dart';
 

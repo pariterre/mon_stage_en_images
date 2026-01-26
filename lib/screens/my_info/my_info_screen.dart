@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/common/widgets/user_info_dialog.dart';

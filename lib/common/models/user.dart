@@ -1,5 +1,5 @@
 import 'package:mon_stage_en_images/common/misc/database_helper.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 
 class User extends EzloginUser {
   // Constructors and (de)serializer

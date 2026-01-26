@@ -1,5 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 
 class TeachingTokenHelpers {
   static Future<String> registerToken(String teacherId, String token) async {

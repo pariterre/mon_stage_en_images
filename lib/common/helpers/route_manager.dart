@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/main.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
