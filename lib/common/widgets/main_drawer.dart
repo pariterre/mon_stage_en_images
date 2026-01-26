@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
@@ -163,8 +162,10 @@ class MainDrawer extends StatelessWidget {
               MenuItem(
                 title: 'Revoir le tutoriel',
                 icon: Icons.help,
-                onTap: () => SharedPreferencesController
-                    .instance.hasSeenTeacherOnboarding = false,
+                onTap: () {
+                  OnboardingContexts.instance
+                      .requestOnboarding(context, force: true);
+                },
                 iconOnly: iconOnly,
               ),
             if (userType == UserType.teacher) const Divider(),

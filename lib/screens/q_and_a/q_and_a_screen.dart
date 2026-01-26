@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer_sort_and_filter.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
@@ -53,9 +52,9 @@ class QAndAScreenState extends State<QAndAScreen> {
     final user = database.currentUser;
     final isConnected = _currentToken != null;
 
-    return !SharedPreferencesController.instance.hasSeenStudentOnboarding &&
+    return user != null &&
+        !user.hasSeenStudentOnboarding &&
         userType == UserType.student &&
-        user != null &&
         !isConnected;
   }
 
@@ -130,13 +129,13 @@ class QAndAScreenState extends State<QAndAScreen> {
   }
 
   Future<void> _showConnectedToken() async {
-    SharedPreferencesController.instance.hasSeenStudentOnboarding = true;
+    final database = Provider.of<Database>(context, listen: false);
+    final user = database.currentUser;
+    if (user == null) return;
+    await database.modifyUser(
+        user: user, newInfo: user.copyWith(hasSeenStudentOnboarding: true));
 
-    final studentId =
-        Provider.of<Database>(context, listen: false).currentUser!.id;
-
-    final token =
-        await TeachingTokenHelpers.connectedToken(studentId: studentId);
+    final token = await TeachingTokenHelpers.connectedToken(studentId: user.id);
     // Token is null on first connection
     if (token == null) return await _connectToToken(firstConnexion: true);
 
@@ -494,8 +493,13 @@ class QAndAScreenState extends State<QAndAScreen> {
     return QuickOnboardingOverlay(
       widgetContext:
           showOnboardingOverlay(context) ? _onboardingContexts : null,
-      onTap: () =>
-          SharedPreferencesController.instance.hasSeenStudentOnboarding = true,
+      onTap: () {
+        final database = Provider.of<Database>(context, listen: false);
+        final user = database.currentUser;
+        if (user == null) return;
+        database.modifyUser(
+            user: user, newInfo: user.copyWith(hasSeenStudentOnboarding: true));
+      },
       child: ResponsiveService.scaffoldOf(
         context,
         appBar: _setAppBar(),

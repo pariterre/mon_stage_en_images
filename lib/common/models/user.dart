@@ -1,42 +1,7 @@
-import 'dart:math';
-
 import 'package:mon_stage_en_images/common/misc/database_helper.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 
 class User extends EzloginUser {
-  static const String unknownEmoji = '👻';
-  static String get randomEmoji {
-    final defaultEmojis = [
-      // Faces
-      '🐶', '🐺', '🐱', '🦁', '🐯', '🐴', '🦄', '🐮', '🐷', '🐽', '🐸', '🐵',
-      '🙈', '🙉', '🙊',
-
-      // Pets & farm
-      '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨', '🐮', '🐔', '🐤', '🐥', '🐣',
-      '🐧', '🦆', '🦅', '🦉', '🦇',
-
-      // Wild animals
-      '🐗', '🐴', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🦒',
-      '🐪', '🐫', '🦙', '🦌', '🦬',
-
-      // Sea life
-      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨',
-      '🐟', '🐠', '🐡', '🦈', '🐬', '🐳', '🐋', '🦭', '🐙', '🦑', '🦀', '🦞',
-      '🦐',
-
-      // Reptiles & insects
-      '🐍', '🦎', '🐢', '🐊', '🦖', '🦕',
-      '🐝', '🐞', '🦋', '🐛', '🪲', '🪳', '🕷️', '🦂',
-
-      // More birds
-      '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐦',
-
-      // Extras
-      '🦘', '🦥', '🦦', '🦨', '🦡', '🐿️', '🦔',
-    ];
-    return defaultEmojis[Random().nextInt(defaultEmojis.length)];
-  }
-
   // Constructors and (de)serializer
   User({
     required this.firstName,
@@ -44,8 +9,11 @@ class User extends EzloginUser {
     required this.avatar,
     required super.email,
     required this.studentNotes,
-    required this.termsAndServicesAccepted,
     required this.creationDate,
+    required this.termsAndServicesAccepted,
+    required this.irsstPageSeen,
+    required this.hasSeenTeacherOnboarding,
+    required this.hasSeenStudentOnboarding,
     super.id,
   }) : super(mustChangePassword: false);
 
@@ -55,8 +23,11 @@ class User extends EzloginUser {
     required this.lastName,
     required this.avatar,
   })  : studentNotes = {},
-        termsAndServicesAccepted = false,
         creationDate = DateTime.now(),
+        termsAndServicesAccepted = false,
+        irsstPageSeen = false,
+        hasSeenTeacherOnboarding = false,
+        hasSeenStudentOnboarding = false,
         super(email: '', mustChangePassword: false);
 
   User.fromSerialized(super.map)
@@ -66,9 +37,12 @@ class User extends EzloginUser {
         studentNotes = (map?['studentNotes'] as Map?)
                 ?.map((k, v) => MapEntry(k, v.toString())) ??
             {},
-        termsAndServicesAccepted = map?['termsAndServicesAccepted'] ?? false,
         creationDate =
             DateTime.parse(map?['creationDate'] ?? defaultCreationDate),
+        termsAndServicesAccepted = map?['termsAndServicesAccepted'] ?? false,
+        irsstPageSeen = map?['irsstPageSeen'] ?? false,
+        hasSeenTeacherOnboarding = map?['hasSeenTeacherOnboarding'] ?? false,
+        hasSeenStudentOnboarding = map?['hasSeenStudentOnboarding'] ?? false,
         super.fromSerialized();
 
   @override
@@ -79,9 +53,12 @@ class User extends EzloginUser {
     String? email,
     bool? mustChangePassword,
     String? id,
+    DateTime? creationDate,
     Map<String, String>? studentNotes,
     bool? termsAndServicesAccepted,
-    DateTime? creationDate,
+    bool? irsstPageSeen,
+    bool? hasSeenTeacherOnboarding,
+    bool? hasSeenStudentOnboarding,
   }) {
     if (mustChangePassword != null) {
       throw UnimplementedError(
@@ -94,10 +71,15 @@ class User extends EzloginUser {
       avatar: avatar ?? this.avatar,
       email: email ?? this.email,
       id: id ?? this.id,
+      creationDate: creationDate ?? this.creationDate,
       studentNotes: studentNotes ?? this.studentNotes,
       termsAndServicesAccepted:
           termsAndServicesAccepted ?? this.termsAndServicesAccepted,
-      creationDate: creationDate ?? this.creationDate,
+      irsstPageSeen: irsstPageSeen ?? this.irsstPageSeen,
+      hasSeenTeacherOnboarding:
+          hasSeenTeacherOnboarding ?? this.hasSeenTeacherOnboarding,
+      hasSeenStudentOnboarding:
+          hasSeenStudentOnboarding ?? this.hasSeenStudentOnboarding,
     );
   }
 
@@ -107,9 +89,12 @@ class User extends EzloginUser {
       'firstName': firstName,
       'lastName': lastName,
       'avatar': avatar,
+      'creationDate': creationDate.toIso8601String(),
       'studentNotes': studentNotes,
       'termsAndServicesAccepted': termsAndServicesAccepted,
-      'creationDate': creationDate.toIso8601String(),
+      'irsstPageSeen': irsstPageSeen,
+      'hasSeenTeacherOnboarding': hasSeenTeacherOnboarding,
+      'hasSeenStudentOnboarding': hasSeenStudentOnboarding,
     });
 
   @override
@@ -122,8 +107,11 @@ class User extends EzloginUser {
   final String lastName;
   final String avatar;
   final Map<String, String> studentNotes;
-  final bool termsAndServicesAccepted;
   final DateTime creationDate;
+  final bool termsAndServicesAccepted;
+  final bool irsstPageSeen;
+  final bool hasSeenTeacherOnboarding;
+  final bool hasSeenStudentOnboarding;
 
   @override
   String toString() => '$firstName $lastName';

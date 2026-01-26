@@ -1,6 +1,7 @@
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/emoji_helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
+import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/misc/focus_nodes.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
@@ -134,139 +135,127 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
     return AlertDialog(
       title: widget.title,
       content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              widget.editInformation
-                  ? Column(
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 175,
-                              child: TextFormField(
-                                controller: _firstNameController,
-                                focusNode: _focusNodes['firstName'],
-                                decoration:
-                                    const InputDecoration(labelText: 'Prénom'),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Le prénom ne peut pas être vide';
-                                  }
-                                  return null;
-                                },
-                                onFieldSubmitted: (_) =>
-                                    _focusNodes['lastName']!.requestFocus(),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            SizedBox(
-                              width: 175,
-                              child: TextFormField(
-                                controller: _lastNameController,
-                                focusNode: _focusNodes['lastName'],
-                                decoration:
-                                    const InputDecoration(labelText: 'Nom'),
-                                onFieldSubmitted: (_) => _save(),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Le nom ne peut pas être vide';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        StatefulBuilder(
-                          builder: (context, setStateEmoji) => Column(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+              maxWidth: ResponsiveService.smallScreenWidth),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                widget.editInformation
+                    ? Column(
+                        children: [
+                          Row(
                             children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Row(
-                                  children: [
-                                    Text('Mon avatar actuel : ',
-                                        style: TextStyle(fontSize: 16)),
-                                    Text(_avatarController.text,
-                                        style: TextStyle(fontSize: 24)),
-                                  ],
+                              SizedBox(
+                                width: 175,
+                                child: TextFormField(
+                                  controller: _firstNameController,
+                                  focusNode: _focusNodes['firstName'],
+                                  decoration: const InputDecoration(
+                                      labelText: 'Prénom'),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Le prénom ne peut pas être vide';
+                                    }
+                                    return null;
+                                  },
+                                  onFieldSubmitted: (_) =>
+                                      _focusNodes['lastName']!.requestFocus(),
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(width: 12),
                               SizedBox(
-                                  height: 200,
-                                  width: 300,
-                                  child: EmojiPicker(
-                                    onEmojiSelected: (category, emoji) {
-                                      _avatarController.text = emoji.emoji;
-                                      if (mounted) setStateEmoji(() {});
-                                    },
-                                    config: Config(
-                                        bottomActionBarConfig:
-                                            BottomActionBarConfig(
-                                                showBackspaceButton: false,
-                                                buttonColor: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                        .colorScheme
-                                                        .primary)),
-                                  )),
+                                width: 175,
+                                child: TextFormField(
+                                  controller: _lastNameController,
+                                  focusNode: _focusNodes['lastName'],
+                                  decoration:
+                                      const InputDecoration(labelText: 'Nom'),
+                                  onFieldSubmitted: (_) => _save(),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Le nom ne peut pas être vide';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Text('Nom, prénom : ',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(
-                            '${widget.user.firstName} ${widget.user.lastName}'),
-                      ],
-                    ),
-              const SizedBox(height: 8),
-              widget.editInformation
-                  ? Column(
-                      children: [
-                        SizedBox(height: 8),
-                        TextFormField(
-                          controller: _emailController,
-                          focusNode: _focusNodes['email'],
-                          enabled: false,
-                          decoration:
-                              const InputDecoration(labelText: 'Courriel'),
-                          onFieldSubmitted: (_) => _save(),
-                          autocorrect: false,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: Helpers.emailValidator,
-                        )
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Text('Courriel : ',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(widget.user.email),
-                      ],
-                    ),
-              if (widget.showEditableNotes)
-                Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _noteController,
-                      focusNode: _focusNodes['note'],
-                      decoration: const InputDecoration(
-                          labelText: 'Note personnelle de l\'élève'),
-                      onFieldSubmitted: (_) => _save(),
-                    ),
-                  ],
-                ),
-            ],
+                          StatefulBuilder(
+                            builder: (context, setStateEmoji) => Column(
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    children: [
+                                      Text('Mon avatar actuel : ',
+                                          style: TextStyle(fontSize: 16)),
+                                      Text(_avatarController.text,
+                                          style: TextStyle(fontSize: 24)),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                EmojiHelpers.picker(onSelected: (emoji) {
+                                  _avatarController.text = emoji;
+                                  if (mounted) setStateEmoji(() {});
+                                }),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Text('Nom, prénom : ',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                              '${widget.user.firstName} ${widget.user.lastName}'),
+                        ],
+                      ),
+                const SizedBox(height: 8),
+                widget.editInformation
+                    ? Column(
+                        children: [
+                          SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            focusNode: _focusNodes['email'],
+                            enabled: false,
+                            decoration:
+                                const InputDecoration(labelText: 'Courriel'),
+                            onFieldSubmitted: (_) => _save(),
+                            autocorrect: false,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: Helpers.emailValidator,
+                          )
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Text('Courriel : ',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(widget.user.email),
+                        ],
+                      ),
+                if (widget.showEditableNotes)
+                  Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _noteController,
+                        focusNode: _focusNodes['note'],
+                        decoration: const InputDecoration(
+                            labelText: 'Note personnelle de l\'élève'),
+                        onFieldSubmitted: (_) => _save(),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),

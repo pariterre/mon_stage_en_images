@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
@@ -17,9 +16,7 @@ import 'package:mon_stage_en_images/screens/all_students/widgets/student_list_ti
 import 'package:provider/provider.dart';
 
 class StudentsScreen extends StatefulWidget {
-  const StudentsScreen({
-    super.key,
-  });
+  const StudentsScreen({super.key});
 
   static const routeName = '/students-screen';
 
@@ -35,15 +32,18 @@ class StudentsScreenState extends State<StudentsScreen> {
   void initState() {
     super.initState();
 
-    switch (Provider.of<Database>(context, listen: false).userType) {
+    final database = Provider.of<Database>(context, listen: false);
+    final userType = database.userType;
+    final user = database.currentUser;
+    if (user == null) return;
+
+    switch (userType) {
       case UserType.none:
       case UserType.student:
         break;
       case UserType.teacher:
-        if (!SharedPreferencesController.instance.hasSeenTeacherOnboarding) {
-          // Trigger the onboarding by resetting the flag to false (again)
-          SharedPreferencesController.instance.hasSeenTeacherOnboarding = false;
-        }
+        WidgetsBinding.instance.addPostFrameCallback(
+            (_) => OnboardingContexts.instance.requestOnboarding(context));
     }
   }
 

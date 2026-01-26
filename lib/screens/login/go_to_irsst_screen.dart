@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
+import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/screens/login/widgets/main_title_background.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class GoToIrsstScreen extends StatelessWidget {
@@ -42,9 +43,16 @@ class GoToIrsstScreen extends StatelessWidget {
                   child: const Text('Accéder au PDF'),
                 ),
                 ElevatedButton(
-                    onPressed: () {
-                      SharedPreferencesController
-                          .instance.hasAlreadySeenTheIrrstPage = true;
+                    onPressed: () async {
+                      final database =
+                          Provider.of<Database>(context, listen: false);
+                      final user = database.currentUser;
+                      if (user == null) return;
+                      await database.modifyUser(
+                          user: user,
+                          newInfo: user.copyWith(irsstPageSeen: true));
+
+                      if (!context.mounted) return;
                       RouteManager.instance.gotoStudentsPage(context);
                     },
                     style: studentTheme().elevatedButtonTheme.style,

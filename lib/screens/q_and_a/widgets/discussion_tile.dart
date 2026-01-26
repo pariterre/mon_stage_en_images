@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/emoji_helpers.dart';
 import 'package:mon_stage_en_images/common/misc/date_formatting.dart';
 import 'package:mon_stage_en_images/common/misc/storage_service.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/message.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
-import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -159,7 +159,7 @@ class DiscussionTile extends StatelessWidget {
     final user = database.userById(discussion.creatorId);
 
     return Text(
-        '${user == null ? '${User.unknownEmoji} Utilisateur inconnu' : '${user.avatar} ${user.firstName}'} : ',
+        '${user == null ? '${EmojiHelpers.unknownEmoji} Utilisateur inconnu' : '${user.avatar} ${user.firstName}'} : ',
         style: TextStyle(
             color: Colors.grey[800],
             fontWeight: FontWeight.bold,

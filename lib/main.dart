@@ -9,6 +9,8 @@ import 'package:mon_stage_en_images/common/models/themes.dart';
 import 'package:mon_stage_en_images/common/providers/speecher.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/onboarding/onboarding.dart';
+import 'package:mon_stage_en_images/screens/login/login_screen.dart';
+import 'package:mon_stage_en_images/screens/login/wrong_version_screen.dart';
 import 'package:provider/provider.dart';
 
 import '/firebase_options.dart';
@@ -45,9 +47,16 @@ void main() async {
     onOnboardStarted: () async {
       await OnboardingContexts.instance.prepareForOnboarding();
     },
-    onOnboardingCompleted: () async =>
-        await OnboardingContexts.instance.finilizeOnboarding(),
+    onOnboardingCompleted: () async {
+      await userDatabase.modifyUser(
+          user: userDatabase.currentUser!,
+          newInfo: userDatabase.currentUser!
+              .copyWith(hasSeenTeacherOnboarding: true));
+      await OnboardingContexts.instance.finilizeOnboarding();
+    },
   );
+  await OnboardingContexts.instance
+      .initialize(controller: onboardingController);
 
   // Run the app
   runApp(MyApp(
@@ -98,6 +107,18 @@ class MyApp extends StatelessWidget {
             final String? routeName = settings.name;
             if (routeName == null) return null;
 
+            if (routeName != LoginScreen.routeName &&
+                routeName != WrongVersionScreen.routeName) {
+              final user =
+                  Provider.of<Database>(context, listen: false).currentUser;
+              if (user == null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  await RouteManager.instance.gotoLoginPage(context);
+                  return;
+                });
+              }
+            }
+
             return MaterialPageRoute(
                 builder: (context) =>
                     RouteManager.instance.builderForCurrentRoute(routeName),
@@ -105,18 +126,8 @@ class MyApp extends StatelessWidget {
                     name: settings.name, arguments: settings.arguments));
           },
           builder: (context, child) {
-            SharedPreferencesController.instance.addListener(() {
-              if (!onboardingController.isOnboarding &&
-                  OnboardingContexts.startingConditionAreMet(context)) {
-                onboardingController.requestOnboarding();
-              }
-            });
-
             return OnboardingOverlay(
-              controller: onboardingController,
-              child:
-                  Stack(alignment: Alignment.bottomCenter, children: [child!]),
-            );
+                controller: onboardingController, child: child!);
           },
         );
       }),

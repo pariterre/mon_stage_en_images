@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/emoji_helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
@@ -423,7 +424,7 @@ class _DatabaseMigrationHelper {
         if (teacher['userType'] != 1) continue;
 
         // Add an avatar to the teacher
-        teacher['avatar'] = User.randomEmoji;
+        teacher['avatar'] = EmojiHelpers.randomEmoji;
 
         final token = await TeachingTokenHelpers.generateUniqueToken();
         allAnswers?[token] = {};
@@ -438,7 +439,7 @@ class _DatabaseMigrationHelper {
           }
 
           // Add an avatar to the student
-          student['avatar'] = User.randomEmoji;
+          student['avatar'] = EmojiHelpers.randomEmoji;
 
           // Migrate the company names to student notes
           teacher['studentNotes'][student['id']] = student['companyNames'];

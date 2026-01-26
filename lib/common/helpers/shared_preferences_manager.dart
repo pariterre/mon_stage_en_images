@@ -40,45 +40,6 @@ class SharedPreferencesController extends ChangeNotifier {
         .then((_) => notifyListeners());
   }
 
-  final String _hasSeenTeacherOnboardingKey = 'hasTeacherSeenOnboarding';
-  bool get hasSeenTeacherOnboarding {
-    _forceFailIfNotInitialized();
-    return _prefs!.getBool(_hasSeenTeacherOnboardingKey) ?? false;
-  }
-
-  set hasSeenTeacherOnboarding(bool value) {
-    _forceFailIfNotInitialized();
-    _prefs!
-        .setBool(_hasSeenTeacherOnboardingKey, value)
-        .then((_) => notifyListeners());
-  }
-
-  final String _hasSeenStudentOnboardingKey = 'hasStudentSeenOnboarding';
-  bool get hasSeenStudentOnboarding {
-    _forceFailIfNotInitialized();
-    return _prefs!.getBool(_hasSeenStudentOnboardingKey) ?? false;
-  }
-
-  set hasSeenStudentOnboarding(bool value) {
-    _forceFailIfNotInitialized();
-    _prefs!
-        .setBool(_hasSeenStudentOnboardingKey, value)
-        .then((_) => notifyListeners());
-  }
-
-  final String _hasAlreadySeenTheIrrstPageKey = 'hasAlreadySeenTheIrrstPage';
-  bool get hasAlreadySeenTheIrrstPage {
-    _forceFailIfNotInitialized();
-    return _prefs!.getBool(_hasAlreadySeenTheIrrstPageKey) ?? false;
-  }
-
-  set hasAlreadySeenTheIrrstPage(bool value) {
-    _forceFailIfNotInitialized();
-    _prefs!
-        .setBool(_hasAlreadySeenTheIrrstPageKey, value)
-        .then((_) => notifyListeners());
-  }
-
   void _forceFailIfNotInitialized() {
     if (!isInitialized) {
       throw Exception(

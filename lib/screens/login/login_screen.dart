@@ -1,6 +1,6 @@
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:mon_stage_en_images/common/helpers/emoji_helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String lastName = '';
     String email = _emailController.text;
     String password = _passwordController.text;
-    String avatar = User.randomEmoji;
+    String avatar = EmojiHelpers.randomEmoji;
     String? errorEmail;
     final focusNodes = FocusNodes()
       ..add('firstName')
@@ -186,9 +186,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 lastName: lastName,
                 email: _emailController.text,
                 avatar: avatar,
+                creationDate: DateTime.now(),
                 studentNotes: {},
                 termsAndServicesAccepted: false,
-                creationDate: DateTime.now(),
+                irsstPageSeen: false,
+                hasSeenTeacherOnboarding: false,
+                hasSeenStudentOnboarding: false,
               ),
               password: _passwordController.text);
           if (!hasRegistered) {
@@ -285,22 +288,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      SizedBox(
-                          height: 200,
-                          width: 300,
-                          child: EmojiPicker(
-                            onEmojiSelected: (category, emoji) {
-                              avatar = emoji.emoji;
-                              if (setStateForm != null) setStateForm!(() {});
-                            },
-                            config: Config(
-                                bottomActionBarConfig: BottomActionBarConfig(
-                                    showBackspaceButton: false,
-                                    buttonColor:
-                                        studentTheme().colorScheme.primary,
-                                    backgroundColor:
-                                        studentTheme().colorScheme.primary)),
-                          )),
+                      EmojiHelpers.picker(onSelected: (selectedEmoji) {
+                        avatar = selectedEmoji;
+                        if (mounted && setStateForm != null) {
+                          setStateForm!(() {});
+                        }
+                      }),
                       SizedBox(height: 12),
                       TextFormField(
                         decoration: InputDecoration(

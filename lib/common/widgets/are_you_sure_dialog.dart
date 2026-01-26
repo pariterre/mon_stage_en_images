@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
 
 class AreYouSureDialog extends StatelessWidget {
@@ -24,29 +25,34 @@ class AreYouSureDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(title),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                if (canReadAloud)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: IconButton(
-                        onPressed: () {
-                          final textReader = TextReader();
-                          textReader.readText(
-                            content,
-                            hasFinishedCallback: () => textReader.stopReading(),
-                          );
-                        },
-                        icon: const Icon(Icons.volume_up)),
-                  ),
-                Flexible(child: Text(content)),
-              ],
-            ),
-            if (extraContent != null) extraContent!,
-          ],
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+              maxWidth: ResponsiveService.smallScreenWidth),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  if (canReadAloud)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: IconButton(
+                          onPressed: () {
+                            final textReader = TextReader();
+                            textReader.readText(
+                              content,
+                              hasFinishedCallback: () =>
+                                  textReader.stopReading(),
+                            );
+                          },
+                          icon: const Icon(Icons.volume_up)),
+                    ),
+                  Flexible(child: Text(content)),
+                ],
+              ),
+              if (extraContent != null) extraContent!,
+            ],
+          ),
         ),
       ),
       actions: [

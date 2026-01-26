@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
@@ -88,7 +87,13 @@ class RouteManager {
     }
 
     if (currentState == null) return;
-    final userType = Provider.of<Database>(context, listen: false).userType;
+    final database = Provider.of<Database>(context, listen: false);
+    final userType = database.userType;
+    final user = database.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+
     switch (userType) {
       case UserType.student:
         await gotoQAndAPage(context,
@@ -98,7 +103,7 @@ class RouteManager {
         break;
       case UserType.teacher:
       case UserType.none:
-        if (SharedPreferencesController.instance.hasAlreadySeenTheIrrstPage) {
+        if (user.irsstPageSeen) {
           await gotoStudentsPage(context);
         } else {
           await currentState?.pushReplacementNamed(GoToIrsstScreen.routeName);

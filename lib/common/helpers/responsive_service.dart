@@ -35,9 +35,9 @@ enum ScreenSize {
 
 class ResponsiveService {
   // Define the breakpoints
-  static final smallScreenWidth = 600.0;
-  static final largeScreenWidth = 1024.0;
-  static final maxBodyWidth = 800.0;
+  static const double smallScreenWidth = 600.0;
+  static const double largeScreenWidth = 1024.0;
+  static const double maxBodyWidth = 800.0;
 
   // Method to check if the current screen size is mobile
   static ScreenSize getScreenSize(BuildContext context) {

@@ -1,30 +1,50 @@
 import 'package:flutter/widgets.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
-import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
+import 'package:mon_stage_en_images/onboarding/widgets/onboarding_overlay.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 
-// TODO move has seen onboarding to database
 class OnboardingContexts {
   // Singleton pattern
   OnboardingContexts._();
   static final OnboardingContexts instance = OnboardingContexts._();
 
-  static bool startingConditionAreMet(BuildContext context) {
+  bool _isInitialized = false;
+  Future<void> initialize({required OnboardingController controller}) async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _controller = controller;
+  }
+
+  OnboardingController? _controller;
+
+  void requestOnboarding(BuildContext context, {bool force = false}) {
+    if (!_isInitialized) {
+      throw Exception(
+          'OnboardingContexts must be initialized before requesting onboarding.');
+    }
+    if (!_startingConditionAreMet(context, force: force)) return;
+
+    _controller!.requestOnboarding();
+  }
+
+  bool _startingConditionAreMet(BuildContext context, {required bool force}) {
+    if (!_isInitialized) {
+      throw Exception(
+          'OnboardingContexts must be initialized before checking starting conditions.');
+    }
+
     final database = Provider.of<Database>(context, listen: false);
     final userType = database.userType;
     final user = database.currentUser;
-    final prefs = SharedPreferencesController.instance;
 
-    return !SharedPreferencesController.instance.hasSeenTeacherOnboarding &&
-        user != null &&
+    return !_controller!.isOnboarding &&
         userType == UserType.teacher &&
-        user.termsAndServicesAccepted &&
-        prefs.hasAlreadySeenTheIrrstPage;
+        (force || (user != null && !user.hasSeenTeacherOnboarding));
   }
 
   /// The onboarding steps to be shown during the onboarding sequence
@@ -59,14 +79,23 @@ class OnboardingContexts {
   bool _isNavigating = false;
 
   Future<void> prepareForOnboarding() async {
+    if (!_isInitialized) {
+      throw Exception(
+          'OnboardingContexts must be initialized before preparing for onboarding.');
+    }
+
     OnboardingContexts.instance._isNavigating = true;
     await _navigateToPage(StudentsScreen.routeName);
     OnboardingContexts.instance._isNavigating = false;
   }
 
   Future<void> finilizeOnboarding() async {
+    if (!_isInitialized) {
+      throw Exception(
+          'OnboardingContexts must be initialized before preparing for onboarding.');
+    }
+
     OnboardingContexts.instance._isNavigating = true;
-    SharedPreferencesController.instance.hasSeenTeacherOnboarding = true;
     await _navigateToPage(StudentsScreen.routeName);
 
     while (OnboardingContexts.instance['generate_code'] == null) {
