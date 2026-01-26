@@ -3,7 +3,7 @@ import 'package:enhanced_containers/enhanced_containers.dart';
 class Message extends ItemSerializableWithCreationTime {
   // Constructors and (de)serializer
   Message({
-    required this.name,
+    required this.studentId,
     required this.text,
     this.isPhotoUrl = false,
     super.id,
@@ -12,7 +12,7 @@ class Message extends ItemSerializableWithCreationTime {
     required this.isDeleted,
   });
   Message.fromSerialized(super.map)
-      : name = map?['name'],
+      : studentId = map?['studentId'],
         text = map?['text'],
         isPhotoUrl = map?['isPhotoUrl'],
         creatorId = map?['creatorId'],
@@ -24,7 +24,7 @@ class Message extends ItemSerializableWithCreationTime {
   @override
   Map<String, dynamic> serializedMap() {
     return {
-      'name': name,
+      'studentId': studentId,
       'text': text,
       'isPhotoUrl': isPhotoUrl,
       'creatorId': creatorId,
@@ -33,7 +33,7 @@ class Message extends ItemSerializableWithCreationTime {
   }
 
   Message copyWith({
-    String? name,
+    String? studentId,
     String? text,
     bool? isPhotoUrl,
     String? creatorId,
@@ -48,7 +48,7 @@ class Message extends ItemSerializableWithCreationTime {
     }
 
     return Message(
-      name: name ?? this.name,
+      studentId: studentId ?? this.studentId,
       text: text ?? this.text,
       isPhotoUrl: isPhotoUrl ?? this.isPhotoUrl,
       id: id,
@@ -59,7 +59,7 @@ class Message extends ItemSerializableWithCreationTime {
   }
 
   // Attributes and methods
-  final String name;
+  final String studentId;
   final String text;
   final bool isPhotoUrl;
   final String creatorId;

@@ -25,6 +25,7 @@ class TeachingTokenHelpers {
         .child('created')
         .child(token)
         .set({'createdAt': ServerValue.timestamp, 'isActive': true});
+    await updatePublicInformation(teacherId);
 
     return token;
   }
@@ -39,6 +40,7 @@ class TeachingTokenHelpers {
     await Database.root.child('tokens').child('existing').child(token).remove();
     await Database.root.child('tokens').child(token).remove();
 
+    await deletePublicInformation(teacherId);
     await Database.root
         .child('users')
         .child(teacherId)
@@ -47,6 +49,56 @@ class TeachingTokenHelpers {
         .child(token)
         .child('isActive')
         .set(false);
+  }
+
+  static Future<void> updatePublicInformation(String userId) async {
+    final token = await TeachingTokenHelpers.createdActiveToken(userId: userId);
+    if (token == null) return;
+
+    final user =
+        (await Database.root.child('users').child(userId).get()).value as Map?;
+    final firstName = user?['firstName'];
+    final lastName = user?['lastName'];
+    final avatar = user?['avatar'];
+    if (firstName == null || lastName == null || avatar == null) {
+      throw Exception('User not found');
+    }
+
+    await Database.root
+        .child('users')
+        .child(userId)
+        .child('tokens')
+        .child('created')
+        .child(token)
+        .child('public')
+        .set({'firstName': firstName, 'lastName': lastName, 'avatar': avatar});
+  }
+
+  static Future<Map?> getPublicInformation(
+      String teacherId, String token) async {
+    return (await Database.root
+            .child('users')
+            .child(teacherId)
+            .child('tokens')
+            .child('created')
+            .child(token)
+            .child('public')
+            .get())
+        .value as Map?;
+  }
+
+  static Future<void> deletePublicInformation(String teacherId) async {
+    final token = await createdActiveToken(userId: teacherId);
+    if (token == null) return;
+
+    await Database.root
+        .child('users')
+        .child(teacherId)
+        .child('tokens')
+        .child('created')
+        .child(token)
+        .child('public')
+        .remove();
   }
 
   static Future<void> connectToToken(

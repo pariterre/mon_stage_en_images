@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/common/models/database.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/message.dart';
 import 'package:mon_stage_en_images/common/models/themes.dart';
+import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/widgets/are_you_sure_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,7 @@ class DiscussionTile extends StatelessWidget {
 
   final Message discussion;
   final bool isLast;
-  final Function()? onDeleted;
+  final Function(String studentId)? onDeleted;
 
   void _showImageFullScreen(BuildContext context,
       {required Uint8List imageData}) {
@@ -34,8 +35,8 @@ class DiscussionTile extends StatelessWidget {
             ));
   }
 
-  Future<void> _deleteMessage(BuildContext context) async {
-    onDeleted!();
+  Future<void> _deleteMessage() async {
+    onDeleted!(discussion.studentId);
   }
 
   @override
@@ -70,11 +71,11 @@ class DiscussionTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _showNameOfSender(),
+                  _showNameOfSender(context),
                   if (onDeleted != null && !discussion.isDeleted)
                     _DeleteButton(
                         messageAuthorId: discussion.creatorId,
-                        onTap: () => _deleteMessage(context)),
+                        onTap: _deleteMessage),
                 ],
               ),
             if (discussion.isPhotoUrl)
@@ -112,7 +113,7 @@ class DiscussionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  _showNameOfSender(),
+                  _showNameOfSender(context),
                   Expanded(
                       child: Padding(
                     padding: const EdgeInsets.only(top: 2.0),
@@ -124,7 +125,7 @@ class DiscussionTile extends StatelessWidget {
                   if (onDeleted != null && !discussion.isDeleted)
                     _DeleteButton(
                         messageAuthorId: discussion.creatorId,
-                        onTap: () => _deleteMessage(context)),
+                        onTap: _deleteMessage),
                 ],
               ),
             Row(
@@ -153,8 +154,12 @@ class DiscussionTile extends StatelessWidget {
     );
   }
 
-  Widget _showNameOfSender() {
-    return Text('${discussion.name} : ',
+  Widget _showNameOfSender(BuildContext context) {
+    final database = Provider.of<Database>(context, listen: false);
+    final user = database.userById(discussion.creatorId);
+
+    return Text(
+        '${user == null ? '${User.unknownEmoji} Utilisateur inconnu' : '${user.avatar} ${user.firstName}'} : ',
         style: TextStyle(
             color: Colors.grey[800],
             fontWeight: FontWeight.bold,

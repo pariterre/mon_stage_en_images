@@ -8,6 +8,7 @@ import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:provider/provider.dart';
 
+// TODO move has seen onboarding to database
 class OnboardingContexts {
   // Singleton pattern
   OnboardingContexts._();

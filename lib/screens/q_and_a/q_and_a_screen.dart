@@ -388,13 +388,20 @@ class QAndAScreenState extends State<QAndAScreen> {
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final userType = Provider.of<Database>(context, listen: false).userType;
 
+    if (currentUser == null) {
+      return ResponsiveService.appBarOf(
+        context,
+        title: const Text('Utilisateur non connecté'),
+      );
+    }
+
     return ResponsiveService.appBarOf(
       context,
       title: Row(
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: AvatarTab(user: currentUser!),
+            child: AvatarTab(user: currentUser),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,7 +457,8 @@ class QAndAScreenState extends State<QAndAScreen> {
                         .addPostFrameCallback((_) =>
                             setState(() => _onboardingContexts = context)),
                     child: IconButton(
-                      onPressed: _showConnectedToken,
+                      onPressed:
+                          _isConnectingToken ? null : _showConnectedToken,
                       icon: const Icon(Icons.qr_code_2),
                       iconSize: 35,
                       color: Colors.black,

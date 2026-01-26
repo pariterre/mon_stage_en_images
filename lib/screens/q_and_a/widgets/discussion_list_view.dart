@@ -10,7 +10,6 @@ import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/message.dart';
 import 'package:mon_stage_en_images/common/models/question.dart';
 import 'package:mon_stage_en_images/common/models/text_reader.dart';
-import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/speecher.dart';
 import 'package:mon_stage_en_images/common/widgets/animated_icon.dart';
@@ -20,18 +19,19 @@ import 'package:provider/provider.dart';
 class DiscussionListView extends StatefulWidget {
   const DiscussionListView({
     super.key,
+    required this.studentId,
     required this.messages,
     required this.isAnswerValidated,
-    required this.student,
     required this.question,
     required this.manageAnswerCallback,
   });
 
+  final String? studentId;
   final List<Message> messages;
   final bool isAnswerValidated;
-  final User? student;
   final Question question;
   final void Function({
+    required String studentId,
     String? newTextEntry,
     bool? isPhoto,
     String? markAnswerAsDeleted,
@@ -66,6 +66,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     _formKey.currentState!.save();
     if ((_newMessage == null || _newMessage!.isEmpty)) return;
     _manageAnswer(
+        studentId: widget.studentId!,
         newTextEntry: _newMessage,
         isPhoto: false,
         markAsValidated: markAsValidated);
@@ -84,10 +85,12 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     if (imageXFile == null) return;
 
     final imagePath = await StorageService.uploadImage(currentUser, imageXFile);
-    _manageAnswer(newTextEntry: imagePath, isPhoto: true);
+    _manageAnswer(
+        studentId: widget.studentId!, newTextEntry: imagePath, isPhoto: true);
   }
 
   void _manageAnswer({
+    required String studentId,
     String? newTextEntry,
     bool? isPhoto,
     String? markAnswerAsDeleted,
@@ -125,6 +128,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
     }
 
     widget.manageAnswerCallback(
+      studentId: studentId,
       newTextEntry: newTextEntry,
       isPhoto: isPhoto,
       markAnswerAsDeleted: markAnswerAsDeleted,
@@ -205,26 +209,25 @@ class _DiscussionListViewState extends State<DiscussionListView> {
   Widget build(BuildContext context) {
     final userType = Provider.of<Database>(context, listen: false).userType;
 
-    final answer = widget.student == null
+    final answer = widget.studentId == null
         ? null
         : AllAnswers.of(context, listen: false).filter(
             questionIds: [widget.question.id],
-            studentIds: [widget.student!.id]).first;
-
+            studentIds: [widget.studentId!]).first;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _MessageListView(
-          studentId: widget.student?.id,
           discussion: widget.messages,
-          onDeleteMessage: ({required String answerId}) {
-            _manageAnswer(markAnswerAsDeleted: answerId);
+          onDeleteMessage: (
+              {required String studentId, required String answerId}) {
+            _manageAnswer(studentId: studentId, markAnswerAsDeleted: answerId);
           },
         ),
         SizedBox(
           height: 4,
         ),
-        if (widget.student != null && !widget.isAnswerValidated)
+        if (widget.studentId != null && !widget.isAnswerValidated)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
@@ -263,7 +266,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
               ],
             ),
           ),
-        if (widget.student != null && !widget.isAnswerValidated)
+        if (widget.studentId != null && !widget.isAnswerValidated)
           Container(
             padding: const EdgeInsets.only(left: 15),
             child: Form(
@@ -324,7 +327,7 @@ class _DiscussionListViewState extends State<DiscussionListView> {
             ),
           ),
         if (userType == UserType.teacher &&
-            widget.student != null &&
+            widget.studentId != null &&
             answer!.hasAnswer)
           Align(
             alignment: Alignment.centerLeft,
@@ -335,12 +338,15 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                       child: Text('Rouvrir la question',
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.secondary)),
-                      onPressed: () => _manageAnswer(markAsValidated: false),
+                      onPressed: () => _manageAnswer(
+                          studentId: widget.studentId!, markAsValidated: false),
                     )
                   : ElevatedButton.icon(
                       onPressed: () {
                         _fieldText.text.isEmpty
-                            ? _manageAnswer(markAsValidated: true)
+                            ? _manageAnswer(
+                                studentId: widget.studentId!,
+                                markAsValidated: true)
                             : _sendMessage(markAsValidated: true);
                       },
                       style: ElevatedButton.styleFrom(backgroundColor: null),
@@ -356,13 +362,11 @@ class _DiscussionListViewState extends State<DiscussionListView> {
 
 class _MessageListView extends StatelessWidget {
   const _MessageListView(
-      {required this.studentId,
-      required this.discussion,
-      required this.onDeleteMessage});
+      {required this.discussion, required this.onDeleteMessage});
 
-  final String? studentId;
   final List<Message> discussion;
-  final Function({required String answerId}) onDeleteMessage;
+  final Function({required String studentId, required String answerId})
+      onDeleteMessage;
 
   void _scrollDown(ScrollController scroller) {
     // Scolling "min" brings us to the end. See comment below.
@@ -407,10 +411,8 @@ class _MessageListView extends StatelessWidget {
                   DiscussionTile(
                     discussion: reversedList[index],
                     isLast: index == 0,
-                    onDeleted: studentId == null
-                        ? null
-                        : () =>
-                            onDeleteMessage(answerId: reversedList[index].id),
+                    onDeleted: (String studentId) => onDeleteMessage(
+                        studentId: studentId, answerId: reversedList[index].id),
                   ),
                   const SizedBox(height: 10),
                 ],

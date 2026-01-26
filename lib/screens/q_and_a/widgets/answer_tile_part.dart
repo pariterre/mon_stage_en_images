@@ -73,6 +73,7 @@ class _AnswerPartState extends State<AnswerPart> {
   }
 
   void _manageAnswerCallback({
+    required String studentId,
     String? newTextEntry,
     bool? isPhoto,
     String? markAnswerAsDeleted,
@@ -84,15 +85,14 @@ class _AnswerPartState extends State<AnswerPart> {
 
     final allAnswers = AllAnswers.of(context, listen: false);
     final currentAnswer = allAnswers.filter(
-        questionIds: [widget.question.id],
-        studentIds: [widget.studentId!]).first;
+        questionIds: [widget.question.id], studentIds: [studentId]).first;
 
     if (newTextEntry != null && markAnswerAsDeleted != null) {
       throw Exception(
           'You cannot add a new message and delete one at the same time.');
     } else if (newTextEntry != null) {
       currentAnswer.addToDiscussion(Message(
-          name: currentUser.firstName,
+          studentId: studentId,
           text: newTextEntry,
           isPhotoUrl: isPhoto ?? false,
           creatorId: currentUser.id,
@@ -126,12 +126,6 @@ class _AnswerPartState extends State<AnswerPart> {
 
   @override
   Widget build(BuildContext context) {
-    final student = widget.studentId == null
-        ? null
-        : Provider.of<Database>(context, listen: false)
-            .students()
-            .firstWhere((e) => e.id == widget.studentId);
-
     final answers = AllAnswers.of(context, listen: false).filter(
         questionIds: [widget.question.id],
         studentIds:
@@ -147,9 +141,9 @@ class _AnswerPartState extends State<AnswerPart> {
         children: [
           if (widget.pageMode != PageMode.edit)
             DiscussionListView(
+              studentId: widget.studentId,
               messages: messages,
               isAnswerValidated: isValidated,
-              student: student,
               question: widget.question,
               manageAnswerCallback: _manageAnswerCallback,
             ),

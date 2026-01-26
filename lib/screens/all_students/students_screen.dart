@@ -198,12 +198,16 @@ class StudentsScreenState extends State<StudentsScreen> {
     setState(() {
       _isGeneratingToken = true;
     });
+    // Prevent from trying to fetch old data while generating new token
+    final database = Provider.of<Database>(context, listen: false);
+    await database.teacherAnswers.stopFetchingData();
+
+    // Generate and register new token
     final newToken = await TeachingTokenHelpers.generateUniqueToken();
     await TeachingTokenHelpers.registerToken(teacherId, newToken);
 
-    // Force relogin to refresh data
+    // Force relogin to refresh setup
     if (!mounted) return;
-    final database = Provider.of<Database>(context, listen: false);
     final username = database.currentUser!.email;
     await database.logout();
     await database.login(
@@ -221,7 +225,7 @@ class StudentsScreenState extends State<StudentsScreen> {
 
     final newInfo = await showDialog<String>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false, // user must tap button
       builder: (BuildContext context) => UserInfoDialog(
         title: const Text('Informations de l\'élève'),
         user: student,
@@ -254,6 +258,14 @@ class StudentsScreenState extends State<StudentsScreen> {
   }
 
   PreferredSizeWidget _setAppBar() {
+    final currentUser =
+        Provider.of<Database>(context, listen: false).currentUser;
+    if (currentUser == null) {
+      return ResponsiveService.appBarOf(
+        context,
+      );
+    }
+
     return ResponsiveService.appBarOf(
       context,
       title: Row(
@@ -278,7 +290,7 @@ class StudentsScreenState extends State<StudentsScreen> {
           onInitialize: (context) =>
               OnboardingContexts.instance['generate_code'] = context,
           child: IconButton(
-            onPressed: _showCurrentToken,
+            onPressed: _isGeneratingToken ? null : _showCurrentToken,
             icon: const Icon(Icons.qr_code_2),
             iconSize: 35,
             color: Colors.black,
@@ -302,7 +314,7 @@ class StudentsScreenState extends State<StudentsScreen> {
       );
     }
 
-    final students = Provider.of<Database>(context).students().toList();
+    final students = Provider.of<Database>(context).students;
     students.sort(
         (a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
 

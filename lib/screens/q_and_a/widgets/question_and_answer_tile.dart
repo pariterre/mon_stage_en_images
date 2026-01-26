@@ -148,7 +148,7 @@ class _QuestionAndAnswerTileState extends State<QuestionAndAnswerTile> {
     if (widget.question == null) return;
 
     _isReading = true;
-    _reader.read(widget.question!, _isExpanded ? _answer : null,
+    _reader.read(context, widget.question!, _isExpanded ? _answer : null,
         hasFinishedCallback: _stopReading);
     setState(() {});
   }

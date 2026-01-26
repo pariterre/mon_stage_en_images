@@ -13,15 +13,15 @@
       "providerUserInfo": [
         {
           "providerId": "password",
-          "email": "admin@admin.admin",
-          "federatedId": "admin@admin.admin",
-          "rawId": "admin@admin.admin",
+          "email": "admin@admin.com",
+          "federatedId": "admin@admin.com",
+          "rawId": "admin@admin.com",
           "displayName": "",
           "photoUrl": ""
         }
       ],
       "validSince": "1709648490",
-      "email": "admin@admin.admin",
+      "email": "admin@admin.com",
       "emailVerified": false,
       "disabled": false,
       "lastRefreshAt": "2024-03-05T15:07:58.171Z"

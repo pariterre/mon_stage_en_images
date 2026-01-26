@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:mon_stage_en_images/common/models/database.dart';
+import 'package:provider/provider.dart';
 
 import 'answer.dart';
 import 'question.dart';
@@ -38,8 +40,9 @@ class TextReader {
     hasFinishedCallback();
   }
 
-  Future read(Question question, Answer? answer,
+  Future read(BuildContext context, Question question, Answer? answer,
       {required VoidCallback hasFinishedCallback}) async {
+    final database = Provider.of<Database>(context, listen: false);
     while (!_isInitialized) {
       await Future.delayed(const Duration(milliseconds: 1));
     }
@@ -65,7 +68,9 @@ class TextReader {
     // so if it changes while reading, it won't crash
     List<String> discussion = [];
     for (final message in answer.discussion.toListByTime(reversed: true)) {
-      discussion.add(message.name);
+      final user = database.userById(message.creatorId);
+
+      discussion.add(user == null ? 'Utilisateur inconnu' : user.firstName);
       if (message.isPhotoUrl) {
         discussion.add('Photo $imageCounter de l\'élève.');
         imageCounter++;

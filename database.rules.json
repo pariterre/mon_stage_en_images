@@ -57,6 +57,13 @@
             },
             "userWithExtendedPermissions": {
               ".write": "auth.uid === $uid || (root.child('v0_1_0/users/' + $uid + '/tokens/userWithExtendedPermissions').hasChild(auth.uid) && !newData.exists()) || root.child('admin/ids').hasChild(auth.uid)"
+            },
+            "created": {
+              "$token": {
+                "public": {
+                  ".read": " auth.uid === $uid || root.child('v0_1_0/tokens/' + $token + '/connectedUsers').hasChild(auth.uid) || root.child('admin/ids').hasChild(auth.uid)"
+                }
+              }
             }
           }
         }

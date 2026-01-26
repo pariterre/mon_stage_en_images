@@ -4,6 +4,7 @@ import 'package:mon_stage_en_images/common/misc/database_helper.dart';
 import 'package:mon_stage_en_images/common/models/database.dart';
 
 class User extends EzloginUser {
+  static const String unknownEmoji = '👻';
   static String get randomEmoji {
     final defaultEmojis = [
       // Faces
@@ -48,10 +49,20 @@ class User extends EzloginUser {
     super.id,
   }) : super(mustChangePassword: false);
 
+  User.limitedUser({
+    super.id,
+    required this.firstName,
+    required this.lastName,
+    required this.avatar,
+  })  : studentNotes = {},
+        termsAndServicesAccepted = false,
+        creationDate = DateTime.now(),
+        super(email: '', mustChangePassword: false);
+
   User.fromSerialized(super.map)
       : firstName = map?['firstName'],
         lastName = map?['lastName'],
-        avatar = map?['avatar'] ?? User.randomEmoji,
+        avatar = map?['avatar'],
         studentNotes = (map?['studentNotes'] as Map?)
                 ?.map((k, v) => MapEntry(k, v.toString())) ??
             {},

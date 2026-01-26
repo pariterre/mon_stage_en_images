@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:ezlogin/ezlogin.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
@@ -100,13 +101,14 @@ class Database extends EzloginFirebase with ChangeNotifier {
       if (onNewTeacherConnected != null) await onNewTeacherConnected();
     }
 
-    await _fetchStudents();
+    await _fetchUsers();
     await _startFetchingData();
 
     notifyListeners();
   }
 
   Future<void> _startFetchingData() async {
+    if (_currentUser == null) return;
     // this should be call only after user has successfully logged in
 
     questions.pathToData = '';
@@ -140,7 +142,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
           if (token == null) break;
           await teacherAnswers.initializeFetchingData(
             pathToData: '$_currentDatabaseVersion/answers/$token',
-            connectedStudents: _students,
+            connectedStudents: students,
           );
           await questions.initializeFetchingData(
               pathToData:
@@ -167,7 +169,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
   @override
   Future<EzloginStatus> modifyUser(
       {required EzloginUser user, required EzloginUser newInfo}) async {
-    // Get a copy of current tokens before modification (as they will be lost)
+    // Get a copy of current tokens before modification (as they will be lost and needs to be updated)
     final tokens = (await Database.root
             .child('users')
             .child(user.id)
@@ -182,6 +184,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
           .child(user.id)
           .child('tokens')
           .set(tokens);
+
+      await TeachingTokenHelpers.updatePublicInformation(user.id);
     }
     if (user.email == currentUser?.email) {
       _currentUser = await this.user(user.id);
@@ -240,9 +244,40 @@ class Database extends EzloginFirebase with ChangeNotifier {
     return User.fromSerialized(userdata);
   }
 
-  final List<User> _students = [];
-  List<User> students() {
-    return [..._students];
+  final List<User> _users = [];
+  List<User> get users => [..._users];
+  List<User> get students {
+    if (_currentUser == null) return [];
+
+    return switch (userType) {
+      UserType.none => [],
+      UserType.student =>
+        _users.where((e) => e.id == _currentUser!.id).toList(),
+      UserType.teacher => _users.where((e) => e.id != _currentUser!.id).toList()
+    };
+  }
+
+  User? userById(String? id) {
+    if (id == _currentUser?.id) return _currentUser;
+    return id == null ? null : _users.firstWhereOrNull((user) => user.id == id);
+  }
+
+  User? studentById(String? id) {
+    if (id == _currentUser?.id) return _currentUser;
+    return id == null
+        ? null
+        : students.firstWhereOrNull((student) => student.id == id);
+  }
+
+  User? get teacher {
+    if (_currentUser == null) return null;
+
+    return switch (userType) {
+      UserType.none => null,
+      UserType.student =>
+        _users.firstWhereOrNull((e) => e.id != _currentUser!.id),
+      UserType.teacher => _currentUser,
+    };
   }
 
   ///
@@ -289,15 +324,37 @@ class Database extends EzloginFirebase with ChangeNotifier {
         )));
   }
 
-  Future<void> _fetchStudents() async {
+  Future<void> _fetchUsers() async {
     if (_currentUser == null) return;
 
-    _students.clear();
+    _users.clear();
+    _users.add((await user(_currentUser!.id))!);
+
     switch (userType) {
+      case UserType.none:
+        break;
       case UserType.student:
         {
-          final student = await user(_currentUser!.id);
-          if (student != null) _students.add(student);
+          final token = await TeachingTokenHelpers.connectedToken(
+              studentId: _currentUser!.id);
+          if (token == null) break;
+          final teacherId =
+              await TeachingTokenHelpers.creatorIdOf(token: token);
+          if (teacherId == null) break;
+          final teacher =
+              await TeachingTokenHelpers.getPublicInformation(teacherId, token);
+          if (teacher == null ||
+              teacher['avatar'] == null ||
+              teacher['firstName'] == null ||
+              teacher['lastName'] == null) {
+            break;
+          }
+
+          _users.add(User.limitedUser(
+              id: teacherId,
+              avatar: teacher['avatar'],
+              firstName: teacher['firstName'],
+              lastName: teacher['lastName']));
           break;
         }
       case UserType.teacher:
@@ -310,13 +367,8 @@ class Database extends EzloginFirebase with ChangeNotifier {
               : await TeachingTokenHelpers.userIdsConnectedTo(token: token);
           for (final id in connectedStudentIds) {
             final student = await user(id);
-            if (student != null) _students.add(student);
+            if (student != null) _users.add(student);
           }
-        }
-      case UserType.none:
-        {
-          _students.clear();
-          break;
         }
     }
 
@@ -370,6 +422,9 @@ class _DatabaseMigrationHelper {
         // Only migrate teachers as they will automatically migrate their students
         if (teacher['userType'] != 1) continue;
 
+        // Add an avatar to the teacher
+        teacher['avatar'] = User.randomEmoji;
+
         final token = await TeachingTokenHelpers.generateUniqueToken();
         allAnswers?[token] = {};
 
@@ -381,6 +436,9 @@ class _DatabaseMigrationHelper {
               student['supervisedBy'] != teacher['id']) {
             continue;
           }
+
+          // Add an avatar to the student
+          student['avatar'] = User.randomEmoji;
 
           // Migrate the company names to student notes
           teacher['studentNotes'][student['id']] = student['companyNames'];
@@ -394,6 +452,19 @@ class _DatabaseMigrationHelper {
           for (final studentId in allAnswers!.keys) {
             if (studentId != student['id']) continue;
             allAnswers[token][student['id']] = allAnswers[studentId];
+
+            for (final answers
+                in ((allAnswers[token][student['id']] as Map?)?.values ?? [])) {
+              if (answers is! Map) continue;
+              if (answers.containsKey('discussion')) {
+                for (final message in (answers['discussion'] as Map).values) {
+                  if (message is! Map) continue;
+                  message['studentId'] = student['id'];
+                  message.remove('name');
+                }
+              }
+            }
+
             allAnswers.remove(studentId);
             break;
           }
