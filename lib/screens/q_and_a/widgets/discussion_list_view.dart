@@ -233,12 +233,18 @@ class _DiscussionListViewState extends State<DiscussionListView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton(
+                OutlinedButton(
                   onPressed:
                       kIsWeb ? null : () => _addPhoto(ImageSource.camera),
-                  style:
-                      TextButton.styleFrom(backgroundColor: Colors.grey[700]),
-                  child: const Row(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor:
+                        kIsWeb ? Colors.grey : Theme.of(context).primaryColor,
+                    side: BorderSide(
+                        color: kIsWeb
+                            ? Colors.grey
+                            : Theme.of(context).primaryColor),
+                  ),
+                  child: Row(
                     children: [
                       Icon(Icons.camera_alt),
                       Padding(
@@ -249,18 +255,17 @@ class _DiscussionListViewState extends State<DiscussionListView> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                TextButton(
+                OutlinedButton(
                   onPressed: () => _addPhoto(ImageSource.gallery),
-                  style:
-                      TextButton.styleFrom(backgroundColor: Colors.grey[700]),
-                  child: const Row(
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).primaryColor),
+                  child: Row(
                     children: [
                       Icon(Icons.image),
-                      // TODO Check button color
                       Padding(
-                        padding: EdgeInsets.only(left: 15.0, right: 15.0),
-                        child: Text('Galerie', style: TextStyle(fontSize: 16)),
-                      ),
+                          padding: EdgeInsets.only(left: 15.0, right: 15.0),
+                          child:
+                              Text('Galerie', style: TextStyle(fontSize: 16))),
                     ],
                   ),
                 )
