@@ -19,6 +19,8 @@ class SharedPreferencesController extends ChangeNotifier {
       throw Exception('SharedPreferencesNotifier is already initialized.');
     }
 
+    WidgetsFlutterBinding.ensureInitialized();
+
     _prefs = await SharedPreferencesWithCache.create(
         sharedPreferencesOptions: sharedPreferencesOptions,
         cacheOptions: cacheOptions);

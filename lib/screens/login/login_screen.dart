@@ -245,55 +245,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         onEditingComplete: () => focusNodes.next(),
                       ),
-                      SizedBox(height: 8),
-                      Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text('Je suis un(e) :',
-                              style: TextStyle(fontSize: 16))),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _RadioTile(
-                            value: UserType.student,
-                            groupValue: _userType,
-                            label: 'Élève',
-                            onChanged: (value) {
-                              _changeTypeSelection(value);
-                              if (setStateForm != null) setStateForm!(() {});
-                            },
-                            selectedColor: studentTheme().colorScheme.primary,
-                          ),
-                          _RadioTile(
-                            value: UserType.teacher,
-                            groupValue: _userType,
-                            label: 'Enseignant(e)',
-                            onChanged: (value) {
-                              _changeTypeSelection(value);
-                              if (setStateForm != null) setStateForm!(() {});
-                            },
-                            selectedColor: teacherTheme().colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          children: [
-                            Text('Mon avatar actuel : ',
-                                style: TextStyle(fontSize: 16)),
-                            Text(avatar, style: TextStyle(fontSize: 24)),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      EmojiHelpers.picker(onSelected: (selectedEmoji) {
-                        avatar = selectedEmoji;
-                        if (mounted && setStateForm != null) {
-                          setStateForm!(() {});
-                        }
-                      }),
                       SizedBox(height: 12),
                       TextFormField(
                         decoration: InputDecoration(
@@ -337,6 +288,63 @@ class _LoginScreenState extends State<LoginScreen> {
                                 password, value),
                         onFieldSubmitted: (_) async => await confirm(),
                       ),
+                      SizedBox(height: 8),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Je suis un(e) :',
+                              style: TextStyle(fontSize: 16))),
+                      Wrap(
+                        alignment: WrapAlignment.spaceEvenly,
+                        direction: Axis.horizontal,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 8.0, left: 12.0, right: 12.0),
+                            child: _RadioTile(
+                              value: UserType.student,
+                              groupValue: _userType,
+                              label: 'Élève',
+                              onChanged: (value) {
+                                _changeTypeSelection(value);
+                                if (setStateForm != null) setStateForm!(() {});
+                              },
+                              selectedColor: studentTheme().colorScheme.primary,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 8.0, left: 12.0, right: 12.0),
+                            child: _RadioTile(
+                              value: UserType.teacher,
+                              groupValue: _userType,
+                              label: 'Enseignant(e)',
+                              onChanged: (value) {
+                                _changeTypeSelection(value);
+                                if (setStateForm != null) setStateForm!(() {});
+                              },
+                              selectedColor: teacherTheme().colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            Text('Mon avatar actuel : ',
+                                style: TextStyle(fontSize: 16)),
+                            Text(avatar, style: TextStyle(fontSize: 24)),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      EmojiHelpers.picker(onSelected: (selectedEmoji) {
+                        avatar = selectedEmoji;
+                        if (mounted && setStateForm != null) {
+                          setStateForm!(() {});
+                        }
+                      }),
                     ],
                   );
                 },

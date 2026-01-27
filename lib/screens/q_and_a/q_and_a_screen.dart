@@ -163,7 +163,7 @@ class QAndAScreenState extends State<QAndAScreen> {
                   Navigator.of(context).pop();
                   await _connectToToken();
                 },
-                child: const Text('Connecter un nouveau code',
+                child: const Text('Nouveau code',
                     style: TextStyle(color: Colors.black))),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -244,11 +244,11 @@ class QAndAScreenState extends State<QAndAScreen> {
             return AreYouSureDialog(
               title: firstConnexion
                   ? 'Connecter un code'
-                  : 'Se connecter à un nouveau code ?',
+                  : 'Se connecter à un nouveau code?',
               canReadAloud: true,
               content: firstConnexion
                   ? 'Pour commencer, connectez-vous au code d\'inscription fourni par votre enseignant·e.'
-                  : 'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code ?\n'
+                  : 'Êtes-vous certain(e) de vouloir vous connecter à un nouveau code?\n'
                       'Ceci archivera vos discussions avec l\'enseignant·e actuelle.',
               extraContent: Form(
                 key: _newCodeFormKey,

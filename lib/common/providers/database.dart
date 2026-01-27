@@ -103,7 +103,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
       if (onNewTeacherConnected != null) await onNewTeacherConnected();
     }
 
-    await _fetchUsers();
+    await fetchUsers();
     await _startFetchingData();
 
     notifyListeners();
@@ -157,6 +157,20 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await teacherAnswers.stopFetchingData();
     await studentAnswers.stopFetchingData();
     await questions.stopFetchingData();
+  }
+
+  Future<void> restartFetchingTeacherAnswers() async {
+    if (_currentUser == null || userType != UserType.teacher) return;
+
+    final token =
+        await TeachingTokenHelpers.createdActiveToken(userId: _currentUser!.id);
+    if (token == null) return;
+
+    await teacherAnswers.stopFetchingData();
+    await teacherAnswers.initializeFetchingData(
+      pathToData: '$_currentDatabaseVersion/answers/$token',
+      connectedStudents: students,
+    );
   }
 
   @override
@@ -214,6 +228,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
                 .child('tester')
                 .remove();
             await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
+            logout();
             return null; // Migration is done, force reset
           } on Exception {
             // This is not a user who is suppose to migrate, ignore
@@ -335,7 +350,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
         )));
   }
 
-  Future<void> _fetchUsers() async {
+  Future<void> fetchUsers() async {
     if (_currentUser == null) return;
 
     _users.clear();
@@ -376,6 +391,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
           final connectedStudentIds = token == null
               ? <String>[]
               : await TeachingTokenHelpers.userIdsConnectedTo(token: token);
+
           for (final id in connectedStudentIds) {
             final student = await user(id);
             if (student != null) _users.add(student);

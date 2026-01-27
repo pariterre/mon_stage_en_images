@@ -145,65 +145,40 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
               children: [
                 widget.editInformation
                     ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: 175,
-                                child: TextFormField(
-                                  controller: _firstNameController,
-                                  focusNode: _focusNodes['firstName'],
-                                  decoration: const InputDecoration(
-                                      labelText: 'Prénom'),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Le prénom ne peut pas être vide';
-                                    }
-                                    return null;
-                                  },
-                                  onFieldSubmitted: (_) =>
-                                      _focusNodes['lastName']!.requestFocus(),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              SizedBox(
-                                width: 175,
-                                child: TextFormField(
-                                  controller: _lastNameController,
-                                  focusNode: _focusNodes['lastName'],
-                                  decoration:
-                                      const InputDecoration(labelText: 'Nom'),
-                                  onFieldSubmitted: (_) => _save(),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Le nom ne peut pas être vide';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
+                          Padding(
+                            // Allows for text to appead in TextFormField
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: TextFormField(
+                              controller: _firstNameController,
+                              focusNode: _focusNodes['firstName'],
+                              decoration:
+                                  const InputDecoration(labelText: 'Prénom'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Le prénom ne peut pas être vide';
+                                }
+                                return null;
+                              },
+                              onFieldSubmitted: (_) =>
+                                  _focusNodes['lastName']!.requestFocus(),
+                            ),
                           ),
-                          StatefulBuilder(
-                            builder: (context, setStateEmoji) => Column(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Row(
-                                    children: [
-                                      Text('Mon avatar actuel : ',
-                                          style: TextStyle(fontSize: 16)),
-                                      Text(_avatarController.text,
-                                          style: TextStyle(fontSize: 24)),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                EmojiHelpers.picker(onSelected: (emoji) {
-                                  _avatarController.text = emoji;
-                                  if (mounted) setStateEmoji(() {});
-                                }),
-                              ],
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: TextFormField(
+                              controller: _lastNameController,
+                              focusNode: _focusNodes['lastName'],
+                              decoration:
+                                  const InputDecoration(labelText: 'Nom'),
+                              onFieldSubmitted: (_) => _save(),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Le nom ne peut pas être vide';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                         ],
@@ -216,7 +191,6 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                               '${widget.user.firstName} ${widget.user.lastName}'),
                         ],
                       ),
-                const SizedBox(height: 8),
                 widget.editInformation
                     ? Column(
                         children: [
@@ -239,6 +213,42 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                           Text('Courriel : ',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                           Text(widget.user.email),
+                        ],
+                      ),
+                widget.editInformation
+                    ? SizedBox(height: 8)
+                    : SizedBox.shrink(),
+                widget.editInformation
+                    ? StatefulBuilder(
+                        builder: (context, setStateEmoji) => Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                children: [
+                                  Text('Mon avatar actuel : ',
+                                      style: TextStyle(fontSize: 16)),
+                                  Text(_avatarController.text,
+                                      style: TextStyle(fontSize: 24)),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            EmojiHelpers.picker(onSelected: (emoji) {
+                              _avatarController.text = emoji;
+                              if (mounted) setStateEmoji(() {});
+                            }),
+                          ],
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Text('Avatar : ',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            widget.user.avatar,
+                            style: TextStyle(fontSize: 24),
+                          ),
                         ],
                       ),
                 if (widget.showEditableNotes)

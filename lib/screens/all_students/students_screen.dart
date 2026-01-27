@@ -153,9 +153,9 @@ class StudentsScreenState extends State<StudentsScreen> {
           builder: (context, setState) {
             _passwordDialogSetState = setState;
             return AreYouSureDialog(
-              title: 'Générer un nouveau code ?',
+              title: 'Générer un nouveau code?',
               content:
-                  'Êtes-vous certain(e) de vouloir générer un nouveau code ?\n'
+                  'Êtes-vous certain(e) de vouloir générer un nouveau code?\n'
                   'Réinitialiser votre code interrompt et archive la communication\n'
                   'avec vos élèves enregistrés.\n\n'
                   'Entrez votre mot de passe pour confirmer :',
@@ -286,6 +286,19 @@ class StudentsScreenState extends State<StudentsScreen> {
         },
       ),
       actions: [
+        IconButton(
+            onPressed: () async {
+              final database = Provider.of<Database>(context, listen: false);
+
+              final previousStudentIds =
+                  database.students.map((e) => e.id).toList();
+              await database.fetchUsers();
+              if (database.students
+                  .any((e) => !previousStudentIds.contains(e.id))) {
+                await database.restartFetchingTeacherAnswers();
+              }
+            },
+            icon: const Icon(Icons.refresh)),
         OnboardingContainer(
           onInitialize: (context) =>
               OnboardingContexts.instance['generate_code'] = context,
