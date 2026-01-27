@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
 
@@ -158,13 +160,11 @@ class TeachingTokenHelpers {
     final existingTokens = await _existingTokens();
 
     const chars = 'ABCDEFGHJKMNPQRSTUVXY3456789';
-    final rand = DateTime.now().millisecondsSinceEpoch;
+    final rand = Random();
     String token;
     do {
-      token = List.generate(6, (index) {
-        final indexChar = (rand + index * 37) % chars.length;
-        return chars[indexChar];
-      }).join();
+      token =
+          List.generate(6, (index) => chars[rand.nextInt(chars.length)]).join();
     } while (existingTokens.contains(token));
 
     return token;

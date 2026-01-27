@@ -449,7 +449,7 @@ class QAndAScreenState extends State<QAndAScreen> {
                 ),
               const SizedBox(width: 15),
             ]
-          : (_currentPage == 0
+          : (_currentPage == 0 && userType == UserType.student
               ? [
                   OnboardingContainer(
                     onInitialize: (context) => WidgetsBinding.instance
