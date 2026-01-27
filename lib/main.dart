@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 
 import '/firebase_options.dart';
 
-const String softwareVersion = '1.1.1';
+const String softwareVersion = '1.2.0';
 
 void main() async {
   // Set logging to INFO
