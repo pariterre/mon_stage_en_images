@@ -10,6 +10,8 @@ class PushNotificationsHelpers {
   static Future<void> setupPushNotifications(BuildContext context) async {
     if (kIsWeb) return;
 
+    await _listenToPushNotifications();
+
     final fcm = FirebaseMessaging.instance;
     final settings = await FirebaseMessaging.instance.getNotificationSettings();
     switch (settings.authorizationStatus) {
@@ -51,9 +53,7 @@ class PushNotificationsHelpers {
 
     final token = await fcm.getToken();
     if (!context.mounted || token == null) return;
-    print(token);
 
-    // TODO update user
     final database = Provider.of<Database>(context, listen: false);
     final user = database.currentUser;
     if (user == null) throw Exception('No user is currently logged in.');
@@ -65,5 +65,19 @@ class PushNotificationsHelpers {
           user: user,
           newInfo: user.copyWith(pushNotificationsTokens: userTokens));
     }
+  }
+
+  static Future<void> _listenToPushNotifications() async {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        // This can be used to show in-app notifications if needed (e.g. snackbar)
+        // and navigate to specific screens based on message data.
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // This can be used to navigate to specific screens when the app is opened
+      // from a push notification.
+    });
   }
 }

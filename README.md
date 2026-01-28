@@ -29,9 +29,17 @@ Rouler la commande suivante pour cloner les dépôts nécessaires pour compiler 
 4. Pour éditer les fonctions (i.e. les notifications), vous devez avoir un environnement Python préparé avec les dépendances nécessaires (voir `functions/requirements.txt`). 
 Attention il est important d'avoir un environnement avec avec une version de Python de 3.10 ou plus. Utiliser `conda` est un moyen facile de gérer les versions de Python.
 
+Au besoin, il est nécessaire de supprimer la fonction sur le cloud. Pour ce faire, rouler la commande:
+
+        firebase functions:delete [NOM_DE_LA_FONCTION]
+
 1. Pour déployer les fonctions, vous devez lancer la commande:
 
-        firebase deploy
+        firebase deploy --only functions
+    OU
+        firebase deploy --only functions:[NOM_DE_LA_FONCTION]
+
+
 
 Pour plus d'informations, visitez [cette page](https://firebase.google.com/docs/flutter/setup).
 

@@ -2,8 +2,7 @@
 # To get started, simply uncomment the below code or create your own.
 # Deploy with `firebase deploy`
 
-from firebase_functions import db_fn
-from firebase_functions.options import set_global_options
+from firebase_functions import db_fn, options
 from firebase_admin import initialize_app, db, messaging
 
 # For cost control, you can set the maximum number of containers that can be
@@ -11,9 +10,13 @@ from firebase_admin import initialize_app, db, messaging
 # traffic spikes by instead downgrading performance. This limit is a per-function
 # limit. You can override the limit for each function using the max_instances
 # parameter in the decorator, e.g. @https_fn.on_request(max_instances=5).
-set_global_options(max_instances=10)
+options.set_global_options(max_instances=10)
 
-initialize_app()
+initialize_app(
+    options={
+        "databaseURL": "https://monstageenimages-default-rtdb.firebaseio.com/",
+    }
+)
 
 
 def _cleanup_invalid_tokens(tokens: list[str], response: messaging.BatchResponse, receiver_id: str) -> None:
@@ -58,13 +61,13 @@ def _send_notification(receiver_id: str, title: str, body: str) -> None:
 
 
 @db_fn.on_value_created(reference="/v0_1_0/answers/{token}/{studentId}/{questionId}/discussion/{responseId}")
-def notify_on_new_message(event: db_fn.Event[db_fn.DataSnapshot]) -> None:
+def notify_on_new_message(event) -> None:
     """
     Sends a notification when a new discussion message is created
     under a student's answer to a question.
     """
     params = event.params
-    data = event.data.val()
+    data: dict = event.data
 
     # Read the sender of the current message
     sender_id = data.get("creatorId")
@@ -86,10 +89,13 @@ def notify_on_new_message(event: db_fn.Event[db_fn.DataSnapshot]) -> None:
     # Decide notification recipient
     if sender_id == student_id:
         receiver_id = teacher_id
-        student = db.reference(f"/v0_1_0/users/{student_id}").get()
+        student: dict = db.reference(f"/v0_1_0/users/{student_id}").get()
         avatar = student.get("avatar")
         first_name = student.get("firstName")
         last_name = student.get("lastName")
+        if not first_name or not last_name or not avatar:
+            return
+
         body_message = f"{first_name} {last_name} ({avatar}) vous a envoyé un message."
     elif sender_id == teacher_id:
         receiver_id = student_id
@@ -98,4 +104,4 @@ def notify_on_new_message(event: db_fn.Event[db_fn.DataSnapshot]) -> None:
         return
 
     # Send notification
-    _send_notification(receiver_id=receiver_id, title="Nouvelle réponse", body=body_message)
+    _send_notification(receiver_id=receiver_id, title="Nouveau message", body=body_message)
