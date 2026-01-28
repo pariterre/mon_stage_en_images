@@ -58,5 +58,5 @@ lib/firebase_options.dart
 macos/Runner/GoogleService-Info.plist
 
 # Exporter
-ressources/analyses/export/
-ressources/analyses/*.json
+resources/analyses/export/
+resources/analyses/*.json

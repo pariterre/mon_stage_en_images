@@ -34,8 +34,8 @@
       "name": "Data analyses",
       "request": "launch",
       "type": "debugpy",
-      "program": "${workspaceFolder}/ressources/analyses/firebase_excel_coverter.py",
-      "cwd": "${workspaceFolder}/ressources/analyses/",
+      "program": "${workspaceFolder}/resources/analyses/firebase_excel_coverter.py",
+      "cwd": "${workspaceFolder}/resources/analyses/",
     }
   ]
 }

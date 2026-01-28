@@ -6,7 +6,7 @@
       "command": "firebase",
       "args": [
         "emulators:start",
-        "--import=ressources/firebase",
+        "--import=resources/firebase",
         // "--export-on-exit=./emulator-data",
       ],
       "type": "shell",
