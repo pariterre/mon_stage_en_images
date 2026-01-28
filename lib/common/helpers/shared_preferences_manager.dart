@@ -42,13 +42,6 @@ class SharedPreferencesController extends ChangeNotifier {
         .then((_) => notifyListeners());
   }
 
-  void _forceFailIfNotInitialized() {
-    if (!isInitialized) {
-      throw Exception(
-          'SharedPreferencesNotifier is not initialized. Call initialize() first.');
-    }
-  }
-
   final String _userTypeKey = 'userType';
   UserType get userType {
     _forceFailIfNotInitialized();
@@ -60,5 +53,25 @@ class SharedPreferencesController extends ChangeNotifier {
     _prefs!
         .setString(_userTypeKey, userType.serialize())
         .then((_) => notifyListeners());
+  }
+
+  final String _showPermissionRefusedKey = 'showPermissionRefused';
+  bool get showPermissionRefused {
+    _forceFailIfNotInitialized();
+    return _prefs!.getBool(_showPermissionRefusedKey) ?? true;
+  }
+
+  set showPermissionRefused(bool value) {
+    _forceFailIfNotInitialized();
+    _prefs!
+        .setBool(_showPermissionRefusedKey, value)
+        .then((_) => notifyListeners());
+  }
+
+  void _forceFailIfNotInitialized() {
+    if (!isInitialized) {
+      throw Exception(
+          'SharedPreferencesNotifier is not initialized. Call initialize() first.');
+    }
   }
 }

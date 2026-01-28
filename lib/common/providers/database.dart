@@ -376,11 +376,12 @@ class Database extends EzloginFirebase with ChangeNotifier {
             break;
           }
 
-          _users.add(User.limitedUser(
-              id: teacherId,
-              avatar: teacher['avatar'],
-              firstName: teacher['firstName'],
-              lastName: teacher['lastName']));
+          _users.add(User.publicUser(
+            id: teacherId,
+            avatar: teacher['avatar'],
+            firstName: teacher['firstName'],
+            lastName: teacher['lastName'],
+          ));
           break;
         }
       case UserType.teacher:

@@ -14,10 +14,11 @@ class User extends EzloginUser {
     required this.irsstPageSeen,
     required this.hasSeenTeacherOnboarding,
     required this.hasSeenStudentOnboarding,
+    required this.pushNotificationsTokens,
     super.id,
   }) : super(mustChangePassword: false);
 
-  User.limitedUser({
+  User.publicUser({
     super.id,
     required this.firstName,
     required this.lastName,
@@ -28,6 +29,7 @@ class User extends EzloginUser {
         irsstPageSeen = false,
         hasSeenTeacherOnboarding = false,
         hasSeenStudentOnboarding = false,
+        pushNotificationsTokens = [],
         super(email: '', mustChangePassword: false);
 
   User.fromSerialized(super.map)
@@ -43,6 +45,8 @@ class User extends EzloginUser {
         irsstPageSeen = map?['irsstPageSeen'] ?? false,
         hasSeenTeacherOnboarding = map?['hasSeenTeacherOnboarding'] ?? false,
         hasSeenStudentOnboarding = map?['hasSeenStudentOnboarding'] ?? false,
+        pushNotificationsTokens =
+            (map?['pushNotificationsTokens'] as List?)?.cast<String>() ?? [],
         super.fromSerialized();
 
   @override
@@ -59,6 +63,7 @@ class User extends EzloginUser {
     bool? irsstPageSeen,
     bool? hasSeenTeacherOnboarding,
     bool? hasSeenStudentOnboarding,
+    List<String>? pushNotificationsTokens,
   }) {
     if (mustChangePassword != null) {
       throw UnimplementedError(
@@ -80,6 +85,8 @@ class User extends EzloginUser {
           hasSeenTeacherOnboarding ?? this.hasSeenTeacherOnboarding,
       hasSeenStudentOnboarding:
           hasSeenStudentOnboarding ?? this.hasSeenStudentOnboarding,
+      pushNotificationsTokens:
+          pushNotificationsTokens ?? this.pushNotificationsTokens,
     );
   }
 
@@ -95,6 +102,7 @@ class User extends EzloginUser {
       'irsstPageSeen': irsstPageSeen,
       'hasSeenTeacherOnboarding': hasSeenTeacherOnboarding,
       'hasSeenStudentOnboarding': hasSeenStudentOnboarding,
+      'pushNotificationsTokens': pushNotificationsTokens,
     });
 
   @override
@@ -112,6 +120,7 @@ class User extends EzloginUser {
   final bool irsstPageSeen;
   final bool hasSeenTeacherOnboarding;
   final bool hasSeenStudentOnboarding;
+  final List<String> pushNotificationsTokens;
 
   @override
   String toString() => '$firstName $lastName';

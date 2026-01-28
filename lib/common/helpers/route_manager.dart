@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_stage_en_images/common/helpers/push_notifications_helpers.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
@@ -67,6 +68,11 @@ class RouteManager {
     }
 
     if (currentState == null) return;
+
+    // We setup the push notifications here because this function is called
+    // right after the user logs in
+    await PushNotificationsHelpers.setupPushNotifications(context);
+    if (!context.mounted) return;
 
     final areTermsAccepted = Provider.of<Database>(context, listen: false)
         .currentUser!

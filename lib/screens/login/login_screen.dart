@@ -192,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 irsstPageSeen: false,
                 hasSeenTeacherOnboarding: false,
                 hasSeenStudentOnboarding: false,
+                pushNotificationsTokens: [],
               ),
               password: _passwordController.text);
           if (!hasRegistered) {
