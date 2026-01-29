@@ -38,9 +38,9 @@ class GoToIrsstScreen extends StatelessWidget {
               const Text(
                   'Vous trouverez des informations utiles et ludiques '
                   'concernant la Santé et sécurité au travail (SST) en '
-                  'suivant ce lien. Vous pouvez accéder à ce lien à '
-                  'partir de l\'application en tout temps en cliquant '
-                  'sur le bouton "IRSST" dans le menu principal. ',
+                  'suivant ce lien. Vous pouvez accéder à ce document  et à d\'autres ressources à '
+                  'partir du menu principal de l\'application, en cliquant '
+                  'sur la section "Ressources". ',
                   style: TextStyle(fontSize: 18)),
               const SizedBox(height: 20),
               Row(
