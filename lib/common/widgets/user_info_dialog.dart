@@ -259,7 +259,7 @@ class _UserInfoDialogState extends State<UserInfoDialog> {
                         controller: _noteController,
                         focusNode: _focusNodes['note'],
                         decoration: const InputDecoration(
-                            labelText: 'Note personnelle de l\'élève'),
+                            labelText: 'Note privée sur l\'élève'),
                         onFieldSubmitted: (_) => _save(),
                       ),
                     ],

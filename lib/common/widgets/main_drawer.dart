@@ -175,11 +175,15 @@ class MainDrawer extends StatelessWidget {
               ),
             if (userType == UserType.teacher) const Divider(),
             if (userType == UserType.teacher)
-              MenuItem(
-                title: 'Suggestions',
-                icon: Icons.feedback,
-                onTap: () => SuggestionsPage.showSuggestionPage(context),
-                iconOnly: iconOnly,
+              OnboardingContainer(
+                onInitialize: (context) => OnboardingContexts
+                    .instance['drawer_feedback_button'] = context,
+                child: MenuItem(
+                  title: 'Suggestions',
+                  icon: Icons.feedback,
+                  onTap: () => SuggestionsPage.showSuggestionPage(context),
+                  iconOnly: iconOnly,
+                ),
               ),
             MenuItem(
               title: 'Mes informations',

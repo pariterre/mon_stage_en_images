@@ -61,6 +61,7 @@ class OnboardingContexts {
       'drawer_question_button': null,
       'drawer_answer_button': null,
       'drawer_info_button': null,
+      'drawer_feedback_button': null,
     },
     QAndAScreen.routeName: {
       'q_and_a_app_bar_title': null,
@@ -281,6 +282,25 @@ class OnboardingContexts {
       },
       targetWidgetContext: () =>
           OnboardingContexts.instance['drawer_info_button'],
+    ),
+    OnboardingStep(
+      message:
+          'Utilisez le formulaire accessible ici pour nous transmettre vos suggestions',
+      navigationCallback: (_) async {
+        OnboardingContexts.instance._isNavigating = true;
+        await _navigateToPage(StudentsScreen.routeName);
+
+        while (OnboardingContexts.instance['drawer_feedback_button'] == null) {
+          await Future.delayed(const Duration(milliseconds: 50));
+        }
+        OnboardingContexts.instance['drawer_feedback_button']
+            ?.findAncestorStateOfType<StudentsScreenState>()
+            ?.openDrawer();
+
+        OnboardingContexts.instance._isNavigating = false;
+      },
+      targetWidgetContext: () =>
+          OnboardingContexts.instance['drawer_feedback_button'],
     ),
   ];
 }
