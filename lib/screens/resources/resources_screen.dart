@@ -80,7 +80,7 @@ final List<ContentCard> resourcesCard = [
     title: 'Apprendre sur la SST',
     description:
         '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé'''
-        '''et en Sécurité au Travail) pour la supervision de métier semi-spécialisées''',
+        ''' et en Sécurité au Travail) pour la supervision de métier semi-spécialisées''',
     primaryAction: (BuildContext context) async {
       await launchUrl(GoToIrsstScreen.learnAboutSstUri);
       if (!context.mounted) return;

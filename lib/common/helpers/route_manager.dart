@@ -162,8 +162,13 @@ class RouteManager {
             QAndAScreen.routeName,
             arguments: [target, pageMode, student],
           )
-        : await currentState?.pushReplacementNamed(
+        : await currentState?.pushNamedAndRemoveUntil(
             QAndAScreen.routeName,
+            (route) {
+              print('toto');
+              print(route.isFirst);
+              return route.isFirst;
+            },
             arguments: [target, pageMode, student],
           );
   }

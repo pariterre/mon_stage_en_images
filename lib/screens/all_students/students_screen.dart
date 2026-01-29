@@ -321,8 +321,10 @@ class StudentsScreenState extends State<StudentsScreen> {
         context,
         appBar: _setAppBar(),
         body: Center(child: Text('Génération du code d\'inscription...')),
-        smallDrawer: MainDrawer.small(),
-        mediumDrawer: MainDrawer.medium(),
+        smallDrawer:
+            MainDrawer.small(navigationBack: () => Navigator.of(context).pop()),
+        mediumDrawer: MainDrawer.medium(
+            navigationBack: () => Navigator.of(context).pop()),
         largeDrawer: MainDrawer.large(),
       );
     }
