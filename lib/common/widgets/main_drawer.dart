@@ -12,32 +12,19 @@ class MainDrawer extends StatelessWidget {
   const MainDrawer({
     super.key,
     this.iconOnly = false,
-    this.canPop = true,
     this.roundedCorners = true,
-    this.canNavigateBack,
     this.navigationBack,
   });
 
   static MainDrawer small({Function()? navigationBack}) => MainDrawer(
-      iconOnly: false,
-      canPop: true,
-      roundedCorners: true,
-      navigationBack: navigationBack);
+      iconOnly: false, roundedCorners: true, navigationBack: navigationBack);
   static MainDrawer medium({Function()? navigationBack}) => MainDrawer(
-      iconOnly: true,
-      canPop: false,
-      roundedCorners: false,
-      navigationBack: navigationBack);
+      iconOnly: true, roundedCorners: false, navigationBack: navigationBack);
   static MainDrawer large({Function()? navigationBack}) => MainDrawer(
-      iconOnly: false,
-      canPop: false,
-      roundedCorners: false,
-      navigationBack: navigationBack);
+      iconOnly: false, roundedCorners: false, navigationBack: navigationBack);
 
   final bool iconOnly;
-  final bool canPop;
   final bool roundedCorners;
-  final bool? canNavigateBack;
   final Function()? navigationBack;
 
   @override
@@ -59,21 +46,19 @@ class MainDrawer extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: navigationBack == null
-              ? null
+              ? (Navigator.of(context).canPop()
+                  ? BackButton(color: Theme.of(context).colorScheme.onPrimary)
+                  : Icon(Icons.menu,
+                      color: Theme.of(context).colorScheme.onPrimary))
               : IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(Icons.arrow_back,
+                      color: Theme.of(context).colorScheme.onPrimary),
                   onPressed: navigationBack,
                 ),
           title: OnboardingContainer(
             onInitialize: (context) =>
                 OnboardingContexts.instance['drawer_button'] = context,
-            child: navigationBack == null
-                ? Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                    Icon(Icons.menu),
-                    SizedBox(width: 8.0),
-                    if (!iconOnly) Text('Menu principal'),
-                  ])
-                : SizedBox.shrink(),
+            child: iconOnly ? SizedBox.shrink() : Text('Menu principal'),
           ),
         ),
         body: SingleChildScrollView(

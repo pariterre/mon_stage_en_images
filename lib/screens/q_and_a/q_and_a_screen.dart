@@ -34,6 +34,7 @@ class QAndAScreen extends StatefulWidget {
 }
 
 class QAndAScreenState extends State<QAndAScreen> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isInitialized = false;
   User? _student;
   Target _viewSpan = Target.individual;
@@ -431,8 +432,17 @@ class QAndAScreenState extends State<QAndAScreen> {
         ],
       ),
       leading: _currentPage != 0 || Navigator.of(context).canPop()
-          ? BackButton(onPressed: _onBackPressed)
-          : null,
+          ? BackButton(
+              onPressed: _onBackPressed,
+              color: onPrimaryColor,
+            )
+          : IconButton(
+              icon: Icon(Icons.menu,
+                  color: Theme.of(context).colorScheme.onPrimary),
+              onPressed: () {
+                scaffoldKey.currentState?.openDrawer();
+              },
+            ),
       actions: _currentPage != 0 && userType == UserType.teacher
           ? [
               if (_viewSpan == Target.individual)
@@ -504,6 +514,7 @@ class QAndAScreenState extends State<QAndAScreen> {
       },
       child: ResponsiveService.scaffoldOf(
         context,
+        key: scaffoldKey,
         appBar: _setAppBar(),
         body: _currentToken == null && database.userType == UserType.student
             ? Center(

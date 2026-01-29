@@ -280,7 +280,7 @@ class StudentsScreenState extends State<StudentsScreen> {
         ],
       ),
       leading: IconButton(
-        icon: Icon(Icons.menu),
+        icon: Icon(Icons.menu, color: Theme.of(context).colorScheme.onPrimary),
         onPressed: () {
           scaffoldKey.currentState?.openDrawer();
         },
@@ -298,13 +298,13 @@ class StudentsScreenState extends State<StudentsScreen> {
                 await database.restartFetchingTeacherAnswers();
               }
             },
-            icon: const Icon(Icons.refresh)),
+            icon: const Icon(Icons.refresh, color: Colors.black)),
         OnboardingContainer(
           onInitialize: (context) =>
               OnboardingContexts.instance['generate_code'] = context,
           child: IconButton(
             onPressed: _isGeneratingToken ? null : _showCurrentToken,
-            icon: const Icon(Icons.qr_code_2),
+            icon: const Icon(Icons.qr_code_2, color: Colors.black),
             iconSize: 35,
             color: Colors.black,
           ),
@@ -321,10 +321,8 @@ class StudentsScreenState extends State<StudentsScreen> {
         context,
         appBar: _setAppBar(),
         body: Center(child: Text('Génération du code d\'inscription...')),
-        smallDrawer:
-            MainDrawer.small(navigationBack: () => Navigator.of(context).pop()),
-        mediumDrawer: MainDrawer.medium(
-            navigationBack: () => Navigator.of(context).pop()),
+        smallDrawer: MainDrawer.small(),
+        mediumDrawer: MainDrawer.medium(),
         largeDrawer: MainDrawer.large(),
       );
     }
