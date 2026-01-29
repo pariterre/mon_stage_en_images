@@ -30,7 +30,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
         ],
       ),
       leading: IconButton(
-        icon: Icon(Icons.menu),
+        icon: Icon(Icons.menu, color: Theme.of(context).colorScheme.onPrimary),
         onPressed: () {
           scaffoldKey.currentState?.openDrawer();
         },
@@ -79,8 +79,8 @@ final List<ContentCard> resourcesCard = [
   ContentCard(
     title: 'Apprendre sur la SST',
     description:
-        '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé'''
-        ''' et en Sécurité au Travail) pour la supervision de métier semi-spécialisées''',
+        '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé '''
+        '''et en Sécurité au Travail) pour la supervision de métier semi-spécialisées''',
     primaryAction: (BuildContext context) async {
       await launchUrl(GoToIrsstScreen.learnAboutSstUri);
       if (!context.mounted) return;

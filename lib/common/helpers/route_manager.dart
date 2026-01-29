@@ -59,7 +59,10 @@ class RouteManager {
           'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
     }
 
-    await currentState?.pushReplacementNamed(LoginScreen.routeName);
+    await currentState?.pushNamedAndRemoveUntil(
+      LoginScreen.routeName,
+      (route) => false,
+    );
   }
 
   Future<void> gotoTermsAndServicesPage(BuildContext context) async {
@@ -80,8 +83,8 @@ class RouteManager {
         .termsAndServicesAccepted;
 
     if (!areTermsAccepted) {
-      await currentState
-          ?.pushReplacementNamed(TermsAndServicesScreen.routeName);
+      await currentState?.pushNamedAndRemoveUntil(
+          TermsAndServicesScreen.routeName, (route) => false);
     } else {
       await gotoIrsstPage(context);
     }
@@ -113,7 +116,10 @@ class RouteManager {
         if (user.irsstPageSeen) {
           await gotoStudentsPage(context);
         } else {
-          await currentState?.pushReplacementNamed(GoToIrsstScreen.routeName);
+          await currentState?.pushNamedAndRemoveUntil(
+            GoToIrsstScreen.routeName,
+            (route) => false,
+          );
         }
         break;
     }
@@ -125,7 +131,10 @@ class RouteManager {
           'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
     }
 
-    await currentState?.pushReplacementNamed(MyInfoScreen.routeName);
+    await currentState?.pushNamedAndRemoveUntil(
+      MyInfoScreen.routeName,
+      (route) => false,
+    );
   }
 
   Future<void> gotoStudentsPage(BuildContext context) async {
@@ -134,7 +143,10 @@ class RouteManager {
           'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
     }
 
-    await currentState?.pushReplacementNamed(StudentsScreen.routeName);
+    await currentState?.pushNamedAndRemoveUntil(
+      StudentsScreen.routeName,
+      (route) => false,
+    );
   }
 
   Future<void> goToResourcesPage(BuildContext context) async {
@@ -142,7 +154,10 @@ class RouteManager {
       throw Exception(
           'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
     }
-    await currentState?.pushReplacementNamed(ResourcesScreen.routeName);
+    await currentState?.pushNamedAndRemoveUntil(
+      ResourcesScreen.routeName,
+      (route) => false,
+    );
   }
 
   Future<void> gotoQAndAPage(
@@ -164,11 +179,7 @@ class RouteManager {
           )
         : await currentState?.pushNamedAndRemoveUntil(
             QAndAScreen.routeName,
-            (route) {
-              print('toto');
-              print(route.isFirst);
-              return route.isFirst;
-            },
+            (route) => false,
             arguments: [target, pageMode, student],
           );
   }

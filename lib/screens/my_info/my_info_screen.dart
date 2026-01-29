@@ -37,7 +37,7 @@ class MyInfoScreenState extends State<MyInfoScreen> {
         ],
       ),
       leading: IconButton(
-        icon: Icon(Icons.menu),
+        icon: Icon(Icons.menu, color: Theme.of(context).colorScheme.onPrimary),
         onPressed: () {
           scaffoldKey.currentState?.openDrawer();
         },
