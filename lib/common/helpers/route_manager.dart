@@ -141,16 +141,22 @@ class RouteManager {
     required Target target,
     required PageMode pageMode,
     required User? student,
+    bool pushOnStack = false,
   }) async {
     if (!isInitialized) {
       throw Exception(
           'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
     }
 
-    await currentState?.pushReplacementNamed(
-      QAndAScreen.routeName,
-      arguments: [target, pageMode, student],
-    );
+    pushOnStack
+        ? await currentState?.pushNamed(
+            QAndAScreen.routeName,
+            arguments: [target, pageMode, student],
+          )
+        : await currentState?.pushReplacementNamed(
+            QAndAScreen.routeName,
+            arguments: [target, pageMode, student],
+          );
   }
 
   Widget builderForCurrentRoute(String routeName) {

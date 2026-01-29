@@ -327,7 +327,10 @@ class StudentsScreenState extends State<StudentsScreen> {
       );
     }
 
-    final students = Provider.of<Database>(context).students;
+    final bool isOnboarding = OnboardingContexts.instance.isOnboarding;
+    final students = isOnboarding
+        ? <User>[OnboardingContexts.instance.dummyStudent]
+        : Provider.of<Database>(context).students;
     students.sort(
         (a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
 
@@ -346,10 +349,13 @@ class StudentsScreenState extends State<StudentsScreen> {
               const SizedBox(height: 3),
               Expanded(
                 child: ListView.builder(
-                  itemBuilder: (context, index) => StudentListTile(
-                    students[index].id,
-                    modifyStudentCallback: _showStudentInfo,
-                  ),
+                  itemBuilder: (context, index) {
+                    return StudentListTile(
+                      students[index].id,
+                      isOnboarding: isOnboarding,
+                      modifyStudentCallback: _showStudentInfo,
+                    );
+                  },
                   itemCount: students.length,
                 ),
               ),

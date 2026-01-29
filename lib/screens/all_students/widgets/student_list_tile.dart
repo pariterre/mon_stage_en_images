@@ -7,6 +7,8 @@ import 'package:mon_stage_en_images/common/providers/all_answers.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/taking_action_notifier.dart';
+import 'package:mon_stage_en_images/default_onboarding_steps.dart';
+import 'package:mon_stage_en_images/onboarding/onboarding.dart';
 import 'package:provider/provider.dart';
 
 class StudentListTile extends StatelessWidget {
@@ -14,23 +16,34 @@ class StudentListTile extends StatelessWidget {
     this.studentId, {
     super.key,
     required this.modifyStudentCallback,
+    this.isOnboarding = false,
   });
 
   final Function(User) modifyStudentCallback;
   final String studentId;
+  final bool isOnboarding;
 
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<Database>(context, listen: false);
     final currentUser = database.currentUser;
 
-    final student =
-        database.students.firstWhereOrNull((e) => e.id == studentId);
+    final student = isOnboarding
+        ? OnboardingContexts.instance.dummyStudent
+        : database.students.firstWhereOrNull((e) => e.id == studentId);
 
     final allAnswers =
         AllAnswers.of(context, listen: false).filter(studentIds: [studentId]);
     final numberOfActions =
         AllAnswers.numberNeedTeacherActionFrom(allAnswers, context);
+
+    final IconButton moreOptionsButton = IconButton(
+        key: ValueKey<String>('more_options_student_button'),
+        onPressed: () {
+          if (student == null) return;
+          modifyStudentCallback(student);
+        },
+        icon: Icon(Icons.more_horiz));
 
     return Card(
       elevation: 5,
@@ -69,18 +82,20 @@ class StudentListTile extends StatelessWidget {
               borderColor: Colors.black,
               child: const Text(""),
             ),
-            IconButton(
-                onPressed: () {
-                  if (student == null) return;
-                  modifyStudentCallback(student);
-                },
-                icon: Icon(Icons.more_horiz))
+            isOnboarding
+                ? OnboardingContainer(
+                    onInitialize: (context) => OnboardingContexts
+                        .instance['more_options_student_button'] = context,
+                    child: moreOptionsButton,
+                  )
+                : moreOptionsButton
           ],
         ),
         onTap: () => RouteManager.instance.gotoQAndAPage(context,
             target: Target.individual,
             pageMode: PageMode.editableView,
-            student: student),
+            student: student,
+            pushOnStack: true),
         onLongPress: () {
           if (student == null) return;
           modifyStudentCallback(student);

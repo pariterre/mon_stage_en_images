@@ -1,6 +1,7 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/route_manager.dart';
 import 'package:mon_stage_en_images/common/models/enum.dart';
+import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_overlay.dart';
@@ -21,6 +22,10 @@ class OnboardingContexts {
   }
 
   OnboardingController? _controller;
+  bool get isOnboarding => _controller?.isOnboarding ?? false;
+
+  User get dummyStudent => User.publicUser(
+      id: 'dummy', firstName: 'Mon élève', lastName: 'du PFAE', avatar: '🐸');
 
   void requestOnboarding(BuildContext context, {bool force = false}) {
     if (!_isInitialized) {
@@ -51,6 +56,7 @@ class OnboardingContexts {
   final _onboardingContexts = <String, Map<String, BuildContext?>>{
     StudentsScreen.routeName: {
       'generate_code': null,
+      'more_options_student_button': null,
       'drawer_button': null,
       'drawer_question_button': null,
       'drawer_answer_button': null,
@@ -121,6 +127,25 @@ class OnboardingContexts {
       },
       targetWidgetContext: () => OnboardingContexts.instance['generate_code'],
     ),
+    OnboardingStep(
+        message:
+            'Appuyez ici pour écrire une note privée sur un élève ou le supprimer',
+        navigationCallback: (_) async {
+          OnboardingContexts.instance._isNavigating = true;
+          await _navigateToPage(StudentsScreen.routeName);
+
+          while (OnboardingContexts.instance['more_options_student_button'] ==
+              null) {
+            await Future.delayed(const Duration(milliseconds: 50));
+          }
+          OnboardingContexts.instance['more_options_student_button']
+              ?.findAncestorStateOfType<StudentsScreenState>()
+              ?.closeDrawer();
+
+          OnboardingContexts.instance._isNavigating = false;
+        },
+        targetWidgetContext: () =>
+            OnboardingContexts.instance['more_options_student_button']),
     OnboardingStep(
       message:
           'Appuyez ici pour accéder aux différentes pages de l’application.',

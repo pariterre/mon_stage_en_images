@@ -6,6 +6,9 @@ import 'package:mon_stage_en_images/onboarding/widgets/hole_clipper.dart';
 /// to highlight the targeted Widget. Performs some stabilty checks,
 /// allowing any standard duration animation to complete
 /// before drawing the highlighted area
+
+// TODO Add dialog if String != null
+
 class QuickOnboardingOverlay extends StatefulWidget {
   const QuickOnboardingOverlay({
     super.key,

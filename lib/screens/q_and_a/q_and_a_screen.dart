@@ -430,7 +430,9 @@ class QAndAScreenState extends State<QAndAScreen> {
           ),
         ],
       ),
-      leading: _currentPage != 0 ? BackButton(onPressed: _onBackPressed) : null,
+      leading: _currentPage != 0 || Navigator.of(context).canPop()
+          ? BackButton(onPressed: _onBackPressed)
+          : null,
       actions: _currentPage != 0 && userType == UserType.teacher
           ? [
               if (_viewSpan == Target.individual)
