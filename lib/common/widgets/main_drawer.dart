@@ -76,100 +76,102 @@ class MainDrawer extends StatelessWidget {
                 : SizedBox.shrink(),
           ),
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (userType == UserType.teacher)
-              MenuItem(
-                title: 'Mes élèves',
-                icon: Icons.person,
-                onTap: () => RouteManager.instance.gotoStudentsPage(context),
-                iconOnly: iconOnly,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (userType == UserType.teacher)
+                MenuItem(
+                  title: 'Mes élèves',
+                  icon: Icons.person,
+                  onTap: () => RouteManager.instance.gotoStudentsPage(context),
+                  iconOnly: iconOnly,
+                ),
+              OnboardingContainer(
+                onInitialize: (context) => OnboardingContexts
+                    .instance['drawer_question_button'] = context,
+                child: MenuItem(
+                  title: userType == UserType.teacher
+                      ? 'Gestion des questions'
+                      : 'Mon stage',
+                  icon: Icons.speaker_notes,
+                  onTap: () => userType == UserType.teacher
+                      ? RouteManager.instance.gotoQAndAPage(context,
+                          target: Target.all,
+                          pageMode: PageMode.edit,
+                          student: null)
+                      : RouteManager.instance.gotoQAndAPage(context,
+                          target: Target.individual,
+                          pageMode: PageMode.editableView,
+                          student: user),
+                  iconOnly: iconOnly,
+                ),
               ),
-            OnboardingContainer(
-              onInitialize: (context) => OnboardingContexts
-                  .instance['drawer_question_button'] = context,
-              child: MenuItem(
-                title: userType == UserType.teacher
-                    ? 'Gestion des questions'
-                    : 'Mon stage',
-                icon: Icons.speaker_notes,
-                onTap: () => userType == UserType.teacher
-                    ? RouteManager.instance.gotoQAndAPage(context,
+              if (userType == UserType.teacher)
+                OnboardingContainer(
+                  onInitialize: (context) => OnboardingContexts
+                      .instance['drawer_answer_button'] = context,
+                  child: MenuItem(
+                    title: 'Résumé des réponses',
+                    icon: Icons.question_answer,
+                    onTap: () => RouteManager.instance.gotoQAndAPage(context,
                         target: Target.all,
-                        pageMode: PageMode.edit,
-                        student: null)
-                    : RouteManager.instance.gotoQAndAPage(context,
-                        target: Target.individual,
-                        pageMode: PageMode.editableView,
-                        student: user),
-                iconOnly: iconOnly,
-              ),
-            ),
-            if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) => OnboardingContexts
-                    .instance['drawer_answer_button'] = context,
-                child: MenuItem(
-                  title: 'Résumé des réponses',
-                  icon: Icons.question_answer,
-                  onTap: () => RouteManager.instance.gotoQAndAPage(context,
-                      target: Target.all,
-                      pageMode: PageMode.fixView,
-                      student: null),
-                  iconOnly: iconOnly,
+                        pageMode: PageMode.fixView,
+                        student: null),
+                    iconOnly: iconOnly,
+                  ),
                 ),
-              ),
-            if (userType == UserType.teacher) const Divider(),
-            if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) =>
-                    OnboardingContexts.instance['drawer_info_button'] = context,
-                child: MenuItem(
-                  title: 'Ressources',
-                  icon: Icons.help,
-                  iconOnly: iconOnly,
-                  onTap: () async {
-                    await RouteManager.instance.goToResourcesPage(context);
-                  },
+              if (userType == UserType.teacher) const Divider(),
+              if (userType == UserType.teacher)
+                OnboardingContainer(
+                  onInitialize: (context) => OnboardingContexts
+                      .instance['drawer_info_button'] = context,
+                  child: MenuItem(
+                    title: 'Ressources',
+                    icon: Icons.help,
+                    iconOnly: iconOnly,
+                    onTap: () async {
+                      await RouteManager.instance.goToResourcesPage(context);
+                    },
+                  ),
                 ),
-              ),
-            if (userType == UserType.teacher)
-              OnboardingContainer(
-                onInitialize: (context) => OnboardingContexts
-                    .instance['drawer_feedback_button'] = context,
-                child: MenuItem(
-                  title: 'Suggestions',
-                  icon: Icons.feedback,
-                  onTap: () => SuggestionsPage.showSuggestionPage(context),
-                  iconOnly: iconOnly,
+              if (userType == UserType.teacher)
+                OnboardingContainer(
+                  onInitialize: (context) => OnboardingContexts
+                      .instance['drawer_feedback_button'] = context,
+                  child: MenuItem(
+                    title: 'Suggestions',
+                    icon: Icons.feedback,
+                    onTap: () => SuggestionsPage.showSuggestionPage(context),
+                    iconOnly: iconOnly,
+                  ),
                 ),
-              ),
-            if (userType == UserType.teacher) const Divider(),
-            MenuItem(
-              title: 'Mes informations',
-              icon: Icons.home,
-              onTap: () => RouteManager.instance.gotoMyInfoPage(context),
-              iconOnly: iconOnly,
-            ),
-            if (userType == UserType.teacher)
+              if (userType == UserType.teacher) const Divider(),
               MenuItem(
-                title: 'Revoir le tutoriel',
-                icon: Icons.help,
-                onTap: () {
-                  OnboardingContexts.instance
-                      .requestOnboarding(context, force: true);
-                },
+                title: 'Mes informations',
+                icon: Icons.home,
+                onTap: () => RouteManager.instance.gotoMyInfoPage(context),
                 iconOnly: iconOnly,
               ),
-            if (userType == UserType.teacher) const Divider(),
-            MenuItem(
-              title: 'Déconnexion',
-              icon: Icons.exit_to_app,
-              onTap: () => Helpers.onClickQuit(context),
-              iconOnly: iconOnly,
-            )
-          ],
+              if (userType == UserType.teacher)
+                MenuItem(
+                  title: 'Revoir le tutoriel',
+                  icon: Icons.help,
+                  onTap: () {
+                    OnboardingContexts.instance
+                        .requestOnboarding(context, force: true);
+                  },
+                  iconOnly: iconOnly,
+                ),
+              if (userType == UserType.teacher) const Divider(),
+              MenuItem(
+                title: 'Déconnexion',
+                icon: Icons.exit_to_app,
+                onTap: () => Helpers.onClickQuit(context),
+                iconOnly: iconOnly,
+              )
+            ],
+          ),
         ),
       ),
     );
