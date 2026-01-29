@@ -271,10 +271,10 @@ class OnboardingContexts {
         OnboardingContexts.instance._isNavigating = true;
         await _navigateToPage(StudentsScreen.routeName);
 
-        while (OnboardingContexts.instance['generate_code'] == null) {
+        while (OnboardingContexts.instance['drawer_info_button'] == null) {
           await Future.delayed(const Duration(milliseconds: 50));
         }
-        OnboardingContexts.instance['generate_code']
+        OnboardingContexts.instance['drawer_info_button']
             ?.findAncestorStateOfType<StudentsScreenState>()
             ?.openDrawer();
 

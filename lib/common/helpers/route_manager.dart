@@ -11,6 +11,7 @@ import 'package:mon_stage_en_images/screens/login/terms_and_services_screen.dart
 import 'package:mon_stage_en_images/screens/login/wrong_version_screen.dart';
 import 'package:mon_stage_en_images/screens/my_info/my_info_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
+import 'package:mon_stage_en_images/screens/resources/resources_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -136,6 +137,14 @@ class RouteManager {
     await currentState?.pushReplacementNamed(StudentsScreen.routeName);
   }
 
+  Future<void> goToResourcesPage(BuildContext context) async {
+    if (!isInitialized) {
+      throw Exception(
+          'RouteManager is not initialized. Call initialize() before accessing initialRoute.');
+    }
+    await currentState?.pushReplacementNamed(ResourcesScreen.routeName);
+  }
+
   Future<void> gotoQAndAPage(
     BuildContext context, {
     required Target target,
@@ -175,6 +184,8 @@ class RouteManager {
         return StudentsScreen();
       case QAndAScreen.routeName:
         return QAndAScreen();
+      case ResourcesScreen.routeName:
+        return ResourcesScreen();
       default:
         return SizedBox.shrink();
     }
