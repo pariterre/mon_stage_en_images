@@ -7,6 +7,7 @@ import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_overlay.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
+import 'package:mon_stage_en_images/screens/resources/resources_screen.dart';
 import 'package:provider/provider.dart';
 
 class OnboardingContexts {
@@ -60,7 +61,6 @@ class OnboardingContexts {
       'drawer_button': null,
       'drawer_question_button': null,
       'drawer_answer_button': null,
-      'drawer_info_button': null,
       'drawer_feedback_button': null,
     },
     QAndAScreen.routeName: {
@@ -69,6 +69,10 @@ class OnboardingContexts {
       'new_question_button': null,
       'all_question_buttons': null,
     },
+    ResourcesScreen.routeName: {
+      'resources_body': null,
+      'drawer_info_button': null,
+    }
   };
 
   void operator []=(String key, BuildContext? context) {
@@ -135,11 +139,10 @@ class OnboardingContexts {
           OnboardingContexts.instance._isNavigating = true;
           await _navigateToPage(StudentsScreen.routeName);
 
-          while (OnboardingContexts.instance['more_options_student_button'] ==
-              null) {
+          while (OnboardingContexts.instance['generate_code'] == null) {
             await Future.delayed(const Duration(milliseconds: 50));
           }
-          OnboardingContexts.instance['more_options_student_button']
+          OnboardingContexts.instance['generate_code']
               ?.findAncestorStateOfType<StudentsScreenState>()
               ?.closeDrawer();
 
@@ -269,14 +272,18 @@ class OnboardingContexts {
       message: 'Vous trouverez ici davantage d\'informations et du support.',
       navigationCallback: (_) async {
         OnboardingContexts.instance._isNavigating = true;
-        await _navigateToPage(StudentsScreen.routeName);
+        await _navigateToPage(ResourcesScreen.routeName);
+
+        while (OnboardingContexts.instance['resources_body'] == null) {
+          await Future.delayed(const Duration(milliseconds: 50));
+        }
+        OnboardingContexts.instance['resources_body']
+            ?.findAncestorStateOfType<ResourcesScreenState>()
+            ?.openDrawer();
 
         while (OnboardingContexts.instance['drawer_info_button'] == null) {
           await Future.delayed(const Duration(milliseconds: 50));
         }
-        OnboardingContexts.instance['drawer_info_button']
-            ?.findAncestorStateOfType<StudentsScreenState>()
-            ?.openDrawer();
 
         OnboardingContexts.instance._isNavigating = false;
       },
@@ -290,10 +297,10 @@ class OnboardingContexts {
         OnboardingContexts.instance._isNavigating = true;
         await _navigateToPage(StudentsScreen.routeName);
 
-        while (OnboardingContexts.instance['drawer_feedback_button'] == null) {
+        while (OnboardingContexts.instance['generate_code'] == null) {
           await Future.delayed(const Duration(milliseconds: 50));
         }
-        OnboardingContexts.instance['drawer_feedback_button']
+        OnboardingContexts.instance['generate_code']
             ?.findAncestorStateOfType<StudentsScreenState>()
             ?.openDrawer();
 
@@ -323,6 +330,8 @@ Future<void> _navigateToPage(
     case QAndAScreen.routeName:
       RouteManager.instance.gotoQAndAPage(context,
           target: target!, pageMode: pageMode!, student: student);
+    case ResourcesScreen.routeName:
+      RouteManager.instance.goToResourcesPage(context);
     case _:
       throw Exception('Unknown page name: $pageName');
   }
