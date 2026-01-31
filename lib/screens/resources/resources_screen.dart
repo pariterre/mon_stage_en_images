@@ -40,6 +40,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return ResponsiveService.scaffoldOf(
       context,
       key: scaffoldKey,
@@ -56,10 +57,16 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
                 child: SizedBox(
               height: 20,
             )),
-            SliverList.builder(
+            SliverGrid.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  // childAspectRatio: 0.95,
+                  mainAxisSpacing: width / 100,
+                  mainAxisExtent: (width / 1.5).clamp(350, 500),
+                  crossAxisCount: (width / 300).toInt().clamp(1, 3)),
               itemCount: resourcesCard.length,
               itemBuilder: (context, index) {
                 return LimitedBox(
+                  maxWidth: 400,
                   maxHeight: 300,
                   child: resourcesCard[index],
                 );
@@ -77,10 +84,11 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
 final List<ContentCard> resourcesCard = [
   ContentCard(
+    coverUrl: 'cover_learn_sst.jpeg',
     title: 'Apprendre sur la SST',
     description:
         '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé '''
-        '''et en Sécurité au Travail) pour la supervision de métier semi-spécialisées''',
+        '''et en Sécurité au Travail) pour la supervision de stagiaires en métiers semi-spécialisées''',
     primaryAction: (BuildContext context) async {
       await launchUrl(GoToIrsstScreen.learnAboutSstUri);
       if (!context.mounted) return;
@@ -88,10 +96,11 @@ final List<ContentCard> resourcesCard = [
     },
   ),
   ContentCard(
+    coverUrl: 'cover_metier.jpg',
     title: 'Apprendre sur M.É.T.I.E.R.',
     description: '''Une publication de la chaire de recherche ADOPREVIT '''
         '''décrivant un modèle d'analyse de l'activité de travail centré sur la personne en situation.'''
-        '''Ce document explore les déterminants de l'activité qui composent l'acronyme M.É.T.I.E.R. ''',
+        ''' Ce document explore les déterminants de l'activité qui composent l'acronyme M.É.T.I.E.R. ''',
     primaryAction: (BuildContext context) async {
       await launchUrl(GoToIrsstScreen.learnAboutMetierUri);
       if (!context.mounted) return;
@@ -99,6 +108,7 @@ final List<ContentCard> resourcesCard = [
     },
   ),
   ContentCard(
+    coverUrl: 'cover_questions.jpg',
     title: 'Exemples de questions',
     description:
         '''Une liste de questions pour les enseignantes et enseignants à utiliser pour faire'''

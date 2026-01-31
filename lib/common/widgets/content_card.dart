@@ -22,18 +22,18 @@ class ContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card.filled(
-      clipBehavior: Clip.antiAlias,
-      shape: CardTheme.of(context).shape,
+    return Card.outlined(
+      elevation: 1,
+      // shape: CardTheme.of(context).shape,
       child: Column(
         children: [
           Flexible(
             flex: 1,
-            // TODO manage image and add assets
             child: coverUrl != null
                 ? Image.asset(
-                    coverUrl!,
-                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    "assets/images/${coverUrl!}",
+                    fit: BoxFit.fitWidth,
                   )
                 : Container(
                     color: Theme.of(context).primaryColor,
