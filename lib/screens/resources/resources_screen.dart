@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
-import 'package:mon_stage_en_images/common/widgets/content_card.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
-import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
-import 'package:mon_stage_en_images/screens/q_and_a/main_metier_page.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mon_stage_en_images/default_resources.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -59,7 +56,6 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
             )),
             SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  // childAspectRatio: 0.95,
                   mainAxisSpacing: width / 100,
                   mainAxisExtent: (width / 1.5).clamp(350, 500),
                   crossAxisCount: (width / 300).toInt().clamp(1, 3)),
@@ -81,43 +77,3 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     );
   }
 }
-
-final List<ContentCard> resourcesCard = [
-  ContentCard(
-    coverUrl: 'cover_learn_sst.jpeg',
-    title: 'Apprendre sur la SST',
-    description:
-        '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé '''
-        '''et en Sécurité au Travail) pour la supervision de stagiaires en métiers semi-spécialisées''',
-    primaryAction: (BuildContext context) async {
-      await launchUrl(GoToIrsstScreen.learnAboutSstUri);
-      if (!context.mounted) return;
-      if (Navigator.canPop(context)) Navigator.of(context).pop();
-    },
-  ),
-  ContentCard(
-    coverUrl: 'cover_metier.jpg',
-    title: 'Apprendre sur M.É.T.I.E.R.',
-    description: '''Une publication de la chaire de recherche ADOPREVIT '''
-        '''décrivant un modèle d'analyse de l'activité de travail centré sur la personne en situation.'''
-        ''' Ce document explore les déterminants de l'activité qui composent l'acronyme M.É.T.I.E.R. ''',
-    primaryAction: (BuildContext context) async {
-      await launchUrl(GoToIrsstScreen.learnAboutMetierUri);
-      if (!context.mounted) return;
-      if (Navigator.canPop(context)) Navigator.of(context).pop();
-    },
-  ),
-  ContentCard(
-    coverUrl: 'cover_questions.jpg',
-    title: 'Exemples de questions',
-    description:
-        '''Une liste de questions pour les enseignantes et enseignants à utiliser pour faire'''
-        ''' verbaliser l'élève sur son activité de travail au Parcours de formation axée sur'''
-        ''' l’emploi (lors des visites en stage ou lors des retours réflexifs en classe).''',
-    primaryAction: (BuildContext context) async {
-      await launchUrl(MainMetierPage.questionIdeasUri);
-      if (!context.mounted) return;
-      if (Navigator.canPop(context)) Navigator.of(context).pop();
-    },
-  )
-];
