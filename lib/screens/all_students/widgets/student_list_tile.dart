@@ -82,13 +82,11 @@ class StudentListTile extends StatelessWidget {
               borderColor: Colors.black,
               child: const Text(""),
             ),
-            isOnboarding
-                ? OnboardingContainer(
-                    onInitialize: (context) => OnboardingContexts
-                        .instance['more_options_student_button'] = context,
-                    child: moreOptionsButton,
-                  )
-                : moreOptionsButton
+            OnboardingContainer(
+              onInitialize: (context) => OnboardingContexts
+                  .instance['more_options_student_button'] = context,
+              child: moreOptionsButton,
+            )
           ],
         ),
         onTap: () => RouteManager.instance.gotoQAndAPage(context,

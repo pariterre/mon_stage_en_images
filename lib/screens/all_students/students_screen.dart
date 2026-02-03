@@ -328,11 +328,11 @@ class StudentsScreenState extends State<StudentsScreen> {
     }
 
     final bool isOnboarding = OnboardingContexts.instance.isOnboarding;
-    final students = isOnboarding
-        ? <User>[OnboardingContexts.instance.dummyStudent]
-        : Provider.of<Database>(context).students;
+    final students = Provider.of<Database>(context).students;
     students.sort(
         (a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
+
+    final dummy = OnboardingContexts.instance.dummyStudent;
 
     return ResponsiveService.scaffoldOf(
       context,
@@ -347,18 +347,24 @@ class StudentsScreenState extends State<StudentsScreen> {
               Text('Mon stage en images',
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 3),
-              Expanded(
-                child: ListView.builder(
-                  itemBuilder: (context, index) {
-                    return StudentListTile(
-                      students[index].id,
+              isOnboarding
+                  ? StudentListTile(
+                      dummy.id,
                       isOnboarding: isOnboarding,
                       modifyStudentCallback: _showStudentInfo,
-                    );
-                  },
-                  itemCount: students.length,
-                ),
-              ),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          return StudentListTile(
+                            students[index].id,
+                            isOnboarding: isOnboarding,
+                            modifyStudentCallback: _showStudentInfo,
+                          );
+                        },
+                        itemCount: students.length,
+                      ),
+                    ),
             ],
           ),
         ],

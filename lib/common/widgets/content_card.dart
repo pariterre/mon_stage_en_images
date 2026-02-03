@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ContentCard extends StatelessWidget {
   const ContentCard({
     super.key,
-    this.coverUrl,
+    this.coverUri,
     this.title,
     this.description,
     this.primaryAction,
@@ -12,7 +12,7 @@ class ContentCard extends StatelessWidget {
     this.secondaryLabel = 'Détails',
   });
 
-  final String? coverUrl;
+  final String? coverUri;
   final String? title;
   final String? description;
   final void Function(BuildContext)? primaryAction;
@@ -24,15 +24,14 @@ class ContentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card.outlined(
       elevation: 1,
-      // shape: CardTheme.of(context).shape,
       child: Column(
         children: [
           Flexible(
             flex: 1,
-            child: coverUrl != null
+            child: coverUri != null
                 ? Image.asset(
                     width: double.infinity,
-                    "assets/images/${coverUrl!}",
+                    coverUri!,
                     fit: BoxFit.fitWidth,
                   )
                 : Container(

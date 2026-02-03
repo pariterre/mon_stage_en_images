@@ -137,6 +137,7 @@ class OnboardingContexts {
             'Appuyez ici pour écrire une note privée sur un élève ou le supprimer',
         navigationCallback: (_) async {
           OnboardingContexts.instance._isNavigating = true;
+
           await _navigateToPage(StudentsScreen.routeName);
 
           while (OnboardingContexts.instance['generate_code'] == null) {
@@ -155,6 +156,7 @@ class OnboardingContexts {
           'Appuyez ici pour accéder aux différentes pages de l’application.',
       navigationCallback: (_) async {
         OnboardingContexts.instance._isNavigating = true;
+
         await _navigateToPage(StudentsScreen.routeName);
 
         while (OnboardingContexts.instance['generate_code'] == null) {

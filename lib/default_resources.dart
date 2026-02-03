@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final List<ContentCard> resourcesCard = [
   ContentCard(
-    coverUrl: 'cover_learn_sst.jpeg',
+    coverUri: 'assets/images/cover_learn_sst.jpeg',
     title: 'Apprendre sur la SST',
     description:
         '''Une fiche produite par l'IRSST (Institut de recherche Robert-Sauvé en santé '''
@@ -18,7 +18,7 @@ final List<ContentCard> resourcesCard = [
     },
   ),
   ContentCard(
-    coverUrl: 'cover_metier.jpg',
+    coverUri: 'assets/images/cover_metier.jpg',
     title: 'Apprendre sur M.É.T.I.E.R.',
     description: '''Une publication de la chaire de recherche ADOPREVIT '''
         '''décrivant un modèle d'analyse de l'activité de travail centré sur la personne en situation.'''
@@ -30,7 +30,7 @@ final List<ContentCard> resourcesCard = [
     },
   ),
   ContentCard(
-    coverUrl: 'cover_questions.jpg',
+    coverUri: 'assets/images/cover_questions.jpg',
     title: 'Exemples de questions',
     description:
         '''Une liste de questions pour les enseignantes et enseignants à utiliser pour faire'''
