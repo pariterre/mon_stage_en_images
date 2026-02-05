@@ -44,7 +44,7 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
     final rectToClip = widget.onboardingStep.targetWidgetContext == null
         ? null
-        : Helpers.rectFromWidgetKey(
+        : Helpers.rectFromWidgetContext(
             context, widget.onboardingStep.targetWidgetContext!());
 
     final isReady =

@@ -54,6 +54,7 @@ class StudentsScreenState extends State<StudentsScreen> {
   }
 
   bool? get isDrawerOpen => scaffoldKey.currentState?.isDrawerOpen;
+  bool _isFetchingUsers = false;
 
   Future<void> _showCurrentToken() async {
     final teacherId =
@@ -287,24 +288,40 @@ class StudentsScreenState extends State<StudentsScreen> {
       ),
       actions: [
         IconButton(
-            onPressed: () async {
-              final database = Provider.of<Database>(context, listen: false);
+            onPressed: _isFetchingUsers
+                ? null
+                : () async {
+                    setState(() {
+                      _isFetchingUsers = true;
+                    });
+                    final database =
+                        Provider.of<Database>(context, listen: false);
 
-              final previousStudentIds =
-                  database.students.map((e) => e.id).toList();
-              await database.fetchUsers();
-              if (database.students
-                  .any((e) => !previousStudentIds.contains(e.id))) {
-                await database.restartFetchingTeacherAnswers();
-              }
-            },
-            icon: const Icon(Icons.refresh, color: Colors.black)),
+                    final previousStudentIds =
+                        database.students.map((e) => e.id).toList();
+                    await database.fetchUsers();
+                    if (database.students
+                        .any((e) => !previousStudentIds.contains(e.id))) {
+                      await database.restartFetchingTeacherAnswers();
+                    }
+                    setState(() {
+                      _isFetchingUsers = false;
+                    });
+                  },
+            icon: _isFetchingUsers
+                ? const Icon(Icons.hourglass_bottom)
+                : const Icon(Icons.refresh, color: Colors.black)),
         OnboardingContainer(
           onInitialize: (context) =>
               OnboardingContexts.instance['generate_code'] = context,
           child: IconButton(
-            onPressed: _isGeneratingToken ? null : _showCurrentToken,
-            icon: const Icon(Icons.qr_code_2, color: Colors.black),
+            onPressed: _isGeneratingToken || _isFetchingUsers
+                ? null
+                : _showCurrentToken,
+            icon: Icon(Icons.qr_code_2,
+                color: IconButtonTheme.of(context).style?.iconColor?.resolve({
+                  WidgetState.disabled,
+                })),
             iconSize: 35,
             color: Colors.black,
           ),
@@ -341,31 +358,44 @@ class StudentsScreenState extends State<StudentsScreen> {
       body: Stack(
         alignment: Alignment.topCenter,
         children: [
-          Column(
-            children: [
-              const SizedBox(height: 15),
-              Text('Mon stage en images',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 3),
-              isOnboarding
-                  ? StudentListTile(
-                      dummy.id,
-                      isOnboarding: isOnboarding,
-                      modifyStudentCallback: _showStudentInfo,
-                    )
-                  : Expanded(
-                      child: ListView.builder(
-                        itemBuilder: (context, index) {
-                          return StudentListTile(
-                            students[index].id,
-                            isOnboarding: isOnboarding,
-                            modifyStudentCallback: _showStudentInfo,
-                          );
-                        },
-                        itemCount: students.length,
+          AbsorbPointer(
+            absorbing: _isGeneratingToken,
+            child: Column(
+              children: [
+                const SizedBox(height: 15),
+                Text('Mon stage en images',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 3),
+                if (_isFetchingUsers) ...[
+                  SizedBox(
+                    height: 12,
+                  ),
+                  LinearProgressIndicator(),
+                  Text(
+                    'Actualisation de la liste d\'élèves en cours',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  )
+                ],
+                isOnboarding
+                    ? StudentListTile(
+                        dummy.id,
+                        isOnboarding: isOnboarding,
+                        modifyStudentCallback: _showStudentInfo,
+                      )
+                    : Expanded(
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            return StudentListTile(
+                              students[index].id,
+                              isOnboarding: isOnboarding,
+                              modifyStudentCallback: _showStudentInfo,
+                            );
+                          },
+                          itemCount: students.length,
+                        ),
                       ),
-                    ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

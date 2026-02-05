@@ -41,7 +41,8 @@ class _QuickOnboardingOverlayState extends State<QuickOnboardingOverlay>
 
     MediaQuery.of(context); // Force rebuild on MediaQuery changes
 
-    final rectToClip = Helpers.rectFromWidgetKey(context, widget.widgetContext);
+    final rectToClip =
+        Helpers.rectFromWidgetContext(context, widget.widgetContext);
 
     final isReady = rectToClip != null;
     if (isReady) {
