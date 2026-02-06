@@ -37,14 +37,6 @@ class StudentListTile extends StatelessWidget {
     final numberOfActions =
         AllAnswers.numberNeedTeacherActionFrom(allAnswers, context);
 
-    final IconButton moreOptionsButton = IconButton(
-        key: ValueKey<String>('more_options_student_button'),
-        onPressed: () {
-          if (student == null) return;
-          modifyStudentCallback(student);
-        },
-        icon: Icon(Icons.more_horiz));
-
     return Card(
       elevation: 5,
       child: ListTile(
@@ -83,9 +75,19 @@ class StudentListTile extends StatelessWidget {
               child: const Text(""),
             ),
             OnboardingContainer(
-              onInitialize: (context) => OnboardingContexts
-                  .instance['more_options_student_button'] = context,
-              child: moreOptionsButton,
+              onInitialize: (context) {
+                print('Adding context');
+                OnboardingContexts.instance['more_options_student_button'] =
+                    context;
+                print(
+                    'current context: ${OnboardingContexts.instance['more_options_student_button']}');
+              },
+              child: IconButton(
+                  onPressed: () {
+                    if (student == null) return;
+                    modifyStudentCallback(student);
+                  },
+                  icon: Icon(Icons.more_horiz)),
             )
           ],
         ),

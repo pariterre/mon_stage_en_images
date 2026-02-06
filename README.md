@@ -27,7 +27,7 @@ Rouler la commande suivante pour cloner les dépôts nécessaires pour compiler 
         flutterfire configure --project=monstageenimages
 
 4. Pour éditer les fonctions (i.e. les notifications), vous devez avoir un environnement Python préparé avec les dépendances nécessaires (voir `functions/requirements.txt`). 
-Attention il est important d'avoir un environnement avec avec une version de Python de 3.10 ou plus. Utiliser `conda` est un moyen facile de gérer les versions de Python.
+Attention il est important d'avoir un environnement avec avec une version de Python de 3.13. Utiliser `conda` est un moyen facile de gérer les versions de Python.
 
 Au besoin, il est nécessaire de supprimer la fonction sur le cloud. Pour ce faire, rouler la commande:
 
@@ -50,6 +50,10 @@ Il existe deux façons faciles de les démarrer :
 
 1. Commencer à debogger avec VS Code (`F5` par défaut).
 2. Via la ligne de commande : `firebase emulators:start`
+
+NOTE: Pour être lancé, l'émulateur a besoin d'un accès à Python 3.13. Pour installer Python, la façon la plus simple est d'utiliser `conda` : 
+
+    conda install python=3.13 -cconda-forge
 
 ## Release
 

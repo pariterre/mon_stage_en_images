@@ -97,7 +97,7 @@ class OnboardingContexts {
 
     OnboardingContexts.instance._currentPage = null;
     OnboardingContexts.instance._isNavigating = true;
-    await _navigateToPage(StudentsScreen.routeName);
+    await _navigateToPage(StudentsScreen.routeName, force: true);
     OnboardingContexts.instance._isNavigating = false;
   }
 
@@ -108,7 +108,7 @@ class OnboardingContexts {
     }
 
     OnboardingContexts.instance._isNavigating = true;
-    await _navigateToPage(StudentsScreen.routeName);
+    await _navigateToPage(StudentsScreen.routeName, force: true);
 
     while (OnboardingContexts.instance['generate_code'] == null) {
       await Future.delayed(const Duration(milliseconds: 50));
@@ -130,27 +130,30 @@ class OnboardingContexts {
         await _navigateToPage(StudentsScreen.routeName);
         OnboardingContexts.instance._isNavigating = false;
       },
-      targetWidgetContext: () => OnboardingContexts.instance['generate_code'],
+      targetWidgetContext: () {
+        print(
+            'tata: ${OnboardingContexts.instance['more_options_student_button']}');
+        return OnboardingContexts.instance['generate_code'];
+      },
     ),
     OnboardingStep(
         message:
             'Appuyez ici pour écrire une note privée sur un élève ou le supprimer',
         navigationCallback: (_) async {
+          print('navigating to student screen');
+          print(OnboardingContexts.instance['more_options_student_button']);
           OnboardingContexts.instance._isNavigating = true;
-
           await _navigateToPage(StudentsScreen.routeName);
-
-          while (OnboardingContexts.instance['generate_code'] == null) {
-            await Future.delayed(const Duration(milliseconds: 50));
-          }
-          OnboardingContexts.instance['generate_code']
-              ?.findAncestorStateOfType<StudentsScreenState>()
-              ?.closeDrawer();
-
           OnboardingContexts.instance._isNavigating = false;
         },
-        targetWidgetContext: () =>
-            OnboardingContexts.instance['more_options_student_button']),
+        targetWidgetContext: () {
+          print('coucou');
+          print(OnboardingContexts
+              .instance._onboardingContexts['more_options_student_button']);
+          print(OnboardingContexts
+              .instance['more_options_student_button']?.mounted);
+          return OnboardingContexts.instance['more_options_student_button'];
+        }),
     OnboardingStep(
       message:
           'Appuyez ici pour accéder aux différentes pages de l’application.',
@@ -308,8 +311,9 @@ class OnboardingContexts {
 
         OnboardingContexts.instance._isNavigating = false;
       },
-      targetWidgetContext: () =>
-          OnboardingContexts.instance['drawer_feedback_button'],
+      targetWidgetContext: () {
+        return OnboardingContexts.instance['drawer_feedback_button'];
+      },
     ),
   ];
 }
@@ -319,8 +323,9 @@ Future<void> _navigateToPage(
   Target? target,
   PageMode? pageMode,
   dynamic student,
+  bool force = false,
 }) async {
-  if (OnboardingContexts.instance._currentPage == pageName) return;
+  if (!force && OnboardingContexts.instance._currentPage == pageName) return;
   OnboardingContexts.instance._currentPage = pageName;
 
   final context = RouteManager.instance.navigatorKey.currentContext;
