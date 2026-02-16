@@ -503,6 +503,8 @@ class QAndAScreenState extends State<QAndAScreen> {
         'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.';
 
     return QuickOnboardingOverlay(
+      message:
+          'Cliquez sur le code QR en haut à droite pour vous connecter à un·e enseignant·e.',
       widgetContext:
           showOnboardingOverlay(context) ? _onboardingContexts : null,
       onTap: () {

@@ -9,7 +9,7 @@ class OnboardingStep {
   });
 
   /// The message to be displayed inside the onboarding dialog for this step
-  final String message;
+  final String? message;
 
   /// The widget context to be highlighted during this step. If none is provided
   /// the onboarding dialog will be shown without any highlight.

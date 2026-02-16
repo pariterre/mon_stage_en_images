@@ -8,7 +8,7 @@ class OnboardingContainer extends StatefulWidget {
   });
 
   final Widget child;
-  final void Function(BuildContext) onInitialize;
+  final void Function(BuildContext context) onInitialize;
 
   @override
   State<OnboardingContainer> createState() => _OnboardingContainerState();

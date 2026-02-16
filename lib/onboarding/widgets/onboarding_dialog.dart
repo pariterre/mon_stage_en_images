@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mon_stage_en_images/onboarding/helpers/helpers.dart';
 import 'package:mon_stage_en_images/onboarding/models/onboarding_step.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/hole_clipper.dart';
 
@@ -44,7 +43,7 @@ class _OnboardingDialogState extends State<OnboardingDialog>
 
     final rectToClip = widget.onboardingStep.targetWidgetContext == null
         ? null
-        : Helpers.rectFromWidgetContext(
+        : _rectFromWidgetContext(
             context, widget.onboardingStep.targetWidgetContext!());
 
     final isReady =
@@ -78,89 +77,107 @@ class _OnboardingDialogState extends State<OnboardingDialog>
               )),
 
         // Displays the onboardingStep
-        Dialog(
-          backgroundColor: Theme.of(context).colorScheme.scrim.withAlpha(225),
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                    width: 4, color: Theme.of(context).primaryColor)),
-            child: Column(
-              spacing: 12,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 12.0, top: 12.0),
-                        child: Text(widget.onboardingStep.message,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall!
-                                .copyWith(color: Theme.of(context).cardColor)),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextButton(
-                          onPressed: () =>
-                              widget.onboardingTerminationRequest(),
-                          child: Text('X',
-                              style: TextStyle(
-                                  color: Theme.of(context).primaryColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.right)),
-                    )
-                  ],
-                ),
-                SizedBox(height: 4),
-                SizedBox(
-                  width: double.infinity,
-                  child: Wrap(
-                    spacing: 12,
-                    runAlignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceEvenly,
+        if (widget.onboardingStep.message != null)
+          Dialog(
+            backgroundColor: Theme.of(context).colorScheme.scrim.withAlpha(225),
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                      width: 4, color: Theme.of(context).primaryColor)),
+              child: Column(
+                spacing: 12,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.onBackward != null)
-                        OutlinedButton.icon(
-                            onPressed: () => widget.onBackward!(),
-                            iconAlignment: IconAlignment.start,
-                            icon: Icon(Icons.keyboard_arrow_left_sharp),
-                            label: Text(
-                              'Précédent',
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 12.0, top: 12.0),
+                          child: Text(widget.onboardingStep.message!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall!
+                                  .copyWith(
+                                      color: Theme.of(context).cardColor)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextButton(
+                            onPressed: () =>
+                                widget.onboardingTerminationRequest(),
+                            child: Text('X',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.right)),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      spacing: 12,
+                      runAlignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceEvenly,
+                      children: [
+                        if (widget.onBackward != null)
+                          OutlinedButton.icon(
+                              onPressed: () => widget.onBackward!(),
+                              iconAlignment: IconAlignment.start,
+                              icon: Icon(Icons.keyboard_arrow_left_sharp),
+                              label: Text(
+                                'Précédent',
+                                style: TextStyle(
+                                    fontSize: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .fontSize),
+                              )),
+                        FilledButton.icon(
+                          onPressed: () => widget.onForward(),
+                          label: Text(
+                              widget.isLastStep ? 'Terminer' : 'Suivant',
                               style: TextStyle(
                                   fontSize: Theme.of(context)
                                       .textTheme
                                       .bodyLarge!
-                                      .fontSize),
-                            )),
-                      FilledButton.icon(
-                        onPressed: () => widget.onForward(),
-                        label: Text(widget.isLastStep ? 'Terminer' : 'Suivant',
-                            style: TextStyle(
-                                fontSize: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .fontSize)),
-                        icon: Icon(Icons.keyboard_arrow_right_sharp),
-                        iconAlignment: IconAlignment.end,
-                      ),
-                    ],
+                                      .fontSize)),
+                          icon: Icon(Icons.keyboard_arrow_right_sharp),
+                          iconAlignment: IconAlignment.end,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 12.0),
-              ],
+                  SizedBox(height: 12.0),
+                ],
+              ),
             ),
-          ),
-        )
+          )
       ],
     );
   }
+}
+
+/// Get the RenderBox from the widget context, which is linked to the targeted Widget in the tree
+/// Uses the Render Box to draw a Rect with an absolute position on the screen and some padding around.
+Rect? _rectFromWidgetContext(
+    BuildContext context, BuildContext? targetContext) {
+  final widgetObject = targetContext?.findRenderObject() as RenderBox?;
+  if (targetContext?.mounted != true || widgetObject?.hasSize != true) {
+    return null;
+  }
+
+  final offset = widgetObject!
+      .localToGlobal(Offset(0, 0 - MediaQuery.of(targetContext!).padding.top));
+  final rect = EdgeInsets.all(12).inflateRect(offset & widgetObject.size);
+  return context.mounted ? rect : null;
 }
