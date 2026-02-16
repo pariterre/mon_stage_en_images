@@ -61,7 +61,7 @@ class ResourcesScreenState extends State<ResourcesScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: Text(
-                    "Ressources externes pour faciliter votre utilisation de Stage en images"),
+                    "Ressources externes pour faciliter votre utilisation de Mon stage en images"),
               ),
               SliverToBoxAdapter(
                   child: SizedBox(

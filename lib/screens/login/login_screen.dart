@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Helpers.showSnackbar(
             context,
             response
-                ? "Un courriel de réinitialisation a été envoyé à l'adresse fournie, si elle correspond à un compte utilisateur"
+                ? "Un courriel de réinitialisation a été envoyé à l'adresse fournie. Si vous ne recevez pas de courriel, vérifiez vos pourriels."
                 : "Une erreur est survenue, le courriel de réinitialisation n'a pas pu être envoyé.");
       }
     });
