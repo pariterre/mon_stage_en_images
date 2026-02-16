@@ -35,7 +35,7 @@ final List<ContentCard> resourcesCard = [
     description:
         '''Une liste de questions pour les enseignantes et enseignants à utiliser pour faire'''
         ''' verbaliser l'élève sur son activité de travail au Parcours de formation axée sur'''
-        ''' l’emploi (lors des visites en stage ou lors des retours réflexifs en classe).''',
+        ''' l'emploi (lors des visites en stage ou lors des retours réflexifs en classe).''',
     primaryAction: (BuildContext context) async {
       await launchUrl(MainMetierPage.questionIdeasUri);
       if (!context.mounted) return;

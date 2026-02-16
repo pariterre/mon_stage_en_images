@@ -130,33 +130,21 @@ class OnboardingContexts {
         await _navigateToPage(StudentsScreen.routeName);
         OnboardingContexts.instance._isNavigating = false;
       },
-      targetWidgetContext: () {
-        print(
-            'tata: ${OnboardingContexts.instance['more_options_student_button']}');
-        return OnboardingContexts.instance['generate_code'];
-      },
+      targetWidgetContext: () => OnboardingContexts.instance['generate_code'],
     ),
     OnboardingStep(
         message:
             'Appuyez ici pour écrire une note privée sur un élève ou le supprimer',
         navigationCallback: (_) async {
-          print('navigating to student screen');
-          print(OnboardingContexts.instance['more_options_student_button']);
           OnboardingContexts.instance._isNavigating = true;
           await _navigateToPage(StudentsScreen.routeName);
           OnboardingContexts.instance._isNavigating = false;
         },
-        targetWidgetContext: () {
-          print('coucou');
-          print(OnboardingContexts
-              .instance._onboardingContexts['more_options_student_button']);
-          print(OnboardingContexts
-              .instance['more_options_student_button']?.mounted);
-          return OnboardingContexts.instance['more_options_student_button'];
-        }),
+        targetWidgetContext: () =>
+            OnboardingContexts.instance['more_options_student_button']),
     OnboardingStep(
       message:
-          'Appuyez ici pour accéder aux différentes pages de l’application.',
+          'Appuyez ici pour accéder aux différentes pages de l\'application.',
       navigationCallback: (_) async {
         OnboardingContexts.instance._isNavigating = true;
 
@@ -311,9 +299,8 @@ class OnboardingContexts {
 
         OnboardingContexts.instance._isNavigating = false;
       },
-      targetWidgetContext: () {
-        return OnboardingContexts.instance['drawer_feedback_button'];
-      },
+      targetWidgetContext: () =>
+          OnboardingContexts.instance['drawer_feedback_button'],
     ),
   ];
 }

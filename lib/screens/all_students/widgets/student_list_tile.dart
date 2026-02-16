@@ -75,13 +75,8 @@ class StudentListTile extends StatelessWidget {
               child: const Text(""),
             ),
             OnboardingContainer(
-              onInitialize: (context) {
-                print('Adding context');
-                OnboardingContexts.instance['more_options_student_button'] =
-                    context;
-                print(
-                    'current context: ${OnboardingContexts.instance['more_options_student_button']}');
-              },
+              onInitialize: (context) => OnboardingContexts
+                  .instance['more_options_student_button'] = context,
               child: IconButton(
                   onPressed: () {
                     if (student == null) return;

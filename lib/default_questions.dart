@@ -23,7 +23,7 @@ class DefaultQuestion {
         ),
         Question(
           'Quelles sont les personnes qui te donnent des tâches à faire ?'
-          '\nExplique leur rôle dans l’entreprise.',
+          '\nExplique leur rôle dans l\'entreprise.',
           section: 5,
           defaultTarget: Target.all,
           canBeDeleted: false,
@@ -112,14 +112,14 @@ class DefaultQuestion {
           canBeDeleted: false,
         ),
         Question(
-          'Prends en photo un équipement que tu dois ajuster ou préparer avant de l’utiliser.'
+          'Prends en photo un équipement que tu dois ajuster ou préparer avant de l\'utiliser.'
           '\nQuelles sont les étapes à suivre ?',
           section: 1,
           defaultTarget: Target.none,
           canBeDeleted: false,
         ),
         Question(
-          'Prends en photo l’équipement que tu aimes le plus utiliser.'
+          'Prends en photo l\'équipement que tu aimes le plus utiliser.'
           '\nComment as-tu appris à l\'utiliser ?',
           section: 1,
           defaultTarget: Target.none,
@@ -133,7 +133,7 @@ class DefaultQuestion {
           canBeDeleted: false,
         ),
         Question(
-          'Prends en photo l’outil le plus dangereux que tu utilises.'
+          'Prends en photo l\'outil le plus dangereux que tu utilises.'
           '\nPourquoi est-il dangereux ?',
           section: 1,
           defaultTarget: Target.none,

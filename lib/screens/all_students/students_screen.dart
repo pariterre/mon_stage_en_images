@@ -42,8 +42,9 @@ class StudentsScreenState extends State<StudentsScreen> {
       case UserType.student:
         break;
       case UserType.teacher:
-        WidgetsBinding.instance.addPostFrameCallback(
-            (_) => OnboardingContexts.instance.requestOnboarding(context));
+        WidgetsBinding.instance.addPostFrameCallback((_) =>
+            WidgetsBinding.instance.addPostFrameCallback(
+                (_) => OnboardingContexts.instance.requestOnboarding(context)));
     }
   }
 
