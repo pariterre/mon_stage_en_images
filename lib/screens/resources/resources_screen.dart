@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mon_stage_en_images/common/helpers/responsive_service.dart';
+import 'package:mon_stage_en_images/common/providers/database.dart';
+import 'package:mon_stage_en_images/common/widgets/avatar_tab.dart';
 import 'package:mon_stage_en_images/common/widgets/main_drawer.dart';
 import 'package:mon_stage_en_images/default_onboarding_steps.dart';
 import 'package:mon_stage_en_images/default_resources.dart';
 import 'package:mon_stage_en_images/onboarding/widgets/onboarding_container.dart';
+import 'package:provider/provider.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({super.key});
@@ -31,7 +34,9 @@ class ResourcesScreenState extends State<ResourcesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: Icon(Icons.help),
+            child: AvatarTab(
+                user:
+                    Provider.of<Database>(context, listen: false).currentUser!),
           ),
           const Text('Ressources'),
         ],
