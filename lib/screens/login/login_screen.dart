@@ -168,6 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final isSuccess = await showDialog<bool?>(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         Future<void> confirm() async {
           if (formKey.currentState == null ||
