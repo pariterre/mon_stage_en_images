@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
-import 'package:mon_stage_en_images/common/helpers/emoji_helpers.dart';
 import 'package:mon_stage_en_images/common/helpers/shared_preferences_manager.dart';
 import 'package:mon_stage_en_images/common/helpers/teaching_token_helpers.dart';
 import 'package:mon_stage_en_images/common/models/answer.dart';
@@ -214,28 +213,9 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<User?> user(String id) async {
     try {
       final data = await Database.root.child(_userPathInternal).child(id).get();
-      if (data.value == null) {
-        // If no data are found in the current version, try to migrate from previous version
-        try {
-          // Try writing a value to ensure we have access to the new database
-          final value = (await FirebaseDatabase.instance
-                  .ref('admin')
-                  .child('ids')
-                  .child(id)
-                  .get())
-              .value;
-          if (value == null) return null;
-          await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
-        } on Exception catch (error) {
-          _logger.severe(
-              'Error while migrating ({$error}) user $id from old database version');
-        }
-        logout();
-        return null;
-      } else {
-        return User.fromSerialized(
-            (data.value as Map?)?.cast<String, dynamic>());
-      }
+      return data.value is Map
+          ? User.fromSerialized((data.value as Map).cast<String, dynamic>())
+          : null;
     } on Exception catch (error, stackTrace) {
       _logger.severe('Error while fetching ({$error}) user $id', stackTrace);
       return null;
@@ -415,115 +395,5 @@ class Database extends EzloginFirebase with ChangeNotifier {
   Future<bool> resetPassword({String? email}) async {
     if (email == null) return false;
     return await super.resetPassword(email: email);
-  }
-}
-
-class _DatabaseMigrationHelper {
-  static Completer<bool>? _isMigratingUser;
-
-  static Future<bool> migrateFromVersion0_0_0() async {
-    final oldQuestionsRoot = FirebaseDatabase.instance.ref('questions');
-    final oldAnswersRoot = FirebaseDatabase.instance.ref('answers');
-    final oldUsersRoot = FirebaseDatabase.instance.ref('users');
-
-    // Do not migrate twice
-    if (_isMigratingUser != null) return _isMigratingUser!.future;
-    _isMigratingUser = Completer<bool>();
-    try {
-      // Copy questions to new database (no changes)
-      final allQuestions = (await oldQuestionsRoot.get()).value as Map?;
-      await Database.root.child('questions').set(allQuestions);
-
-      // Prepare the answers to be migrated
-      final allAnswers = (await oldAnswersRoot.get()).value as Map?;
-
-      final users = (await oldUsersRoot.get()).value as Map?;
-      // Migrate each teacher
-      for (final Map teacher in users!.values) {
-        // Only migrate teachers as they will automatically migrate their students
-        if (teacher['userType'] != 1) continue;
-
-        // Add an avatar to the teacher
-        teacher['avatar'] = EmojiHelpers.randomEmoji;
-
-        final token = await TeachingTokenHelpers.generateUniqueToken();
-        allAnswers?[token] = {};
-
-        // Migrate the students data
-        teacher['studentNotes'] = <String, String>{};
-        for (final Map student in users.values) {
-          // Only migrate students supervised by this teacher
-          if (student['userType'] != 2 ||
-              student['supervisedBy'] != teacher['id']) {
-            continue;
-          }
-
-          // Add an avatar to the student
-          student['avatar'] = EmojiHelpers.randomEmoji;
-
-          // Migrate the company names to student notes
-          teacher['studentNotes'][student['id']] = student['companyNames'];
-
-          // Removed obsolete fields
-          student.remove('userType');
-          student.remove('companyNames');
-          student.remove('supervisedBy');
-
-          // Move the answers from that student inside the connected token field
-          for (final studentId in allAnswers!.keys) {
-            if (studentId != student['id']) continue;
-            allAnswers[token][student['id']] = allAnswers[studentId];
-
-            for (final answers
-                in ((allAnswers[token][student['id']] as Map?)?.values ?? [])) {
-              if (answers is! Map) continue;
-              if (answers.containsKey('discussion')) {
-                for (final message in (answers['discussion'] as Map).values) {
-                  if (message is! Map) continue;
-                  message['studentId'] = student['id'];
-                  message.remove('name');
-                }
-              }
-            }
-
-            allAnswers.remove(studentId);
-            break;
-          }
-
-          // Send the student data to the new database
-          await Database.root.child('users').child(student['id']).set(student);
-
-          // Connect the student to the token
-          await TeachingTokenHelpers.connectToToken(
-              token: token, studentId: student['id'], teacherId: teacher['id']);
-        }
-
-        // Removed obsolete fields
-        teacher.remove('userType');
-        teacher.remove('companyNames');
-        teacher.remove('supervising');
-        teacher.remove('supervisedBy');
-
-        // Send the teacher data to the new database
-        await Database.root.child('users').child(teacher['id']).set(teacher);
-
-        // Register the token created by that teacher
-        await TeachingTokenHelpers.registerToken(teacher['id'], token);
-      }
-
-      // Copy answers to new database
-      await Database.root.child('answers').set(allAnswers);
-
-      // Migration done
-      _isMigratingUser?.complete(true);
-
-      return true;
-    } on Exception catch (error, stackTrace) {
-      _logger.severe(
-          'Error while migrating ({$error}) user from old database version',
-          stackTrace);
-      _isMigratingUser?.complete(false);
-      return false;
-    }
   }
 }
