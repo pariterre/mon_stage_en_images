@@ -114,10 +114,6 @@ class OnboardingContexts {
       await Future.delayed(const Duration(milliseconds: 50));
     }
 
-    OnboardingContexts.instance['generate_code']
-        ?.findAncestorStateOfType<StudentsScreenState>()
-        ?.closeDrawer();
-
     OnboardingContexts.instance._isNavigating = false;
   }
 
