@@ -57,6 +57,6 @@ ios/firebase_app_id_file.json
 lib/firebase_options.dart
 macos/Runner/GoogleService-Info.plist
 
-# Exporter
-resources/analyses/export/
-resources/analyses/*.json
+# Python admin
+resources/admin/export/
+resources/admin/*.json
