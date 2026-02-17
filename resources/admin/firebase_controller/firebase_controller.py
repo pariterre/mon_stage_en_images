@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Any
 
 import firebase_admin
-from firebase_admin import db, storage
+from firebase_admin import db, storage, auth
 import pandas
 
 
 class FirebaseController:
-    def __init__(self, certificate_path: Path, temporary_folder: Path):
+    def __init__(self, certificate_path: Path, temporary_folder: Path, force_refresh: bool = False):
         self._certificate_path = certificate_path
         self._database_url = "https://monstageenimages-default-rtdb.firebaseio.com"
         self._bucket_url = "monstageenimages.appspot.com"
@@ -20,11 +20,20 @@ class FirebaseController:
 
         self._initialize_database()
         self._database: pandas.DataFrame = None
+        if force_refresh:
+            self.to_pandas(force_download=True)
 
     def user(self, user_id: str) -> dict | None:
         if user_id not in self._users:
             return None
         return self._users[user_id]
+
+    def set_user(self, user: dict) -> None:
+        db.reference("/v0_1_0").child("users").child(user["id"]).set(user)
+
+    @cached_property
+    def authenticated_users(self) -> dict[str, str]:
+        return {user.uid: user.email for user in auth.list_users().iterate_all()}
 
     @cached_property
     def teaching_tokens(self) -> tuple[str]:
