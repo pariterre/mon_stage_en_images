@@ -18,7 +18,7 @@ final List<ContentCard> resourcesCard = [
     },
   ),
   ContentCard(
-    coverUri: 'assets/images/cover_metier.jpg',
+    coverUri: 'assets/images/cover_metier.png',
     title: 'Apprendre sur M.É.T.I.E.R.',
     description: '''Une publication de la chaire de recherche ADOPREVIT '''
         '''décrivant un modèle d'analyse de l'activité de travail centré sur la personne en situation.'''
