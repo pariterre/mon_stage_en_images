@@ -37,7 +37,7 @@ def main():
         ]
     )
 
-    db = controller.database_as_json(save_folder=save_folder, force_download=False, download_storage=True)
+    db = controller.database_as_pandas(save_folder=save_folder, force_download=True, download_storage=True)
 
     # Extract data from the databse
     users = {user["id"]: user for user in db["users"] if isinstance(user, dict) and "firstName" in user}

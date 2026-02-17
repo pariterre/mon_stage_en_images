@@ -15,6 +15,7 @@ class FirebaseController:
         self._initialize_database()
 
     def database_as_json(
+    def database_as_pandas(
         self, save_folder: Path, force_download: bool = False, download_storage: bool = True
     ) -> pandas.DataFrame:
         save_filepath: Path = Path(save_folder) / "firebase_export.json"
