@@ -179,7 +179,7 @@ class Database extends EzloginFirebase with ChangeNotifier {
     await _stopFetchingData();
     notifyListeners();
     _fromAutomaticLogin = false;
-    return super.logout();
+    return await super.logout();
   }
 
   @override
@@ -218,31 +218,24 @@ class Database extends EzloginFirebase with ChangeNotifier {
         // If no data are found in the current version, try to migrate from previous version
         try {
           // Try writing a value to ensure we have access to the new database
-          try {
-            await FirebaseDatabase.instance
-                .ref('admin')
-                .child('tester')
-                .set(true);
-            await FirebaseDatabase.instance
-                .ref('admin')
-                .child('tester')
-                .remove();
-            await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
-            logout();
-            return null; // Migration is done, force reset
-          } on Exception {
-            // This is not a user who is suppose to migrate, ignore
-          }
+          final value = (await FirebaseDatabase.instance
+                  .ref('admin')
+                  .child('ids')
+                  .child(id)
+                  .get())
+              .value;
+          if (value == null) return null;
+          await _DatabaseMigrationHelper.migrateFromVersion0_0_0();
         } on Exception catch (error) {
           _logger.severe(
               'Error while migrating ({$error}) user $id from old database version');
-          return null;
         }
+        logout();
+        return null;
+      } else {
+        return User.fromSerialized(
+            (data.value as Map?)?.cast<String, dynamic>());
       }
-
-      return data.value == null
-          ? null
-          : User.fromSerialized((data.value as Map?)?.cast<String, dynamic>());
     } on Exception catch (error, stackTrace) {
       _logger.severe('Error while fetching ({$error}) user $id', stackTrace);
       return null;

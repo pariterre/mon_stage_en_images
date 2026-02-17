@@ -10,12 +10,10 @@
     },
     "admin": {
       "ids": {
-        ".read": false,
-        ".write": false
-      },
-      "tester": {
-        ".read": " root.child('admin/ids').hasChild(auth.uid)",
-        ".write": " root.child('admin/ids').hasChild(auth.uid)"
+        "$uid" : {
+          ".read": "$uid === auth.uid",
+          ".write": false
+        }
       }
     },
     "questions": {

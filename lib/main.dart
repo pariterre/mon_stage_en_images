@@ -39,6 +39,14 @@ void main() async {
       useEmulator: useEmulator,
       currentPlatform: DefaultFirebaseOptions.currentPlatform);
 
+  try {
+    await Database.getRequiredSoftwareVersion();
+  } catch (_) {
+    // If previous session crashed, user may sometime remains logged in, preventing
+    // from connecting to the database
+    await userDatabase.logout();
+  }
+
   await initializeDateFormatting('fr_FR', null);
   await RouteManager.instance.initialize();
 
