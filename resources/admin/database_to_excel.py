@@ -5,11 +5,12 @@ from firebase_controller import FirebaseController
 
 
 def main():
-    controller = FirebaseController(
-        certificate_path=Path(__file__).parent / "monstageenimages-firebase-adminsdk-1owio-3a91847821.json"
-    )
-
     save_folder = Path(__file__).parent / "export"
+    controller = FirebaseController(
+        certificate_path=Path(__file__).parent / "monstageenimages-firebase-adminsdk-1owio-3a91847821.json",
+        temporary_folder=save_folder,
+    )
+    controller.download_storage(force_download=False)
 
     title_timestamp = "Timestamp"
     title_id_student = "Id élève"
@@ -37,24 +38,15 @@ def main():
         ]
     )
 
-    db = controller.database_as_pandas(save_folder=save_folder, force_download=True, download_storage=True)
+    for teaching_token in controller.teaching_tokens:
+        teacher_id = controller.teacher_id(teaching_token=teaching_token)
+        if teacher_id is None:
+            continue
+        teacher = controller.user(user_id=teacher_id)
 
-    # Extract data from the databse
-    users = {user["id"]: user for user in db["users"] if isinstance(user, dict) and "firstName" in user}
-    tokenized_answers = db["answers"]
-    questions = db["questions"]
-
-    teacher_ids = {
-        token["metadata"]["createdBy"]: token["connectedUsers"].keys()
-        for token in db["tokens"]
-        if isinstance(token, dict) and "connectedUsers" in token
-    }
-    for teacher_id in teacher_ids.keys():
-        teacher = users[teacher_id]
-
-        student_ids = teacher_ids[teacher_id]
+        student_ids = controller.student_ids(teaching_token=teaching_token)
         for student_id in student_ids:
-            student = users[student_id]
+            student = controller.user(user_id=student_id)
             tokens = list(student["tokens"]["connected"].keys())
             if len(tokens) != 1:
                 raise NotImplementedError("Connected to more than one tokens is not supported yet")
@@ -63,12 +55,12 @@ def main():
             teacher_first_name = teacher["firstName"]
             teacher_last_name = teacher["lastName"]
 
-            answer_ids = tokenized_answers[token][student_id]
-            for question_id in answer_ids:
-                if question_id == "id" or question_id not in questions[teacher_id]:
+            student_answers = controller.answers(teaching_token=token, student_id=student_id)
+            for question_id in student_answers:
+                question = controller.question(teacher_id=teacher_id, question_id=question_id)
+                if question is None:
                     continue
 
-                question = questions[teacher_id][question_id]
                 metier = "MÉTIER"[question["section"]]
                 output.loc[len(output)] = [
                     "",
@@ -83,11 +75,11 @@ def main():
                     question["text"],
                 ]
 
-                if "discussion" not in answer_ids[question_id]:
+                if "discussion" not in student_answers[question_id]:
                     continue
 
-                for discussion_id in answer_ids[question_id]["discussion"]:
-                    tp = answer_ids[question_id]["discussion"][discussion_id]
+                for discussion_id in student_answers[question_id]["discussion"]:
+                    tp = student_answers[question_id]["discussion"][discussion_id]
                     time_stamp = pd.to_datetime(tp["creationTimeStamp"], unit="us").strftime("%Y-%m-%d %H:%M:%S")
                     if not time_stamp:
                         print("Ccouou")
