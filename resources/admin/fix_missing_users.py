@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import re
 
@@ -9,7 +10,8 @@ def main():
     controller = FirebaseController(
         certificate_path=Path(__file__).parent / "monstageenimages-firebase-adminsdk-1owio-3a91847821.json",
         temporary_folder=save_folder,
-        force_refresh=False,
+        force_refresh=os.getenv("FORCE_DATABASE_FETCHING", "false").lower() == "true",
+        use_emulator=os.getenv("USE_DATABASE_EMULATOR", "false").lower() == "true",
     )
 
     for uid in controller.authenticated_users.keys():

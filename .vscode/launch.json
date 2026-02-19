@@ -24,18 +24,47 @@
       ],
     },
     {
-      "name": "Database to excel",
+      "name": "Update app version",
       "request": "launch",
       "type": "debugpy",
-      "program": "${workspaceFolder}/resources/admin/database_to_excel.py",
+      "program": "${workspaceFolder}/resources/admin/update_app_version.py",
       "cwd": "${workspaceFolder}/resources/admin/",
-    },
+      "env": {
+        "USE_DATABASE_EMULATOR": "false", // "true" or "false
+      }
+    }, 
     {
       "name": "Fix missing users",
       "request": "launch",
       "type": "debugpy",
       "program": "${workspaceFolder}/resources/admin/fix_missing_users.py",
       "cwd": "${workspaceFolder}/resources/admin/",
-    }
+      "env": {
+        "FORCE_DATABASE_FETCHING": "false", // "true" or "false
+        "USE_DATABASE_EMULATOR": "true", // "true" or "false
+      }
+    }, 
+    {
+      "name": "Delete user",
+      "request": "launch",
+      "type": "debugpy",
+      "program": "${workspaceFolder}/resources/admin/delete_user.py",
+      "cwd": "${workspaceFolder}/resources/admin/",
+      "env": {
+        "FORCE_DATABASE_FETCHING": "false", // "true" or "false
+        "USE_DATABASE_EMULATOR": "true", // "true" or "false
+      }
+    }, 
+    {
+      "name": "Database to excel",
+      "request": "launch",
+      "type": "debugpy",
+      "program": "${workspaceFolder}/resources/admin/database_to_excel.py",
+      "cwd": "${workspaceFolder}/resources/admin/",
+      "env": {
+        "FORCE_DATABASE_FETCHING": "false", // "true" or "false
+        "USE_DATABASE_EMULATOR": "true", // "true" or "false
+      }
+    },
   ]
 }

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import pandas as pd
 
@@ -9,8 +10,10 @@ def main():
     controller = FirebaseController(
         certificate_path=Path(__file__).parent / "monstageenimages-firebase-adminsdk-1owio-3a91847821.json",
         temporary_folder=save_folder,
+        force_refresh=os.getenv("FORCE_DATABASE_FETCHING", "false").lower() == "true",
+        use_emulator=os.getenv("USE_DATABASE_EMULATOR", "false").lower() == "true",
     )
-    controller.download_storage(force_download=False)
+    controller.download_storage(force_download=os.getenv("FORCE_DATABASE_FETCHING", "false").lower() == "true")
 
     title_timestamp = "Timestamp"
     title_id_student = "Id élève"

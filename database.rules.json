@@ -1,9 +1,5 @@
 {
   "rules": {
-    "isConnected": {
-      ".read": true,
-      ".write": false
-    },
     "appInfo": {
       ".read": true,
       ".write": false
@@ -15,18 +11,6 @@
           ".write": false
         }
       }
-    },
-    "questions": {
-      ".read": "  root.child('admin/ids').hasChild(auth.uid)",
-      ".write": " root.child('admin/ids').hasChild(auth.uid)"
-    },
-    "answers": {
-      ".read": "  root.child('admin/ids').hasChild(auth.uid)",
-      ".write": " root.child('admin/ids').hasChild(auth.uid)"
-    },
-    "users": {
-      ".read": "  root.child('admin/ids').hasChild(auth.uid)",
-      ".write": " root.child('admin/ids').hasChild(auth.uid)"
     },
     "v0_1_0": {
       ".write": "root.child('admin/ids').hasChild(auth.uid)",
