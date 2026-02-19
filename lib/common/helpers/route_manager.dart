@@ -3,7 +3,6 @@ import 'package:mon_stage_en_images/common/helpers/push_notifications_helpers.da
 import 'package:mon_stage_en_images/common/models/enum.dart';
 import 'package:mon_stage_en_images/common/models/user.dart';
 import 'package:mon_stage_en_images/common/providers/database.dart';
-import 'package:mon_stage_en_images/main.dart';
 import 'package:mon_stage_en_images/screens/all_students/students_screen.dart';
 import 'package:mon_stage_en_images/screens/login/go_to_irsst_screen.dart';
 import 'package:mon_stage_en_images/screens/login/login_screen.dart';
@@ -12,6 +11,7 @@ import 'package:mon_stage_en_images/screens/login/wrong_version_screen.dart';
 import 'package:mon_stage_en_images/screens/my_info/my_info_screen.dart';
 import 'package:mon_stage_en_images/screens/q_and_a/q_and_a_screen.dart';
 import 'package:mon_stage_en_images/screens/resources/resources_screen.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,10 +28,14 @@ class RouteManager {
   }
 
   Future<void> _setVersionIsValid() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
     // Check the software version
     final requiredVersion =
         Version.parse(await Database.getRequiredSoftwareVersion() ?? '0.0.0');
-    final current = Version.parse(softwareVersion);
+
+    final packageInfo = await PackageInfo.fromPlatform();
+    final current = Version.parse(packageInfo.version);
     _versionIsValid = current >= requiredVersion;
   }
 
