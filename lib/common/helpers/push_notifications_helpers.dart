@@ -7,6 +7,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class PushNotificationsHelpers {
+  ///
+  /// NOTE: Send notifications is done using Firebase Cloud Functions (see functions folder).
+  ///
+
+  ///
+  /// This method should be called once when the app starts to set up push notifications.
+  /// It will request permissions if needed and listen to incoming notifications.
+  ///
   static Future<void> setupPushNotifications(BuildContext context) async {
     if (kIsWeb) return;
 
@@ -20,8 +28,7 @@ class PushNotificationsHelpers {
         break;
       case AuthorizationStatus.denied:
         {
-          if (true) {
-            //SharedPreferencesController.instance.showPermissionRefused) {
+          if (SharedPreferencesController.instance.showPermissionRefused) {
             SharedPreferencesController.instance.showPermissionRefused = false;
             if (!context.mounted) return;
             await showDialog(
