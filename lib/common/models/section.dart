@@ -73,16 +73,14 @@ const List<String> teacherMetierDescription = [
 ];
 
 const List<String> studentMetierDescription = [
-  'Des questions à propos des produits que tu utilises ou'
+  'Des questions à propos des produits que tu manipules ou'
       ' des substances, des matériaux présents dans ton environnement de travail',
-  'Des questions à propos des outils, machines et équipements qui sont utilisés'
+  'Des questions à propos des outils, machines et équipements que tu utilises ou qui sont utilisés'
       ' sur ton lieu de travail',
-  'Des questions sur les tâches qu\'on te confie et les conditions particulières'
-      ' pour considérer qu\'elles sont réussies ',
-  'Des questions qui portent sur toi, sur la façon dont tu te sens au travail,'
-      ' ou sur la façon dont tes caractéristiques personnelles influencent ta santé',
+  'Des questions sur les tâches qu\'on te confie, les demandes qu\'on te fait'
+      ' et les critères de succès',
+  'Des questions qui portent sur toi, tes motivations, tes intérêts, sur la façon dont tu te sens au travail,',
   'Des questions sur les caractéristiques de ton environnement de stage,'
       ' comme l\'aménagement des lieux, la température, le bruit, etc.',
-  'Des questions à propos des gens avec qui tu interagis au quotidien en stage,'
-      ' comme ton superviseur, tes collègues, les clients, etc.',
+  'Des questions à propos des gens avec qui tu travailles ou avec qui tu pourrais interagir.',
 ];

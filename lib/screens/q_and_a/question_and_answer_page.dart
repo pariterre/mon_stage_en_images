@@ -175,13 +175,13 @@ class _QuestionAndAnswerPageState extends State<QuestionAndAnswerPage> {
                       answerFilterMode: widget.answerFilterMode)),
             ),
           Positioned(
-            bottom: MediaQuery.of(context).viewPadding.bottom,
+            bottom: MediaQuery.of(context).viewPadding.bottom + 12,
             left: 0,
             right: 0,
             child: AnimatedSlide(
                 duration: Durations.long1,
                 curve: Curves.easeInOut,
-                offset: Offset(0, showInfo ? 0 : 1.05),
+                offset: Offset(0, showInfo ? 0 : 1.1),
                 child: MetierInfoCard(sectionIndex: widget.sectionIndex)),
           )
         ],
