@@ -125,8 +125,7 @@ class _QuestionAndAnswerPageState extends State<QuestionAndAnswerPage> {
                   ),
                 if (widget.viewSpan != Target.individual)
                   const SizedBox(height: 10),
-                if (widget.viewSpan != Target.individual &&
-                    widget.pageMode == PageMode.edit)
+                if (widget.pageMode == PageMode.edit)
                   OnboardingContainer(
                     onInitialize: (context) => OnboardingContexts
                         .instance['new_question_button'] = context,

@@ -411,31 +411,33 @@ class QAndAScreenState extends State<QAndAScreen> {
             padding: const EdgeInsets.only(right: 8.0),
             child: AvatarTab(user: currentUser),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              OnboardingContainer(
-                onInitialize: (context) => OnboardingContexts
-                    .instance['q_and_a_app_bar_title'] = context,
-                child: Text(_student?.toString() ??
-                    (_pageMode == PageMode.fixView
-                        ? 'Résumé des réponses'
-                        : 'Gestion des questions')),
-              ),
-              if (userType == UserType.student)
-                Text(
-                    _currentPage == 0
-                        ? 'Mon stage en images'
-                        : Section.name(_currentPage - 1),
-                    style: currentTheme.copyWith(
-                        fontSize: 15, color: onPrimaryColor)),
-              if (userType == UserType.teacher && _student != null)
-                Text(
-                  currentUser.studentNotes[_student!.id] ?? '',
-                  style: currentTheme.copyWith(
-                      fontSize: 15, color: onPrimaryColor),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OnboardingContainer(
+                  onInitialize: (context) => OnboardingContexts
+                      .instance['q_and_a_app_bar_title'] = context,
+                  child: Text(_student?.toString() ??
+                      (_pageMode == PageMode.fixView
+                          ? 'Résumé des réponses'
+                          : 'Gestion des questions')),
                 ),
-            ],
+                if (userType == UserType.student)
+                  Text(
+                      _currentPage == 0
+                          ? 'Mon stage en images'
+                          : Section.name(_currentPage - 1),
+                      style: currentTheme.copyWith(
+                          fontSize: 15, color: onPrimaryColor)),
+                if (userType == UserType.teacher && _student != null)
+                  Text(
+                    currentUser.studentNotes[_student!.id] ?? '',
+                    style: currentTheme.copyWith(
+                        fontSize: 15, color: onPrimaryColor),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
