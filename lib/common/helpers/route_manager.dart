@@ -19,33 +19,11 @@ import 'package:pub_semver/pub_semver.dart';
 
 final _logger = Logger('RouteManager');
 
-sealed class VersionStatus {
-  Version get currentVersion;
-}
-
-class ValidVersion extends VersionStatus {
-  ValidVersion({required this.currentVersion});
-  @override
-  final Version currentVersion;
-}
-
-class WrongVersion extends VersionStatus {
-  WrongVersion({required this.currentVersion, required this.requiredVersion});
-  @override
-  final Version currentVersion;
-  final Version requiredVersion;
-}
-
-class PendingVersion extends VersionStatus {
-  @override
-  Version get currentVersion => Version.none;
-}
-
-class CannotObtainVersion extends VersionStatus {
-  CannotObtainVersion(this.exception);
-  @override
-  Version get currentVersion => Version.none;
-  final Exception exception;
+enum _VersionStatus {
+  validVersion,
+  wrongVersion,
+  pendingVersion,
+  cannotObtainVersion;
 }
 
 class RouteManager {
@@ -53,9 +31,9 @@ class RouteManager {
   RouteManager._();
   static final RouteManager instance = RouteManager._();
 
-  bool get isInitialized => status is! PendingVersion;
+  bool get isInitialized => _status != _VersionStatus.pendingVersion;
 
-  VersionStatus status = PendingVersion();
+  _VersionStatus _status = _VersionStatus.pendingVersion;
   Future<void> initialize() async {
     await _setVersionIsValid();
   }
@@ -69,7 +47,7 @@ class RouteManager {
       versionString = await Database.getRequiredSoftwareVersion();
     } on Exception catch (e) {
       _logger.info('Cannot obtain software required version : ${e.toString()}');
-      status = CannotObtainVersion(e);
+      _status = _VersionStatus.cannotObtainVersion;
       return;
     }
 
@@ -77,10 +55,9 @@ class RouteManager {
 
     final packageInfo = await PackageInfo.fromPlatform();
     final current = Version.parse(packageInfo.version);
-    status = current >= requiredVersion
-        ? ValidVersion(currentVersion: current)
-        : WrongVersion(
-            currentVersion: current, requiredVersion: requiredVersion);
+    _status = current >= requiredVersion
+        ? _VersionStatus.validVersion
+        : _VersionStatus.wrongVersion;
   }
 
   final _navigatorKey = GlobalKey<NavigatorState>();
@@ -88,12 +65,12 @@ class RouteManager {
 
   NavigatorState? get currentState => _navigatorKey.currentState;
 
-  String get initialRoute => switch (status) {
-        PendingVersion() => throw Exception(
+  String get initialRoute => switch (_status) {
+        _VersionStatus.pendingVersion => throw Exception(
             'RouteManager is not initialized. Call initialize() before accessing initialRoute.'),
-        CannotObtainVersion() => FailedChecksScreen.routeName,
-        WrongVersion() => WrongVersionScreen.routeName,
-        ValidVersion() => LoginScreen.routeName
+        _VersionStatus.cannotObtainVersion => FailedChecksScreen.routeName,
+        _VersionStatus.wrongVersion => WrongVersionScreen.routeName,
+        _VersionStatus.validVersion => LoginScreen.routeName
       };
 
   Future<void> gotoLoginPage(BuildContext context) async {
@@ -232,12 +209,7 @@ class RouteManager {
       case MyInfoScreen.routeName:
         return MyInfoScreen();
       case FailedChecksScreen.routeName:
-        final exception = status is CannotObtainVersion
-            ? (status as CannotObtainVersion).exception
-            : null;
-        return FailedChecksScreen(
-          exception: exception,
-        );
+        return FailedChecksScreen();
       case WrongVersionScreen.routeName:
         return WrongVersionScreen();
       case LoginScreen.routeName:
