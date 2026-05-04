@@ -29,7 +29,7 @@ class MetierTooltip extends StatelessWidget {
     final userType = Provider.of<Database>(context, listen: false).userType;
 
     return RawTooltip(
-        hoverDelay: Duration.zero,
+        hoverDelay: Duration(milliseconds: 1000),
         semanticsTooltip: Section.description(sectionIndex, userType),
         positionDelegate: (TooltipPositionContext context) =>
             (setOffset ?? defaultOffset)(context),
@@ -45,7 +45,7 @@ class MetierTooltip extends StatelessWidget {
                 ),
               ),
             ),
-        triggerMode: TooltipTriggerMode.manual,
+        triggerMode: TooltipTriggerMode.longPress,
         child: child);
   }
 }
