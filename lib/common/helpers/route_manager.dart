@@ -41,17 +41,17 @@ class RouteManager {
   Future<void> _setVersionIsValid() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    String? versionString;
+    String versionString;
     // Check the software version
     try {
-      versionString = await Database.getRequiredSoftwareVersion();
+      versionString = (await Database.getRequiredSoftwareVersion())!;
     } on Exception catch (e) {
       _logger.info('Cannot obtain software required version : ${e.toString()}');
       _status = _VersionStatus.cannotObtainVersion;
       return;
     }
 
-    final requiredVersion = Version.parse(versionString ?? '0.0.0');
+    final requiredVersion = Version.parse(versionString);
 
     final packageInfo = await PackageInfo.fromPlatform();
     final current = Version.parse(packageInfo.version);
